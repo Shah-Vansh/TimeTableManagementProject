@@ -44,16 +44,49 @@ export default function MakeTimetable() {
   const [className, setClassName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
   const facultyOptions = [
-    { value: "free", label: "Free", color: "text-green-600 bg-green-50 border-green-200" },
-    { value: "ABC", label: "ABC", color: "text-blue-600 bg-blue-50 border-blue-200" },
-    { value: "DEF", label: "DEF", color: "text-purple-600 bg-purple-50 border-purple-200" },
-    { value: "XYZ", label: "XYZ", color: "text-amber-600 bg-amber-50 border-amber-200" },
-    { value: "PQR", label: "PQR", color: "text-red-600 bg-red-50 border-red-200" },
-    { value: "LMN", label: "LMN", color: "text-indigo-600 bg-indigo-50 border-indigo-200" },
-    { value: "JKL", label: "JKL", color: "text-pink-600 bg-pink-50 border-pink-200" },
-    { value: "GHI", label: "GHI", color: "text-cyan-600 bg-cyan-50 border-cyan-200" },
+    {
+      value: "free",
+      label: "Free",
+      color: "text-green-600 bg-green-50 border-green-200",
+    },
+    {
+      value: "ABC",
+      label: "ABC",
+      color: "text-blue-600 bg-blue-50 border-blue-200",
+    },
+    {
+      value: "DEF",
+      label: "DEF",
+      color: "text-purple-600 bg-purple-50 border-purple-200",
+    },
+    {
+      value: "XYZ",
+      label: "XYZ",
+      color: "text-amber-600 bg-amber-50 border-amber-200",
+    },
+    {
+      value: "PQR",
+      label: "PQR",
+      color: "text-red-600 bg-red-50 border-red-200",
+    },
+    {
+      value: "LMN",
+      label: "LMN",
+      color: "text-indigo-600 bg-indigo-50 border-indigo-200",
+    },
+    {
+      value: "JKL",
+      label: "JKL",
+      color: "text-pink-600 bg-pink-50 border-pink-200",
+    },
+    {
+      value: "GHI",
+      label: "GHI",
+      color: "text-cyan-600 bg-cyan-50 border-cyan-200",
+    },
   ];
 
   const initialSchedule = days.reduce((acc, day) => {
@@ -101,7 +134,27 @@ export default function MakeTimetable() {
       setSaved(true);
     } catch (error) {
       console.error("Error saving timetable:", error);
-      alert("Failed to save timetable");
+
+      if (error.response && error.response.status === 409) {
+        const data = error.response.data;
+
+        const dayMap = {
+          mon: "Monday",
+          tue: "Tuesday",
+          wed: "Wednesday",
+          thu: "Thursday",
+          fri: "Friday",
+          sat: "Saturday",
+        };
+
+        setErrorMsg(
+          `❌ Faculty ${data.faculty} is already assigned on ${
+            dayMap[data.day]
+          } (${data.time_slot})`
+        );
+      } else {
+        setErrorMsg("❌ Failed to save timetable. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -125,7 +178,6 @@ export default function MakeTimetable() {
   return (
     <div className="min-h-screen p-6 bg-gray-50 dark:bg-gray-900">
       <div className="max-w-7xl mx-auto">
-
         {/* =======================
             🔹 HEADER
         ======================= */}
@@ -134,10 +186,18 @@ export default function MakeTimetable() {
         </h1>
 
         {/* =======================
+            🔹 Error
+        ======================= */}
+        {errorMsg && (
+          <div className="mb-6 p-4 rounded-xl border border-red-300 bg-red-50 text-red-700 font-semibold">
+            {errorMsg}
+          </div>
+        )}
+
+        {/* =======================
             🔹 SEM + BRANCH + CLASS
         ======================= */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-
           {/* Semester */}
           <div className="relative">
             <GraduationCap className="absolute left-3 top-3 text-blue-500" />
@@ -146,8 +206,10 @@ export default function MakeTimetable() {
               onChange={(e) => setSem(Number(e.target.value))}
               className="w-full pl-10 p-3 rounded-xl border focus:ring-2 focus:ring-blue-500"
             >
-              {[1,2,3,4,5,6,7,8].map((s) => (
-                <option key={s} value={s}>Semester {s}</option>
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
+                <option key={s} value={s}>
+                  Semester {s}
+                </option>
               ))}
             </select>
           </div>
@@ -188,7 +250,9 @@ export default function MakeTimetable() {
               <tr>
                 <th className="p-4">Time</th>
                 {days.map((d) => (
-                  <th key={d} className="p-4">{d}</th>
+                  <th key={d} className="p-4">
+                    {d}
+                  </th>
                 ))}
               </tr>
             </thead>

@@ -3,6 +3,9 @@ from flask import request, jsonify
 from collections import defaultdict
 from app.database.mongo import db
 
+# ===============================
+# 🔹 CONSTANTS
+# ===============================
 DAYS_MAP = {
     "Monday": "mon",
     "Tuesday": "tue",
@@ -15,13 +18,40 @@ DAYS_MAP = {
 
 ALLOWED_BRANCHES = ["CSE", "CSE(AIML)", "DS"]
 
-# Define time slots and their order
-TIME_SLOTS = [
-    "Time Slot 1", "Time Slot 2", "Time Slot 3", "Time Slot 4",
-    "Time Slot 5", "Time Slot 6", "Time Slot 7", "Time Slot 8"
-]
-TIME_SLOT_INDEX = {slot: idx for idx, slot in enumerate(TIME_SLOTS)}
+TIME_SLOT_INDEX = {
+    "Time Slot 1": 0,
+    "Time Slot 2": 1,
+    "Time Slot 3": 2,
+    "Time Slot 4": 3,
+    "Time Slot 5": 4,
+    "Time Slot 6": 5,
+    "Time Slot 7": 6,
+    "Time Slot 8": 7,
+}
 
+TOTAL_SLOTS = 8
+
+
+# ===============================
+# 🔹 HELPERS
+# ===============================
+def normalize_day_slots(day_list, total_slots=TOTAL_SLOTS):
+    """
+    Ensures a day timetable always has fixed length.
+    Pads with 'free' or trims safely.
+    """
+    if not isinstance(day_list, list):
+        return ["free"] * total_slots
+
+    if len(day_list) < total_slots:
+        return day_list + ["free"] * (total_slots - len(day_list))
+
+    return day_list[:total_slots]
+
+
+# ===============================
+# 🔹 MAIN CONTROLLER
+# ===============================
 def save_timetable():
     try:
         sem = request.form.get("sem")
@@ -51,6 +81,7 @@ def save_timetable():
         # 1️⃣ CLASSWISE FACULTY
         # ===============================
         allowed_faculty = set()
+
         for day in schedule.values():
             for faculty in day.values():
                 if faculty != "free":
@@ -73,15 +104,15 @@ def save_timetable():
         )
 
         # ===============================
-        # 2️⃣ BUILD FACULTY TABLES (INDEX-BASED)
+        # 2️⃣ BUILD FACULTY TABLES (FIXED INDEX)
         # ===============================
         faculty_tables = defaultdict(lambda: {
-            "mon": [None]*len(TIME_SLOTS),
-            "tue": [None]*len(TIME_SLOTS),
-            "wed": [None]*len(TIME_SLOTS),
-            "thu": [None]*len(TIME_SLOTS),
-            "fri": [None]*len(TIME_SLOTS),
-            "sat": [None]*len(TIME_SLOTS)
+            "mon": ["free"] * TOTAL_SLOTS,
+            "tue": ["free"] * TOTAL_SLOTS,
+            "wed": ["free"] * TOTAL_SLOTS,
+            "thu": ["free"] * TOTAL_SLOTS,
+            "fri": ["free"] * TOTAL_SLOTS,
+            "sat": ["free"] * TOTAL_SLOTS,
         })
 
         for day_name, slots in schedule.items():
@@ -90,37 +121,69 @@ def save_timetable():
                 continue
 
             for time_slot, faculty in slots.items():
-                if faculty != "free":
-                    idx = TIME_SLOT_INDEX.get(time_slot)
-                    if idx is not None:
-                        faculty_tables[faculty][day_key][idx] = f"{branch}-{class_name}-Sem{sem}-{time_slot}"
+                if faculty == "free":
+                    continue
+
+                slot_index = TIME_SLOT_INDEX.get(time_slot)
+                if slot_index is None:
+                    continue
+
+                faculty_tables[faculty][day_key][slot_index] = (
+                    f"{branch}-{class_name}-Sem{sem}-{time_slot}"
+                )
 
         # ===============================
-        # 3️⃣ MERGE WITH EXISTING FACULTY TIMETABLE
+        # 3️⃣ MERGE WITH EXISTING FACULTY TIMETABLE (WITH CONFLICT CHECK)
         # ===============================
         for faculty_id, new_tt in faculty_tables.items():
 
             existing = faculty_tt_col.find_one({"_id": faculty_id}) or {}
-            existing_tt = existing.get("timetable", {
-                "mon": [None]*len(TIME_SLOTS),
-                "tue": [None]*len(TIME_SLOTS),
-                "wed": [None]*len(TIME_SLOTS),
-                "thu": [None]*len(TIME_SLOTS),
-                "fri": [None]*len(TIME_SLOTS),
-                "sat": [None]*len(TIME_SLOTS)
-            })
+            existing_tt = existing.get("timetable", {})
 
-            # Merge: replace only slots that are not None
+            # 🔹 normalize old data
+            normalized_tt = {
+                "mon": normalize_day_slots(existing_tt.get("mon")),
+                "tue": normalize_day_slots(existing_tt.get("tue")),
+                "wed": normalize_day_slots(existing_tt.get("wed")),
+                "thu": normalize_day_slots(existing_tt.get("thu")),
+                "fri": normalize_day_slots(existing_tt.get("fri")),
+                "sat": normalize_day_slots(existing_tt.get("sat")),
+            }
+
+            # 🔴 CONFLICT DETECTION
             for day in new_tt:
-                for i in range(len(TIME_SLOTS)):
-                    if new_tt[day][i] is not None:
-                        existing_tt[day][i] = new_tt[day][i]
+                for i in range(TOTAL_SLOTS):
+
+                    new_val = new_tt[day][i]
+                    old_val = normalized_tt[day][i]
+
+                    # ❌ conflict found
+                    if new_val != "free" and old_val != "free":
+                        return jsonify({
+                            "error": "Faculty lecture conflict",
+                            "faculty": faculty_id,
+                            "day": day,
+                            "time_slot": f"Time Slot {i + 1}",
+                            "existing_lecture": old_val
+                        }), 409
+
+            # ✅ NO CONFLICT → SAFE TO MERGE
+            for day in new_tt:
+                for i in range(TOTAL_SLOTS):
+                    if new_tt[day][i] != "free":
+                        normalized_tt[day][i] = new_tt[day][i]
 
             faculty_tt_col.update_one(
                 {"_id": faculty_id},
-                {"$set": {"name": faculty_id, "timetable": existing_tt}},
+                {
+                    "$set": {
+                        "name": faculty_id,
+                        "timetable": normalized_tt
+                    }
+                },
                 upsert=True
             )
+
 
         return jsonify({
             "message": "Timetable saved successfully",
