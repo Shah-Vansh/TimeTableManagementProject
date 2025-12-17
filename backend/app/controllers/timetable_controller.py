@@ -13,14 +13,25 @@ DAYS_MAP = {
     "Sunday": "sun"
 }
 
+ALLOWED_BRANCHES = ["CSE", "CSE(AIML)", "DS"]
+
 def save_timetable():
     try:
         sem = request.form.get("sem")
+        branch = request.form.get("branch")
         class_name = request.form.get("class")
         schedule_raw = request.form.get("schedule")
 
-        if not sem or not class_name or not schedule_raw:
-            return jsonify({"error": "Missing sem, class or schedule"}), 400
+        # ===============================
+        # 🔹 BASIC VALIDATION
+        # ===============================
+        if not sem or not branch or not class_name or not schedule_raw:
+            return jsonify({
+                "error": "Missing sem, branch, class or schedule"
+            }), 400
+
+        if branch not in ALLOWED_BRANCHES:
+            return jsonify({"error": "Invalid branch"}), 400
 
         schedule = json.loads(schedule_raw)
 
@@ -41,13 +52,16 @@ def save_timetable():
                 if faculty != "free":
                     allowed_faculty.add(faculty)
 
-        class_id = f"sem{sem}{class_name.lower()}"
+        # 👉 Unique class ID using sem + branch + class
+        safe_branch = branch.lower().replace("(", "").replace(")", "")
+        class_id = f"sem{sem}_{safe_branch}_{class_name.lower()}"
 
         classwise_col.update_one(
             {"_id": class_id},
             {
                 "$set": {
                     "sem": sem,
+                    "branch": branch,
                     "class": class_name,
                     "allowed_faculty": list(allowed_faculty)
                 }
@@ -71,7 +85,7 @@ def save_timetable():
             for time_slot, faculty in slots.items():
                 if faculty != "free":
                     faculty_tables[faculty][day_key].append(
-                        f"{class_name}-Sem{sem}"
+                        f"{branch}-{class_name}-Sem{sem}"
                     )
 
         for faculty_id, timetable in faculty_tables.items():
@@ -89,6 +103,7 @@ def save_timetable():
         return jsonify({
             "message": "Timetable saved successfully",
             "class_id": class_id,
+            "branch": branch,
             "faculty_updated": list(faculty_tables.keys())
         }), 200
 

@@ -3,9 +3,9 @@ import {
   Save,
   Trash2,
   RefreshCw,
-  Calendar,
   GraduationCap,
   Users,
+  Calendar,
 } from "lucide-react";
 import api from "../configs/api";
 
@@ -19,67 +19,41 @@ export default function MakeTimetable() {
     "Saturday",
     "Sunday",
   ];
+
   const timeSlots = [
     "Time Slot 1",
     "Time Slot 2",
     "Time Slot 3",
     "Time Slot 4",
   ];
+
   const additionalSlots = [
     "Time Slot 5",
     "Time Slot 6",
     "Time Slot 7",
     "Time Slot 8",
   ];
+
   const allTimeSlots = [...timeSlots, ...additionalSlots];
 
   /* =======================
-     🔹 NEW STATE
+     🔹 STATE
   ======================= */
   const [sem, setSem] = useState(1);
+  const [branch, setBranch] = useState("CSE");
   const [className, setClassName] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   const facultyOptions = [
-    {
-      value: "free",
-      label: "Free",
-      color: "text-green-600 bg-green-50 border-green-200",
-    },
-    {
-      value: "ABC",
-      label: "ABC",
-      color: "text-blue-600 bg-blue-50 border-blue-200",
-    },
-    {
-      value: "DEF",
-      label: "DEF",
-      color: "text-purple-600 bg-purple-50 border-purple-200",
-    },
-    {
-      value: "XYZ",
-      label: "XYZ",
-      color: "text-amber-600 bg-amber-50 border-amber-200",
-    },
-    {
-      value: "PQR",
-      label: "PQR",
-      color: "text-red-600 bg-red-50 border-red-200",
-    },
-    {
-      value: "LMN",
-      label: "LMN",
-      color: "text-indigo-600 bg-indigo-50 border-indigo-200",
-    },
-    {
-      value: "JKL",
-      label: "JKL",
-      color: "text-pink-600 bg-pink-50 border-pink-200",
-    },
-    {
-      value: "GHI",
-      label: "GHI",
-      color: "text-cyan-600 bg-cyan-50 border-cyan-200",
-    },
+    { value: "free", label: "Free", color: "text-green-600 bg-green-50 border-green-200" },
+    { value: "ABC", label: "ABC", color: "text-blue-600 bg-blue-50 border-blue-200" },
+    { value: "DEF", label: "DEF", color: "text-purple-600 bg-purple-50 border-purple-200" },
+    { value: "XYZ", label: "XYZ", color: "text-amber-600 bg-amber-50 border-amber-200" },
+    { value: "PQR", label: "PQR", color: "text-red-600 bg-red-50 border-red-200" },
+    { value: "LMN", label: "LMN", color: "text-indigo-600 bg-indigo-50 border-indigo-200" },
+    { value: "JKL", label: "JKL", color: "text-pink-600 bg-pink-50 border-pink-200" },
+    { value: "GHI", label: "GHI", color: "text-cyan-600 bg-cyan-50 border-cyan-200" },
   ];
 
   const initialSchedule = days.reduce((acc, day) => {
@@ -91,8 +65,6 @@ export default function MakeTimetable() {
   }, {});
 
   const [schedule, setSchedule] = useState(initialSchedule);
-  const [isLoading, setIsLoading] = useState(false);
-  const [saved, setSaved] = useState(false);
 
   const handleFacultyChange = (day, timeSlot, value) => {
     setSchedule((prev) => ({
@@ -103,7 +75,7 @@ export default function MakeTimetable() {
   };
 
   /* =======================
-     🔹 UPDATED SUBMIT
+     🔹 SUBMIT
   ======================= */
   const handleSubmit = async () => {
     if (!className.trim()) {
@@ -116,15 +88,13 @@ export default function MakeTimetable() {
 
     try {
       const formData = new FormData();
-
       formData.append("sem", sem);
+      formData.append("branch", branch);
       formData.append("class", className);
       formData.append("schedule", JSON.stringify(schedule));
 
       const res = await api.post("/api/timetable", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
       console.log("Saved timetable:", res.data);
@@ -155,19 +125,20 @@ export default function MakeTimetable() {
   return (
     <div className="min-h-screen p-6 bg-gray-50 dark:bg-gray-900">
       <div className="max-w-7xl mx-auto">
+
         {/* =======================
             🔹 HEADER
         ======================= */}
-        <div className="mb-6">
-          <h1 className="text-4xl font-bold text-gray-800 dark:text-white">
-            Faculty Timetable Management
-          </h1>
-        </div>
+        <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-6">
+          Faculty Timetable Management
+        </h1>
 
         {/* =======================
-            🔹 SEM + CLASS FORM
+            🔹 SEM + BRANCH + CLASS
         ======================= */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+
+          {/* Semester */}
           <div className="relative">
             <GraduationCap className="absolute left-3 top-3 text-blue-500" />
             <select
@@ -175,14 +146,27 @@ export default function MakeTimetable() {
               onChange={(e) => setSem(Number(e.target.value))}
               className="w-full pl-10 p-3 rounded-xl border focus:ring-2 focus:ring-blue-500"
             >
-              {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
-                <option key={s} value={s}>
-                  Semester {s}
-                </option>
+              {[1,2,3,4,5,6,7,8].map((s) => (
+                <option key={s} value={s}>Semester {s}</option>
               ))}
             </select>
           </div>
 
+          {/* Branch */}
+          <div className="relative">
+            <Calendar className="absolute left-3 top-3 text-green-500" />
+            <select
+              value={branch}
+              onChange={(e) => setBranch(e.target.value)}
+              className="w-full pl-10 p-3 rounded-xl border focus:ring-2 focus:ring-green-500"
+            >
+              <option value="CSE">CSE</option>
+              <option value="CSE(AIML)">CSE (AIML)</option>
+              <option value="DS">DS</option>
+            </select>
+          </div>
+
+          {/* Class */}
           <div className="relative">
             <Users className="absolute left-3 top-3 text-purple-500" />
             <input
@@ -204,9 +188,7 @@ export default function MakeTimetable() {
               <tr>
                 <th className="p-4">Time</th>
                 {days.map((d) => (
-                  <th key={d} className="p-4">
-                    {d}
-                  </th>
+                  <th key={d} className="p-4">{d}</th>
                 ))}
               </tr>
             </thead>

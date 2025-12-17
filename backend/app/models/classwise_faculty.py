@@ -5,11 +5,11 @@ COLLECTION_NAME = "classwise_faculty"
 CLASSWISE_FACULTY_SCHEMA = {
     "$jsonSchema": {
         "bsonType": "object",
-        "required": ["_id", "class", "sem", "allowed_faculty"],
+        "required": ["_id", "class", "sem", "branch", "allowed_faculty"],
         "properties": {
             "_id": {
                 "bsonType": "string",
-                "description": "Unique identifier (e.g., 'sem1d1')"
+                "description": "Unique identifier (e.g., 'sem4_cseaiml_d1')"
             },
             "class": {
                 "bsonType": "string",
@@ -21,6 +21,11 @@ CLASSWISE_FACULTY_SCHEMA = {
                 "maximum": 8,
                 "description": "Semester number (1-8)"
             },
+            "branch": {
+                "bsonType": "string",
+                "enum": ["CSE", "CSE(AIML)", "DS"],
+                "description": "Academic branch"
+            },
             "allowed_faculty": {
                 "bsonType": "array",
                 "items": {"bsonType": "string"},
@@ -31,9 +36,14 @@ CLASSWISE_FACULTY_SCHEMA = {
     }
 }
 
+# 🔴 THIS WAS MISSING — REQUIRED FOR IMPORT
 CLASSWISE_FACULTY_INDEXES = [
     {
-        "fields": [("sem", ASCENDING), ("class", ASCENDING)],
+        "fields": [
+            ("sem", ASCENDING),
+            ("branch", ASCENDING),
+            ("class", ASCENDING)
+        ],
         "unique": True
     },
     {
