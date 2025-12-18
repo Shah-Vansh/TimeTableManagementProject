@@ -2,7 +2,7 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import MakeTimetable from "./pages/MakeTimetable";
 import ReplaceLecture from "./pages/ReplaceLecture";
-import EditTimetable from "./pages/EditTimeTable";
+import EditTimetable from "./pages/EditTimetable";
 
 function App() {
   return (
