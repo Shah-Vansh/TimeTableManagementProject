@@ -132,6 +132,7 @@ export default function MakeTimetable() {
 
       console.log("Saved timetable:", res.data);
       setSaved(true);
+      setErrorMsg("");
     } catch (error) {
       console.error("Error saving timetable:", error);
 
