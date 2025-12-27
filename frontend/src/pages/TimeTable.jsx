@@ -28,6 +28,7 @@ import {
   Hash,
 } from "lucide-react";
 import api from "../configs/api";
+import Alert from "../components/Alert";
 
 export default function TimeTable() {
   const location = useLocation();
@@ -49,8 +50,21 @@ export default function TimeTable() {
     { label: "Lecture 5", value: "Time Slot 5" },
   ];
 
-  const branchOptions = ["CSE", "CSE(AIML)", "DS", "ECE", "EEE", "ME", "CE"];
-  const divisionOptions = ["D1", "D2", "D3", "D4", "A1", "A2", "B1", "B2"];
+  const branchOptions = ["CSE", "CSE(AIML)", "DS", "IT"];
+  const divisionOptions = [
+    "D1",
+    "D2",
+    "D3",
+    "D4",
+    "D5",
+    "D6",
+    "D7",
+    "D8",
+    "D9",
+    "D10",
+    "D11",
+    "D12",
+  ];
 
   // Default faculty options - will be overridden by fetched data
   const baseFacultyOptions = [
@@ -87,13 +101,21 @@ export default function TimeTable() {
   const [selectedFacultiesToAdd, setSelectedFacultiesToAdd] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoadingAllFaculties, setIsLoadingAllFaculties] = useState(false);
-  
+
   // New faculty creation states
   const [showCreateFaculty, setShowCreateFaculty] = useState(false);
   const [newFacultyId, setNewFacultyId] = useState("");
   const [newFacultyName, setNewFacultyName] = useState("");
   const [isCreatingFaculty, setIsCreatingFaculty] = useState(false);
   const [createFacultyError, setCreateFacultyError] = useState("");
+
+  // Delete modal states
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [divisionToDelete, setDivisionToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Alert state
+  const [alert, setAlert] = useState(null);
 
   // Faculty color mapping for consistent styling
   const facultyColors = [
@@ -113,6 +135,12 @@ export default function TimeTable() {
     "border-fuchsia-200 bg-fuchsia-50 text-fuchsia-700",
     "border-sky-200 bg-sky-50 text-sky-700",
   ];
+
+  // Show alert message
+  const showAlert = (main, info, type) => {
+    setAlert({ main, info, type });
+    setTimeout(() => setAlert(null), 5000);
+  };
 
   // Initialize empty schedule for all divisions and days
   const initializeSchedule = (divisions) => {
@@ -146,10 +174,10 @@ export default function TimeTable() {
           // Use faculty.id as both id and facultyId since your API returns them as the same
           const facultyId = faculty.id || faculty._id || `faculty-${index}`;
           const facultyName = faculty.name || "Unknown Faculty";
-          
+
           return {
-            id: facultyId,  // Use the same ID
-            facultyId: facultyId,  // Same as id
+            id: facultyId, // Use the same ID
+            facultyId: facultyId, // Same as id
             name: facultyName,
             displayLabel: `${facultyName} (${facultyId})`,
             colorIndex: index % facultyColors.length,
@@ -163,7 +191,12 @@ export default function TimeTable() {
       }
     } catch (error) {
       console.error("Error fetching all faculties:", error);
-      
+      showAlert(
+        "Failed to fetch faculties",
+        "Using sample faculty data instead",
+        "error"
+      );
+
       // Fallback to sample data for demo
       const sampleFaculties = [
         {
@@ -239,7 +272,7 @@ export default function TimeTable() {
       setCreateFacultyError("Faculty ID is required");
       return;
     }
-    
+
     if (!newFacultyName.trim()) {
       setCreateFacultyError("Faculty Name is required");
       return;
@@ -247,7 +280,7 @@ export default function TimeTable() {
 
     // Check if faculty ID already exists
     const facultyExists = allAvailableFaculties.some(
-      (faculty) => 
+      (faculty) =>
         faculty.facultyId.toLowerCase() === newFacultyId.trim().toLowerCase() ||
         faculty.id.toLowerCase() === newFacultyId.trim().toLowerCase()
     );
@@ -289,18 +322,22 @@ export default function TimeTable() {
         setNewFacultyName("");
         setShowCreateFaculty(false);
 
-        // Show success message
+        // Show success message using Alert component
         setCreateFacultyError("");
-        setErrorMsg(`Faculty "${newFacultyName}" created successfully and selected for addition!`);
-        setTimeout(() => setErrorMsg(""), 3000);
+        showAlert(
+          "Faculty created successfully",
+          `"${newFacultyName}" has been created and selected for addition`,
+          "success"
+        );
       } else {
         throw new Error(response.data.message || "Failed to create faculty");
       }
     } catch (error) {
       console.error("Error creating faculty:", error);
-      setCreateFacultyError(
-        error.response?.data?.message || 
-        "Failed to create faculty. Please try again."
+      showAlert(
+        "Failed to create faculty",
+        error.response?.data?.message || "Please try again",
+        "error"
       );
     } finally {
       setIsCreatingFaculty(false);
@@ -481,12 +518,13 @@ export default function TimeTable() {
 
         setSchedule(updatedSchedule);
 
-        // Show success message
+        // Show success message using Alert component
         if (existingClasses.length > 0) {
-          setErrorMsg(
-            `Loaded ${existingClasses.length} existing classes for ${branch} - Semester ${sem}`
+          showAlert(
+            "Branch classes loaded",
+            `${existingClasses.length} existing classes loaded for ${branch} - Semester ${sem}`,
+            "success"
           );
-          setTimeout(() => setErrorMsg(""), 3000);
         }
       } else {
         // No existing timetables for this branch-semester
@@ -496,7 +534,11 @@ export default function TimeTable() {
       }
     } catch (error) {
       console.error("Error fetching branch classes:", error);
-      setErrorMsg("Failed to fetch branch timetable data. Please try again.");
+      showAlert(
+        "Failed to fetch branch timetable data",
+        "Please try again later",
+        "error"
+      );
     } finally {
       setFetching(false);
       setIsInitialLoad(false);
@@ -515,7 +557,6 @@ export default function TimeTable() {
 
     setFetching(true);
     setErrorMsg("");
-    const fetchedTimetables = {};
 
     try {
       // First, fetch allowed faculty for the selected classes
@@ -544,7 +585,8 @@ export default function TimeTable() {
       const results = await Promise.all(fetchPromises);
 
       // Process results
-      results.forEach(({ division, data, exists }) => {
+      const fetchedTimetables = {};
+      results.forEach(({ division, exists }) => {
         fetchedTimetables[division] = exists;
       });
 
@@ -573,7 +615,7 @@ export default function TimeTable() {
       setErrorMsg("");
     } catch (error) {
       console.error("Error fetching timetables:", error);
-      setErrorMsg("Failed to fetch timetables. Please try again.");
+      showAlert("Failed to fetch timetables", "Please try again", "error");
     } finally {
       setFetching(false);
     }
@@ -599,7 +641,7 @@ export default function TimeTable() {
             (updatedFacultyOptions.length - 1) % facultyColors.length
           ];
         const parts = color.split(" ");
-        
+
         updatedFacultyOptions.push({
           value: faculty.facultyId || faculty.id, // Use facultyId or id
           label: `${faculty.name} (${faculty.facultyId || faculty.id})`,
@@ -638,8 +680,12 @@ export default function TimeTable() {
     setShowFacultyModal(false);
     setSearchQuery("");
 
-    setErrorMsg(`Added ${selectedFacultiesToAdd.length} faculty to legend`);
-    setTimeout(() => setErrorMsg(""), 3000);
+    // Show success message using Alert component
+    showAlert(
+      "Faculty added successfully",
+      `${selectedFacultiesToAdd.length} faculty added to legend and all class dropdowns`,
+      "success"
+    );
   };
 
   /* =======================
@@ -680,6 +726,82 @@ export default function TimeTable() {
       return newDivisions;
     });
     setSaved(false);
+  };
+
+  /* =======================
+     🔹 DELETE TIMETABLE FOR A CLASS
+  ======================= */
+  const handleDeleteTimetable = async () => {
+    if (!divisionToDelete) return;
+
+    setIsDeleting(true);
+    try {
+      const formData = new FormData();
+      formData.append("sem", sem);
+      formData.append("branch", branch);
+      formData.append("class", divisionToDelete);
+
+      const response = await api.delete("/api/timetable", {
+        data: formData,
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      if (response.status === 200) {
+        // Remove division from selected divisions
+        setSelectedDivisions((prev) =>
+          prev.filter((d) => d !== divisionToDelete)
+        );
+
+        // Remove from schedule
+        const { [divisionToDelete]: removed, ...newSchedule } = schedule;
+        setSchedule(newSchedule);
+
+        // Remove from existing timetables
+        const newExisting = { ...existingTimetables };
+        delete newExisting[divisionToDelete];
+        setExistingTimetables(newExisting);
+
+        // Remove from collapsed divisions
+        const newCollapsed = { ...collapsedDivisions };
+        delete newCollapsed[divisionToDelete];
+        setCollapsedDivisions(newCollapsed);
+
+        // Show success message
+        showAlert(
+          "Timetable deleted successfully",
+          `Class ${divisionToDelete} timetable has been deleted`,
+          "success"
+        );
+      }
+    } catch (error) {
+      console.error("Error deleting timetable:", error);
+      showAlert(
+        "Failed to delete timetable",
+        error.response?.data?.error || "Please try again",
+        "error"
+      );
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteModal(false);
+      setDivisionToDelete(null);
+    }
+  };
+
+  /* =======================
+     🔹 CHECK IF CLASS HAS ALL FREE LECTURES
+  ======================= */
+  const hasAllFreeLectures = (division) => {
+    if (!schedule[division]) return true;
+
+    for (const day of days) {
+      for (const slot of timeSlots) {
+        const facultyValue = schedule[division][day]?.[slot.value];
+        if (facultyValue && facultyValue !== "free") {
+          return false;
+        }
+      }
+    }
+    return true;
   };
 
   /* =======================
@@ -759,7 +881,8 @@ export default function TimeTable() {
   const filteredFaculties = allAvailableFaculties.filter(
     (faculty) =>
       faculty.displayLabel.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (faculty.facultyId && faculty.facultyId.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (faculty.facultyId &&
+        faculty.facultyId.toLowerCase().includes(searchQuery.toLowerCase())) ||
       faculty.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -768,7 +891,34 @@ export default function TimeTable() {
   ======================= */
   const handleSubmit = async () => {
     if (selectedDivisions.length === 0) {
-      setErrorMsg("Please select at least one division");
+      showAlert(
+        "No classes selected",
+        "Please select at least one division",
+        "error"
+      );
+      return;
+    }
+
+    // Check if any class has all free lectures
+    const emptyClasses = [];
+    selectedDivisions.forEach((division) => {
+      if (hasAllFreeLectures(division)) {
+        emptyClasses.push(division);
+      }
+    });
+
+    if (emptyClasses.length > 0) {
+      showAlert(
+        "Empty timetables detected",
+        `Class${emptyClasses.length > 1 ? "es" : ""} ${emptyClasses.join(
+          ", "
+        )} ${
+          emptyClasses.length > 1 ? "have" : "has"
+        } no faculty assigned. Please assign at least one faculty or delete/deselect the class${
+          emptyClasses.length > 1 ? "es" : ""
+        }.`,
+        "error"
+      );
       return;
     }
 
@@ -809,6 +959,13 @@ export default function TimeTable() {
       setExistingTimetables(updatedExisting);
 
       setErrorMsg("");
+
+      // Show success message using Alert component
+      showAlert(
+        "Timetables saved successfully",
+        `All ${selectedDivisions.length} class timetables have been saved for ${branch} - Semester ${sem}`,
+        "success"
+      );
     } catch (error) {
       console.error("Error saving timetables:", error);
 
@@ -823,13 +980,15 @@ export default function TimeTable() {
           sat: "Saturday",
         };
 
-        setErrorMsg(
+        showAlert(
+          "Schedule conflict",
           `Faculty ${data.faculty} is already assigned on ${
             dayMap[data.day]
-          } (${data.time_slot}). Please choose a different faculty member.`
+          } (${data.time_slot}). Please choose a different faculty member.`,
+          "error"
         );
       } else {
-        setErrorMsg("Failed to save timetables. Please try again.");
+        showAlert("Failed to save timetables", "Please try again", "error");
       }
     } finally {
       setIsLoading(false);
@@ -859,20 +1018,8 @@ export default function TimeTable() {
 
   // Get faculty options for a specific class
   const getFacultyOptionsForClass = (division) => {
-    const classFaculty = classFacultyMap[division] || [];
-
-    // Always include "free" option
-    const options = [facultyOptions[0]];
-
-    // Add only faculty that are in the allowed list for this class
-    classFaculty.forEach((facultyCode) => {
-      const facultyOption = facultyOptions.find((f) => f.value === facultyCode);
-      if (facultyOption) {
-        options.push(facultyOption);
-      }
-    });
-
-    return options;
+    // Return ALL faculty options from the legend, not just class-specific ones
+    return facultyOptions;
   };
 
   // Load all classes for current branch
@@ -888,16 +1035,115 @@ export default function TimeTable() {
     setShowCreateFaculty(false);
   };
 
+  // Open delete confirmation modal
+  const openDeleteModal = (division, e) => {
+    e.stopPropagation(); // Prevent division toggle
+    setDivisionToDelete(division);
+    setShowDeleteModal(true);
+  };
+
   /* =======================
      🔹 RENDER
   ======================= */
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 p-4 md:p-6">
-      {/* Decorative Background */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-100 to-transparent rounded-full opacity-20"></div>
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-emerald-100 to-transparent rounded-full opacity-10"></div>
-      </div>
+      {/* Alert Component */}
+      {alert && (
+        <Alert
+          main={alert.main}
+          info={alert.info}
+          type={alert.type}
+          onClose={() => setAlert(null)}
+        />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-gray-900">
+                  Delete Timetable
+                </h2>
+                <button
+                  onClick={() => {
+                    setShowDeleteModal(false);
+                    setDivisionToDelete(null);
+                  }}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6">
+              <div className="flex items-center justify-center mb-6">
+                <div className="p-3 bg-red-50 rounded-full">
+                  <Trash2 className="w-8 h-8 text-red-600" />
+                </div>
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 text-center mb-2">
+                Delete {divisionToDelete} Timetable?
+              </h3>
+              <p className="text-gray-600 text-center mb-6">
+                This will permanently delete the timetable for {branch} -
+                Semester {sem}, Class {divisionToDelete}. All faculty
+                assignments will be removed from faculty timetables.
+              </p>
+
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-red-800 font-medium">Warning</p>
+                    <p className="text-red-700 text-sm mt-1">
+                      This action cannot be undone. Please make sure you want to
+                      proceed.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-gray-200 bg-gray-50">
+              <div className="flex items-center justify-end gap-3">
+                <button
+                  onClick={() => {
+                    setShowDeleteModal(false);
+                    setDivisionToDelete(null);
+                  }}
+                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteTimetable}
+                  disabled={isDeleting}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
+                    isDeleting
+                      ? "bg-red-400 text-white cursor-not-allowed"
+                      : "bg-red-600 text-white hover:bg-red-700"
+                  }`}
+                >
+                  {isDeleting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="w-4 h-4" />
+                      Delete Timetable
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Faculty Management Modal */}
       {showFacultyModal && (
@@ -911,7 +1157,8 @@ export default function TimeTable() {
                     Add Faculty Members
                   </h2>
                   <p className="text-gray-600 text-sm mt-1">
-                    Select faculties to add to your timetable dropdowns or create new faculty
+                    Select faculties to add to your timetable dropdowns or
+                    create new faculty
                   </p>
                 </div>
                 <button
@@ -954,7 +1201,9 @@ export default function TimeTable() {
             {showCreateFaculty ? (
               <div className="p-6 border-b border-gray-200 bg-blue-50">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-bold text-gray-900">Create New Faculty</h3>
+                  <h3 className="font-bold text-gray-900">
+                    Create New Faculty
+                  </h3>
                   <button
                     onClick={resetNewFacultyForm}
                     className="p-1 hover:bg-blue-100 rounded-lg transition-colors"
@@ -962,13 +1211,13 @@ export default function TimeTable() {
                     <X className="w-5 h-5 text-gray-600" />
                   </button>
                 </div>
-                
+
                 {createFacultyError && (
                   <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
                     <p className="text-red-700 text-sm">{createFacultyError}</p>
                   </div>
                 )}
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -984,9 +1233,11 @@ export default function TimeTable() {
                       placeholder="e.g., FAC009"
                       className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
-                    <p className="text-xs text-gray-500 mt-2">Unique identifier for the faculty</p>
+                    <p className="text-xs text-gray-500 mt-2">
+                      Unique identifier for the faculty
+                    </p>
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       <div className="flex items-center gap-2">
@@ -1001,10 +1252,12 @@ export default function TimeTable() {
                       placeholder="e.g., Dr. Sunil Verma"
                       className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
-                    <p className="text-xs text-gray-500 mt-2">Full name of the faculty member</p>
+                    <p className="text-xs text-gray-500 mt-2">
+                      Full name of the faculty member
+                    </p>
                   </div>
                 </div>
-                
+
                 <div className="flex gap-3 mt-6">
                   <button
                     onClick={resetNewFacultyForm}
@@ -1014,9 +1267,15 @@ export default function TimeTable() {
                   </button>
                   <button
                     onClick={handleCreateNewFaculty}
-                    disabled={isCreatingFaculty || !newFacultyId.trim() || !newFacultyName.trim()}
+                    disabled={
+                      isCreatingFaculty ||
+                      !newFacultyId.trim() ||
+                      !newFacultyName.trim()
+                    }
                     className={`px-4 py-2.5 rounded-lg font-medium transition-colors flex items-center gap-2 ${
-                      isCreatingFaculty || !newFacultyId.trim() || !newFacultyName.trim()
+                      isCreatingFaculty ||
+                      !newFacultyId.trim() ||
+                      !newFacultyName.trim()
                         ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                         : "bg-blue-600 text-white hover:bg-blue-700"
                     }`}
@@ -1071,8 +1330,8 @@ export default function TimeTable() {
                       (f) => f.id === faculty.id
                     );
                     const isAlreadyInOptions = facultyOptions.some(
-                      (option) => 
-                        option.value === faculty.facultyId || 
+                      (option) =>
+                        option.value === faculty.facultyId ||
                         option.value === faculty.id
                     );
 
@@ -1257,7 +1516,8 @@ export default function TimeTable() {
                     : "text-red-800"
                 }`}
               >
-                {errorMsg.includes("Added") || errorMsg.includes("created successfully")
+                {errorMsg.includes("Added") ||
+                errorMsg.includes("created successfully")
                   ? "Success"
                   : errorMsg.includes("already assigned")
                   ? "Schedule Conflict"
@@ -1476,6 +1736,7 @@ export default function TimeTable() {
                       className={`px-3 py-1.5 rounded-lg text-xs font-medium ${faculty.color} border`}
                     >
                       {faculty.label}
+                      {faculty.name !== "" && ` (${faculty.name})`}
                     </div>
                   );
                 }
@@ -1488,7 +1749,9 @@ export default function TimeTable() {
                   <div
                     key={faculty.value}
                     className={`px-3 py-1.5 rounded-lg text-xs font-medium ${faculty.color} border`}
-                    title={`${facultyId}${facultyName ? ` (${facultyName})` : ''}`}
+                    title={`${facultyId}${
+                      facultyName ? ` (${facultyName})` : ""
+                    }`}
                   >
                     {facultyName ? `${facultyId} (${facultyName})` : facultyId}
                   </div>
@@ -1538,12 +1801,23 @@ export default function TimeTable() {
                 const isCollapsed = collapsedDivisions[division];
                 const exists = existingTimetables[division];
                 const allowedFaculty = classFacultyMap[division] || [];
+                const isEmpty = hasAllFreeLectures(division);
 
                 return (
                   <div
                     key={division}
-                    className="bg-white rounded-xl border border-gray-200 shadow-sm"
+                    className="bg-white rounded-xl border border-gray-200 shadow-sm relative"
                   >
+                    {/* Empty Warning Badge */}
+                    {isEmpty && exists && (
+                      <div className="absolute -top-2 -right-2">
+                        <div className="bg-red-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" />
+                          Empty
+                        </div>
+                      </div>
+                    )}
+
                     {/* Division Header */}
                     <div
                       className={`p-4 border-b ${
@@ -1593,16 +1867,28 @@ export default function TimeTable() {
                             </div>
                           </div>
                         </div>
-                        <button
-                          onClick={() => toggleDivisionCollapse(division)}
-                          className="p-1 hover:bg-white/50 rounded-lg transition-colors"
-                        >
-                          {isCollapsed ? (
-                            <ChevronDown className="w-5 h-5 text-gray-500" />
-                          ) : (
-                            <ChevronUp className="w-5 h-5 text-gray-500" />
+                        <div className="flex items-center gap-1">
+                          {/* Delete Button - Only for existing timetables */}
+                          {exists && (
+                            <button
+                              onClick={(e) => openDeleteModal(division, e)}
+                              className="p-1.5 hover:bg-red-50 text-red-500 hover:text-red-600 rounded-lg transition-colors"
+                              title="Delete timetable"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
                           )}
-                        </button>
+                          <button
+                            onClick={() => toggleDivisionCollapse(division)}
+                            className="p-1 hover:bg-white/50 rounded-lg transition-colors"
+                          >
+                            {isCollapsed ? (
+                              <ChevronDown className="w-5 h-5 text-gray-500" />
+                            ) : (
+                              <ChevronUp className="w-5 h-5 text-gray-500" />
+                            )}
+                          </button>
+                        </div>
                       </div>
                     </div>
 
@@ -1705,7 +1991,8 @@ export default function TimeTable() {
 
                                                 // For faculty entries, show ID (and name if available)
                                                 const facultyId = f.value;
-                                                const facultyName = f.name || "";
+                                                const facultyName =
+                                                  f.name || "";
 
                                                 return (
                                                   <option
@@ -1750,6 +2037,11 @@ export default function TimeTable() {
                           {allowedFaculty.length > 0 && (
                             <p className="text-xs mt-2">
                               Allowed faculty: {allowedFaculty.length}
+                            </p>
+                          )}
+                          {isEmpty && exists && (
+                            <p className="text-xs mt-2 text-red-600">
+                              ⚠️ No faculty assigned
                             </p>
                           )}
                         </div>
@@ -1817,11 +2109,13 @@ export default function TimeTable() {
               <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">New Timetables</p>
+                    <p className="text-sm text-gray-600">Empty Timetables</p>
                     <p className="text-2xl font-bold text-gray-900 mt-2">
-                      {selectedDivisions.length -
-                        Object.values(existingTimetables).filter((v) => v)
-                          .length}
+                      {
+                        selectedDivisions.filter((division) =>
+                          hasAllFreeLectures(division)
+                        ).length
+                      }
                     </p>
                   </div>
                   <div className="p-3 bg-amber-50 rounded-lg">
@@ -1891,6 +2185,22 @@ export default function TimeTable() {
             <li className="flex items-start gap-2">
               <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5"></div>
               <span>
+                <strong>Delete Timetable</strong> - Click the trash icon on
+                existing class cards to permanently delete that timetable. This
+                removes all faculty assignments for that class.
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5"></div>
+              <span>
+                <strong>Empty Timetable Validation</strong> - Classes with all
+                free slots cannot be saved. Assign at least one faculty or
+                delete the class.
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5"></div>
+              <span>
                 <strong>Faculty Management</strong> - Use the "Add Faculty"
                 button to add faculty members from the database to your dropdown
                 options.
@@ -1900,7 +2210,8 @@ export default function TimeTable() {
               <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5"></div>
               <span>
                 <strong>Create New Faculty</strong> - Click "Create New Faculty"
-                in the modal to add a new faculty member by entering their ID and Name.
+                in the modal to add a new faculty member by entering their ID
+                and Name.
               </span>
             </li>
             <li className="flex items-start gap-2">
@@ -1909,21 +2220,6 @@ export default function TimeTable() {
                 <strong>Class-Specific Faculty</strong> - Each class dropdown
                 only shows faculty assigned to that specific class in
                 classwise_faculty collection.
-              </span>
-            </li>
-            <li className="flex items-start gap-2">
-              <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5"></div>
-              <span>
-                <strong>Added Faculty</strong> - Faculty added via the modal
-                will appear in the legend and be available in all class
-                dropdowns.
-              </span>
-            </li>
-            <li className="flex items-start gap-2">
-              <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5"></div>
-              <span>
-                <strong>From Dashboard</strong> - When editing a branch, all
-                classes and their assigned faculty are automatically loaded.
               </span>
             </li>
           </ul>

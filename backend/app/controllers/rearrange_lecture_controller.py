@@ -276,22 +276,20 @@ def execute_rearrange():
 
     # Create separate messages for both affected classes
     target_class_message = (
-        f"@ {branch}_{class_name}\n"
-        f"Lecture Rearranged\n"
-        f"Date: {selected_date}\n"
-        f"Lecture no.: {lec_no+1}\n"
-        f"New Faculty: {primary_fac_name}\n"
-        f"(Previously occupied by: {secondary_fac_name})\n"
+        f"@ {branch}_{class_name}\t"
+        f"Change in Lecture\n\n"
+        f"Date: {selected_date}\n\n"
+        f"Lecture no.: {lec_no+1}\n\n"
+        f"Faculty: {primary_fac_name}\n\n"
         f"Location: Same as per timetable"
     )
 
     occupied_class_message = (
-        f"@ {occupied_branch}_{occupied_class}\n"
-        f"Lecture Reassigned\n"
-        f"Date: {selected_date}\n"
-        f"Lecture no.: {lec_no+1}\n"
-        f"New Faculty: {secondary_fac_name}\n"
-        f"(Previous Faculty: {primary_fac_name})\n"
+        f"@ {occupied_branch}_{occupied_class}\t"
+        f"Change in Lecture\n\n"
+        f"Date: {selected_date}\n\n"
+        f"Lecture no.: {lec_no+1}\n\n"
+        f"Faculty: {secondary_fac_name}\n\n"
         f"Location: Same as per timetable"
     )
 

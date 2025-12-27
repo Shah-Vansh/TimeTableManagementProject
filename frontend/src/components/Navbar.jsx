@@ -7,6 +7,7 @@ import {
   User,
   LogOut,
   SwatchBookIcon,
+  Users2Icon,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -79,6 +80,16 @@ const Navbar = () => {
             >
               <SwatchBookIcon size={18} />
               View Changes
+            </button>
+
+            <button
+              onClick={() => {
+                navigate("/faculties");
+              }}
+              className="flex items-center gap-2 hover:text-blue-600 transition-colors"
+            >
+              <Users2Icon size={18} />
+              Faculties
             </button>
 
             {/* User */}

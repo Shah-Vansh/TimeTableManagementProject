@@ -23,9 +23,10 @@ import {
   Phone,
   BookOpen,
   RefreshCw,
-  Info
+  Info,
 } from "lucide-react";
 import api from "../configs/api";
+import EditFacultyModal from "../components/EditFacultyModal";
 
 export default function Faculties() {
   const [faculties, setFaculties] = useState([]);
@@ -39,18 +40,20 @@ export default function Faculties() {
   const [successMsg, setSuccessMsg] = useState("");
   const [activeFilter, setActiveFilter] = useState("all");
   const navigate = useNavigate();
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingFaculty, setEditingFaculty] = useState(null);
 
   // New faculty form state
   const [newFaculty, setNewFaculty] = useState({
     id: "",
-    name: ""
+    name: "",
   });
 
   // Filters
   const filters = [
     { id: "all", label: "All Faculties", count: 0 },
     { id: "active", label: "Currently Teaching", count: 0 },
-    { id: "available", label: "Available", count: 0 }
+    { id: "available", label: "Available", count: 0 },
   ];
 
   /* =======================
@@ -64,7 +67,7 @@ export default function Faculties() {
         const facultiesList = response.data.faculties || [];
         setFaculties(facultiesList);
         setFilteredFaculties(facultiesList);
-        
+
         // Update filter counts (you might want to add logic to determine "active" vs "available")
         filters[0].count = facultiesList.length;
       }
@@ -92,7 +95,7 @@ export default function Faculties() {
         setShowCreateModal(false);
         setNewFaculty({ id: "", name: "" });
         fetchFaculties(); // Refresh the list
-        
+
         setTimeout(() => setSuccessMsg(""), 3000);
       } else {
         setErrorMsg(response.data.error || "Failed to create faculty");
@@ -101,6 +104,16 @@ export default function Faculties() {
       console.error("Error creating faculty:", error);
       setErrorMsg(error.response?.data?.error || "Failed to create faculty");
     }
+  };
+
+  const handleEditFaculty = (faculty) => {
+    setEditingFaculty(faculty);
+    setShowEditModal(true);
+  };
+  const handleEditSuccess = () => {
+    fetchFaculties(); // Refresh the list
+    setSuccessMsg(`Faculty "${editingFaculty?.name}" updated successfully!`);
+    setTimeout(() => setSuccessMsg(""), 3000);
   };
 
   /* =======================
@@ -112,11 +125,13 @@ export default function Faculties() {
     try {
       const response = await api.delete(`/api/faculties/${selectedFaculty.id}`);
       if (response.data.success) {
-        setSuccessMsg(`Faculty "${selectedFaculty.name}" deleted successfully!`);
+        setSuccessMsg(
+          `Faculty "${selectedFaculty.name}" deleted successfully!`
+        );
         setShowDeleteModal(false);
         setSelectedFaculty(null);
         fetchFaculties(); // Refresh the list
-        
+
         setTimeout(() => setSuccessMsg(""), 3000);
       } else {
         setErrorMsg(response.data.error || "Failed to delete faculty");
@@ -131,9 +146,10 @@ export default function Faculties() {
      🔹 HANDLE SEARCH
   ======================= */
   useEffect(() => {
-    const filtered = faculties.filter(faculty =>
-      faculty.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      faculty.id.toLowerCase().includes(searchQuery.toLowerCase())
+    const filtered = faculties.filter(
+      (faculty) =>
+        faculty.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        faculty.id.toLowerCase().includes(searchQuery.toLowerCase())
     );
     setFilteredFaculties(filtered);
   }, [searchQuery, faculties]);
@@ -149,11 +165,11 @@ export default function Faculties() {
      🔹 VIEW FACULTY TIMETABLE
   ======================= */
   const handleViewTimetable = (faculty) => {
-    navigate(`/faculty/${faculty.id}`, { 
-      state: { 
+    navigate(`/faculty/${faculty.id}`, {
+      state: {
         facultyId: faculty.id,
-        facultyName: faculty.name 
-      } 
+        facultyName: faculty.name,
+      },
     });
   };
 
@@ -161,11 +177,41 @@ export default function Faculties() {
      🔹 CALCULATE STATS (MOCK - YOU CAN IMPLEMENT REAL LOGIC)
   ======================= */
   const calculateFacultyStats = (faculty) => {
-    // Mock data - replace with actual API call to get faculty's teaching load
+    if (!faculty || !faculty.timetable) {
+      return {
+        classesCount: 0,
+        weeklyHours: 0,
+      };
+    }
+
+    const timetable = faculty.timetable;
+    const days = ["mon", "tue", "wed", "thu", "fri", "sat"];
+    const uniqueClasses = new Set();
+    let weeklyHours = 0;
+
+    // Parse each day's schedule
+    days.forEach((day) => {
+      const daySchedule = timetable[day] || [];
+
+      daySchedule.forEach((slot) => {
+        if (slot !== "free") {
+          weeklyHours++;
+
+          // Extract class information from slot format: "CSE-D2-Sem1-Time Slot 1"
+          // We want to extract the class part (e.g., "CSE-D2-Sem1")
+          const parts = slot.split("-");
+          if (parts.length >= 3) {
+            // Combine branch, class, and semester to get unique class identifier
+            const classIdentifier = `${parts[0]}-${parts[1]}-${parts[2]}`;
+            uniqueClasses.add(classIdentifier);
+          }
+        }
+      });
+    });
+
     return {
-      classesCount: Math.floor(Math.random() * 5) + 1,
-      weeklyHours: Math.floor(Math.random() * 20) + 5,
-      subjectsCount: Math.floor(Math.random() * 3) + 1
+      classesCount: uniqueClasses.size,
+      weeklyHours,
     };
   };
 
@@ -187,8 +233,12 @@ export default function Faculties() {
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900">Add New Faculty</h2>
-                  <p className="text-gray-600 text-sm mt-1">Create a new faculty member</p>
+                  <h2 className="text-xl font-bold text-gray-900">
+                    Add New Faculty
+                  </h2>
+                  <p className="text-gray-600 text-sm mt-1">
+                    Create a new faculty member
+                  </p>
                 </div>
                 <button
                   onClick={() => {
@@ -212,7 +262,12 @@ export default function Faculties() {
                   <input
                     type="text"
                     value={newFaculty.id}
-                    onChange={(e) => setNewFaculty({ ...newFaculty, id: e.target.value.toUpperCase() })}
+                    onChange={(e) =>
+                      setNewFaculty({
+                        ...newFaculty,
+                        id: e.target.value.toUpperCase(),
+                      })
+                    }
                     placeholder="e.g., FAC009"
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
@@ -228,7 +283,9 @@ export default function Faculties() {
                   <input
                     type="text"
                     value={newFaculty.name}
-                    onChange={(e) => setNewFaculty({ ...newFaculty, name: e.target.value })}
+                    onChange={(e) =>
+                      setNewFaculty({ ...newFaculty, name: e.target.value })
+                    }
                     placeholder="e.g., Dr. Sunil Verma"
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
@@ -279,8 +336,12 @@ export default function Faculties() {
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900">Delete Faculty</h2>
-                  <p className="text-gray-600 text-sm mt-1">This action cannot be undone</p>
+                  <h2 className="text-xl font-bold text-gray-900">
+                    Delete Faculty
+                  </h2>
+                  <p className="text-gray-600 text-sm mt-1">
+                    This action cannot be undone
+                  </p>
                 </div>
                 <button
                   onClick={() => {
@@ -303,20 +364,26 @@ export default function Faculties() {
                 <div>
                   <p className="font-medium text-gray-900">Are you sure?</p>
                   <p className="text-gray-600 text-sm mt-1">
-                    You're about to delete <span className="font-semibold">{selectedFaculty.name}</span>
+                    You're about to delete{" "}
+                    <span className="font-semibold">
+                      {selectedFaculty.name}
+                    </span>
                   </p>
                 </div>
               </div>
 
               <div className="bg-gray-50 p-4 rounded-lg">
                 <p className="text-sm text-gray-700">
-                  <span className="font-medium">Faculty ID:</span> {selectedFaculty.id}
+                  <span className="font-medium">Faculty ID:</span>{" "}
+                  {selectedFaculty.id}
                 </p>
                 <p className="text-sm text-gray-700 mt-1">
-                  <span className="font-medium">Faculty Name:</span> {selectedFaculty.name}
+                  <span className="font-medium">Faculty Name:</span>{" "}
+                  {selectedFaculty.name}
                 </p>
                 <p className="text-xs text-red-600 mt-2">
-                  ⚠️ Warning: All timetable assignments for this faculty will also be removed.
+                  ⚠️ Warning: All timetable assignments for this faculty will
+                  also be removed.
                 </p>
               </div>
 
@@ -356,19 +423,28 @@ export default function Faculties() {
         {/* Breadcrumb */}
         <div className="mb-6">
           <div className="flex items-center text-sm text-gray-600 mb-4">
-            <Link to="/dashboard" className="hover:text-gray-800 cursor-pointer">
+            <Link
+              to="/dashboard"
+              className="hover:text-gray-800 cursor-pointer"
+            >
               Dashboard
             </Link>
             <ChevronRight className="w-4 h-4 mx-2" />
-            <span className="font-medium text-blue-600">Faculty Management</span>
+            <span className="font-medium text-blue-600">
+              Faculty Management
+            </span>
           </div>
         </div>
 
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Faculty Management</h1>
-            <p className="text-gray-600">Manage all faculty members and their timetables</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Faculty Management
+            </h1>
+            <p className="text-gray-600">
+              Manage all faculty members and their timetables
+            </p>
           </div>
           <div className="flex items-center gap-3">
             <button
@@ -408,7 +484,9 @@ export default function Faculties() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Total Faculties</p>
-                <p className="text-2xl font-bold text-gray-900 mt-2">{faculties.length}</p>
+                <p className="text-2xl font-bold text-gray-900 mt-2">
+                  {faculties.length}
+                </p>
               </div>
               <div className="p-3 bg-blue-50 rounded-lg">
                 <Users className="w-6 h-6 text-blue-600" />
@@ -421,7 +499,9 @@ export default function Faculties() {
               <div>
                 <p className="text-sm text-gray-600">Currently Teaching</p>
                 <p className="text-2xl font-bold text-gray-900 mt-2">
-                  {faculties.length > 0 ? Math.floor(faculties.length * 0.8) : 0}
+                  {faculties.length > 0
+                    ? Math.floor(faculties.length * 0.8)
+                    : 0}
                 </p>
               </div>
               <div className="p-3 bg-green-50 rounded-lg">
@@ -447,7 +527,9 @@ export default function Faculties() {
               <div>
                 <p className="text-sm text-gray-600">Available</p>
                 <p className="text-2xl font-bold text-gray-900 mt-2">
-                  {faculties.length > 0 ? Math.floor(faculties.length * 0.2) : 0}
+                  {faculties.length > 0
+                    ? Math.floor(faculties.length * 0.2)
+                    : 0}
                 </p>
               </div>
               <div className="p-3 bg-amber-50 rounded-lg">
@@ -488,7 +570,9 @@ export default function Faculties() {
                     }`}
                   >
                     {filter.label}
-                    <span className="ml-1.5 text-xs opacity-75">({filter.count})</span>
+                    <span className="ml-1.5 text-xs opacity-75">
+                      ({filter.count})
+                    </span>
                   </button>
                 ))}
               </div>
@@ -504,9 +588,13 @@ export default function Faculties() {
           ) : filteredFaculties.length === 0 ? (
             <div className="text-center py-12">
               <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No faculties found</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                No faculties found
+              </h3>
               <p className="text-gray-600">
-                {searchQuery ? "Try a different search term" : "No faculties have been added yet"}
+                {searchQuery
+                  ? "Try a different search term"
+                  : "No faculties have been added yet"}
               </p>
               {!searchQuery && (
                 <button
@@ -536,8 +624,12 @@ export default function Faculties() {
                             <GraduationCap className="w-5 h-5 text-blue-600" />
                           </div>
                           <div>
-                            <h3 className="font-bold text-gray-900">{faculty.name}</h3>
-                            <p className="text-sm text-gray-600 mt-1">ID: {faculty.id}</p>
+                            <h3 className="font-bold text-gray-900">
+                              {faculty.name}
+                            </h3>
+                            <p className="text-sm text-gray-600 mt-1">
+                              ID: {faculty.id}
+                            </p>
                           </div>
                         </div>
                         <div className="relative">
@@ -547,7 +639,7 @@ export default function Faculties() {
                           >
                             <MoreVertical className="w-5 h-5 text-gray-500" />
                           </button>
-                          
+
                           {/* Dropdown Menu */}
                           {selectedFaculty?.id === faculty.id && (
                             <div className="absolute right-0 top-10 w-48 bg-white rounded-lg border border-gray-200 shadow-lg z-10">
@@ -559,9 +651,7 @@ export default function Faculties() {
                                 View Timetable
                               </button>
                               <button
-                                onClick={() => {
-                                  navigate(`/faculty/edit/${faculty.id}`);
-                                }}
+                                onClick={() => handleEditFaculty(faculty)}
                                 className="w-full px-4 py-3 text-left hover:bg-gray-50 flex items-center gap-2"
                               >
                                 <Edit className="w-4 h-4" />
@@ -587,16 +677,18 @@ export default function Faculties() {
                     <div className="p-4">
                       <div className="grid grid-cols-3 gap-3 mb-4">
                         <div className="text-center">
-                          <div className="text-lg font-bold text-blue-600">{stats.classesCount}</div>
+                          <div className="text-lg font-bold text-blue-600">
+                            {stats.classesCount}
+                          </div>
                           <div className="text-xs text-gray-600">Classes</div>
                         </div>
                         <div className="text-center">
-                          <div className="text-lg font-bold text-green-600">{stats.weeklyHours}</div>
-                          <div className="text-xs text-gray-600">Hours/Week</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-lg font-bold text-purple-600">{stats.subjectsCount}</div>
-                          <div className="text-xs text-gray-600">Subjects</div>
+                          <div className="text-lg font-bold text-green-600">
+                            {stats.weeklyHours}
+                          </div>
+                          <div className="text-xs text-gray-600">
+                            Lectures/Week
+                          </div>
                         </div>
                       </div>
 
@@ -662,25 +754,29 @@ export default function Faculties() {
             <li className="flex items-start gap-2">
               <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5"></div>
               <span>
-                <strong>Click on any faculty card</strong> to view their detailed timetable
+                <strong>Click on any faculty card</strong> to view their
+                detailed timetable
               </span>
             </li>
             <li className="flex items-start gap-2">
               <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5"></div>
               <span>
-                <strong>Use the search bar</strong> to quickly find faculty by name or ID
+                <strong>Use the search bar</strong> to quickly find faculty by
+                name or ID
               </span>
             </li>
             <li className="flex items-start gap-2">
               <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5"></div>
               <span>
-                <strong>Filter options</strong> help you view only active or available faculty
+                <strong>Filter options</strong> help you view only active or
+                available faculty
               </span>
             </li>
             <li className="flex items-start gap-2">
               <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5"></div>
               <span>
-                <strong>Add new faculty</strong> before assigning them to classes in the timetable
+                <strong>Add new faculty</strong> before assigning them to
+                classes in the timetable
               </span>
             </li>
           </ul>
@@ -694,6 +790,17 @@ export default function Faculties() {
           onClick={() => setSelectedFaculty(null)}
         />
       )}
+
+      <EditFacultyModal
+        faculty={editingFaculty}
+        isOpen={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setEditingFaculty(null);
+          setErrorMsg("");
+        }}
+        onSuccess={handleEditSuccess}
+      />
     </div>
   );
 }

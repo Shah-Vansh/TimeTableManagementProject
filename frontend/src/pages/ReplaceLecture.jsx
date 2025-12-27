@@ -158,7 +158,7 @@ export default function ReplaceLecture() {
   };
 
   // Function to show alert
-  const showAlertMessage = (main, info, type="success") => {
+  const showAlertMessage = (main, info, type = "success") => {
     setAlertData({ main, info, type });
     setShowAlert(true);
   };
@@ -226,7 +226,11 @@ export default function ReplaceLecture() {
       !formData.branch ||
       formData.lec_no === ""
     ) {
-      showAlertMessage("Validation Error", "Please fill all required fields", "error");
+      showAlertMessage(
+        "Validation Error",
+        "Please fill all required fields",
+        "error"
+      );
       return;
     }
 
@@ -264,7 +268,11 @@ export default function ReplaceLecture() {
       if (error.response) {
         const { status, data } = error.response;
         if (status === 404) {
-          showAlertMessage("Class Not Found", data.message || "Class not found", "error");
+          showAlertMessage(
+            "Class Not Found",
+            data.message || "Class not found",
+            "error"
+          );
         } else if (status === 409) {
           showAlertMessage(
             "No Faculty Available",
@@ -279,7 +287,11 @@ export default function ReplaceLecture() {
           );
         }
       } else {
-        showAlertMessage("Network Error", "Network error. Please try again.", "error");
+        showAlertMessage(
+          "Network Error",
+          "Network error. Please try again.",
+          "error"
+        );
       }
     } finally {
       setIsFetchingFaculty(false);
@@ -295,7 +307,11 @@ export default function ReplaceLecture() {
       !formData.branch ||
       formData.lec_no === ""
     ) {
-      showAlertMessage("Validation Error", "Please fill all required fields", "error");
+      showAlertMessage(
+        "Validation Error",
+        "Please fill all required fields",
+        "error"
+      );
       return;
     }
 
@@ -333,7 +349,10 @@ export default function ReplaceLecture() {
       if (error.response) {
         const { status, data } = error.response;
         if (status === 404) {
-          showAlertMessage("Class Not Found", data.message || "Class not found");
+          showAlertMessage(
+            "Class Not Found",
+            data.message || "Class not found"
+          );
         } else if (status === 409) {
           showAlertMessage(
             "No Rearrangement Options",
@@ -348,7 +367,11 @@ export default function ReplaceLecture() {
           );
         }
       } else {
-        showAlertMessage("Network Error", "Network error. Please try again.", "error");
+        showAlertMessage(
+          "Network Error",
+          "Network error. Please try again.",
+          "error"
+        );
       }
     } finally {
       setIsFetchingOptions(false);
@@ -357,7 +380,11 @@ export default function ReplaceLecture() {
 
   const handleExecuteRearrange = async () => {
     if (!selectedOption) {
-      showAlertMessage("Selection Required", "Please select a rearrangement option", "error");
+      showAlertMessage(
+        "Selection Required",
+        "Please select a rearrangement option",
+        "error"
+      );
       return;
     }
 
@@ -401,7 +428,10 @@ export default function ReplaceLecture() {
         }
 
         // Show success alert
-        showAlertMessage("Operation Successful", response.data.message || "Operation successful");
+        showAlertMessage(
+          "Operation Successful",
+          response.data.message || "Operation successful"
+        );
 
         setRearrangeOptions([]);
         setSelectedOption(null);
@@ -418,7 +448,11 @@ export default function ReplaceLecture() {
       if (error.response) {
         const { status, data } = error.response;
         if (status === 404) {
-          showAlertMessage("Faculty Not Found", data.message || "Faculty not found", "error");
+          showAlertMessage(
+            "Faculty Not Found",
+            data.message || "Faculty not found",
+            "error"
+          );
         } else if (status === 409) {
           showAlertMessage(
             "Rearrangement Not Possible",
@@ -433,7 +467,11 @@ export default function ReplaceLecture() {
           );
         }
       } else {
-        showAlertMessage("Network Error", "Network error. Please try again.", "error");
+        showAlertMessage(
+          "Network Error",
+          "Network error. Please try again.",
+          "error"
+        );
       }
     } finally {
       setIsExecutingSwap(false);
@@ -442,7 +480,11 @@ export default function ReplaceLecture() {
 
   const handleAssignFaculty = async () => {
     if (!selectedFaculty) {
-      showAlertMessage("Selection Required", "Please select a faculty to assign", "error");
+      showAlertMessage(
+        "Selection Required",
+        "Please select a faculty to assign",
+        "error"
+      );
       return;
     }
 
@@ -464,7 +506,7 @@ export default function ReplaceLecture() {
 
         const message =
           response.data.message || "Lecture successfully assigned!";
-        
+
         // Show success alert
         showAlertMessage("Assignment Successful", message);
 
@@ -505,7 +547,11 @@ export default function ReplaceLecture() {
           );
         }
       } else {
-        showAlertMessage("Network Error", "Network error. Please try again.", "error");
+        showAlertMessage(
+          "Network Error",
+          "Network error. Please try again.",
+          "error"
+        );
       }
     } finally {
       setIsAssigning(false);
@@ -521,7 +567,11 @@ export default function ReplaceLecture() {
       !formData.branch ||
       formData.lec_no === ""
     ) {
-      showAlertMessage("Validation Error", "Please fill all required fields", "error");
+      showAlertMessage(
+        "Validation Error",
+        "Please fill all required fields",
+        "error"
+      );
       return;
     }
 
@@ -570,13 +620,16 @@ export default function ReplaceLecture() {
         }
 
         // Show success alert
-        showAlertMessage("Operation Successful", response.data.message || "Operation successful");
+        showAlertMessage(
+          "Operation Successful",
+          response.data.message || "Operation successful"
+        );
       } else {
         showAlertMessage(
           "Operation Failed",
           response.data.message ||
             `Failed to ${isRearrange ? "rearrange" : "replace"} lecture`,
-            "error"
+          "error"
         );
       }
     } catch (error) {
@@ -588,7 +641,11 @@ export default function ReplaceLecture() {
       if (error.response) {
         const { status, data } = error.response;
         if (status === 404) {
-          showAlertMessage("Class Not Found", data.message || "Class not found", "error");
+          showAlertMessage(
+            "Class Not Found",
+            data.message || "Class not found",
+            "error"
+          );
         } else if (status === 409) {
           showAlertMessage(
             "No Options Available",
@@ -596,7 +653,7 @@ export default function ReplaceLecture() {
               (isRearrange
                 ? "No possible rearrangement found"
                 : "No faculty available at this time slot"),
-                "error"
+            "error"
           );
         } else {
           showAlertMessage(
@@ -607,7 +664,11 @@ export default function ReplaceLecture() {
           );
         }
       } else {
-        showAlertMessage("Network Error", "Network error. Please try again.", "error");
+        showAlertMessage(
+          "Network Error",
+          "Network error. Please try again.",
+          "error"
+        );
       }
     } finally {
       setIsLoading(false);
@@ -748,11 +809,11 @@ Status: Successfully Completed`;
 
   // Generate time slot options (1-5 as requested)
   const timeSlotOptions = [
-    { value: 0, label: "1 (9:00 AM - 10:00 AM)" },
-    { value: 1, label: "2 (10:00 AM - 11:00 AM)" },
-    { value: 2, label: "3 (11:00 AM - 12:00 PM)" },
-    { value: 3, label: "4 (12:00 PM - 1:00 PM)" },
-    { value: 4, label: "5 (1:00 PM - 2:00 PM)" },
+    { value: 0, label: "Lecture 1" },
+    { value: 1, label: "Lecture 2" },
+    { value: 2, label: "Lecture 3" },
+    { value: 3, label: "Lecture 4" },
+    { value: 4, label: "Lecture 5" },
   ];
 
   return (
@@ -951,6 +1012,7 @@ Status: Successfully Completed`;
               </div>
 
               {/* Day Selection */}
+              {/* Day Selection */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-blue-500" />
@@ -976,26 +1038,47 @@ Status: Successfully Completed`;
                   ))}
                 </select>
                 <p className="text-xs text-gray-500 mt-1">
-                  Selecting a day will automatically update the date to the next
-                  occurrence
+                  Day is auto-calculated from the selected date, but you can
+                  also select manually
                 </p>
               </div>
 
+              {/* Class Name */}
               {/* Class Name */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                   <Users className="w-4 h-4 text-purple-500" />
                   Class Name
                 </label>
-                <input
-                  type="text"
+                <select
                   name="class"
-                  placeholder="e.g. D1, A, B2"
                   value={formData.class}
                   onChange={handleChange}
                   required
                   className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
-                />
+                >
+                  <option value="" className="text-gray-500">
+                    Select Class
+                  </option>
+                  {[
+                    "D1",
+                    "D2",
+                    "D3",
+                    "D4",
+                    "D5",
+                    "D6",
+                    "D7",
+                    "D8",
+                    "D9",
+                    "D10",
+                    "D11",
+                    "D12",
+                  ].map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {/* Semester */}
@@ -1065,53 +1148,6 @@ Status: Successfully Completed`;
               </div>
             </div>
 
-            {/* Date & Day Sync Info */}
-            <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <ArrowRightLeft className="w-5 h-5 text-blue-600" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-blue-900">
-                    Auto-Sync Information
-                  </p>
-                  <p className="text-sm text-blue-700">
-                    Date and day are automatically synchronized. Changing one
-                    will update the other.
-                    <br />
-                    <span className="font-medium">Current: </span>
-                    {formData.date} (
-                    {days.find((d) => d.value === formData.day)?.label ||
-                      "Select a day"}
-                    )
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Selected Time Slot Info */}
-            {formData.lec_no !== "" && (
-              <div className="mt-4 p-4 bg-gradient-to-r from-amber-50 to-amber-100 rounded-xl border border-amber-200">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-amber-100 rounded-lg">
-                    <Clock className="w-5 h-5 text-amber-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-amber-900">
-                      Selected Time Slot
-                    </p>
-                    <p className="text-lg font-bold text-amber-900">
-                      {
-                        timeSlotOptions.find(
-                          (t) => t.value === parseInt(formData.lec_no)
-                        )?.label
-                      }
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
             {/* Action Buttons */}
             <div className="mt-8 pt-6 border-t border-gray-200">
               <div className="flex flex-wrap gap-4 justify-center">
@@ -1142,7 +1178,11 @@ Status: Successfully Completed`;
                 <button
                   type="button"
                   onClick={handleFetchRearrangeOptions}
-                  disabled={isFetchingOptions || formData.lec_no === "" || isNaN(formData.lec_no)}
+                  disabled={
+                    isFetchingOptions ||
+                    formData.lec_no === "" ||
+                    isNaN(formData.lec_no)
+                  }
                   className={`px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-all duration-300 ${
                     isFetchingOptions
                       ? "bg-orange-100 text-orange-400 cursor-not-allowed"
@@ -1162,7 +1202,11 @@ Status: Successfully Completed`;
                 <button
                   type="button"
                   onClick={() => handleSubmit("replace")}
-                  disabled={isLoading || formData.lec_no === "" || isNaN(formData.lec_no)}
+                  disabled={
+                    isLoading ||
+                    formData.lec_no === "" ||
+                    isNaN(formData.lec_no)
+                  }
                   className={`px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-all duration-300 ${
                     isLoading && !isRearranging
                       ? "bg-blue-100 text-blue-400 cursor-not-allowed"
@@ -1184,7 +1228,11 @@ Status: Successfully Completed`;
                 <button
                   type="button"
                   onClick={() => handleSubmit("rearrange")}
-                  disabled={isLoading || formData.lec_no === "" || isNaN(formData.lec_no)}
+                  disabled={
+                    isLoading ||
+                    formData.lec_no === "" ||
+                    isNaN(formData.lec_no)
+                  }
                   className={`px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-all duration-300 ${
                     isLoading && isRearranging
                       ? "bg-amber-100 text-amber-400 cursor-not-allowed"
@@ -1708,7 +1756,7 @@ Status: Successfully Completed`;
               )}
 
               {/* Details Card */}
-              <div className="bg-gray-50 rounded-xl p-5 border border-gray-200">
+              {/* <div className="bg-gray-50 rounded-xl p-5 border border-gray-200">
                 <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
                   <Info className="w-4 h-4 text-gray-500" />
                   Assignment Details
@@ -1761,7 +1809,7 @@ Status: Successfully Completed`;
                     </span>
                   </div>
                 </div>
-              </div>
+              </div> */}
 
               {result.message && result.type !== "rearranged" && (
                 <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
@@ -1773,76 +1821,6 @@ Status: Successfully Completed`;
             </div>
           </div>
         )}
-
-        {/* Time Slot Guide */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm">
-          <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-gray-100 rounded-lg">
-                <Clock className="w-5 h-5 text-gray-600" />
-              </div>
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900">
-                  Time Slot Guide
-                </h2>
-                <p className="text-sm text-gray-600">
-                  Reference for slot numbers and timings
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
-                  <th className="py-3 px-4 text-left text-xs font-semibold text-gray-700 uppercase">
-                    Slot #
-                  </th>
-                  <th className="py-3 px-4 text-left text-xs font-semibold text-gray-700 uppercase">
-                    Time Period
-                  </th>
-                  <th className="py-3 px-4 text-left text-xs font-semibold text-gray-700 uppercase">
-                    Description
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {timeSlotOptions.map((slot) => (
-                  <tr
-                    key={slot.value}
-                    className="hover:bg-gray-50 transition-colors"
-                  >
-                    <td className="py-3 px-4">
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        {slot.value + 1}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 font-medium text-gray-900">
-                      {timeSlots.find((t) => t.value === slot.value)?.label}
-                    </td>
-                    <td className="py-3 px-4 text-sm text-gray-600">
-                      {slot.value === 0
-                        ? "First lecture of the day"
-                        : slot.value === 4
-                        ? "Last lecture before lunch"
-                        : `Regular lecture ${slot.value + 1}`}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="p-4 border-t border-gray-200 bg-gray-50">
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <Info className="w-4 h-4" />
-              <span>
-                Time slots 1-5 run from 9:00 AM to 2:00 PM (before lunch break)
-              </span>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Add CSS for animations */}

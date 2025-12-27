@@ -22,6 +22,7 @@ import {
   Trash2,
 } from "lucide-react";
 import api from "../configs/api";
+import Alert from "../components/Alert";
 
 export default function ViewChanges() {
   const [changes, setChanges] = useState(null);
@@ -35,6 +36,7 @@ export default function ViewChanges() {
   const [expandedGroup, setExpandedGroup] = useState({});
   const [allChanges, setAllChanges] = useState([]);
   const [deletingId, setDeletingId] = useState(null);
+  const [alert, setAlert] = useState(null);
 
   // Grouping options
   const GROUP_OPTIONS = [
@@ -49,6 +51,12 @@ export default function ViewChanges() {
     { id: "tomorrow", label: "Tomorrow" },
     { id: "specific", label: "Specific Date" },
   ];
+
+  // Show alert message
+  const showAlert = (main, info, type) => {
+    setAlert({ main, info, type });
+    setTimeout(() => setAlert(null), 5000);
+  };
 
   const fetchChanges = async () => {
     setIsLoading(true);
@@ -65,15 +73,26 @@ export default function ViewChanges() {
         const flattenedChanges = flattenChanges(response.data.changes);
         setAllChanges(flattenedChanges);
         
-        setSuccess(
-          `Loaded ${flattenedChanges.length} temporary changes`
+        // Show success message using Alert component
+        showAlert(
+          "Temporary changes loaded",
+          `${flattenedChanges.length} temporary changes loaded successfully`,
+          "success"
         );
       } else {
-        setError("No changes found or invalid response format");
+        showAlert(
+          "No changes found",
+          "No temporary changes found in the system",
+          "error"
+        );
       }
     } catch (err) {
       console.error("Error fetching changes:", err);
-      setError(err.response?.data?.error || "Failed to fetch changes");
+      showAlert(
+        "Failed to fetch changes",
+        err.response?.data?.error || "Please try again",
+        "error"
+      );
     } finally {
       setIsLoading(false);
     }
@@ -172,7 +191,12 @@ export default function ViewChanges() {
       });
 
       if (response.data.success) {
-        setSuccess("Temporary change deleted successfully!");
+        // Show success message using Alert component
+        showAlert(
+          "Change deleted successfully",
+          "Temporary change has been removed",
+          "success"
+        );
         
         // Remove from allChanges
         const updatedChanges = allChanges.filter(c => 
@@ -186,13 +210,14 @@ export default function ViewChanges() {
         
         // Also update the original changes structure
         fetchChanges();
-        
-        setTimeout(() => setSuccess(""), 3000);
       }
     } catch (err) {
       console.error("Error deleting change:", err);
-      setError(err.response?.data?.error || "Failed to delete change");
-      setTimeout(() => setError(""), 3000);
+      showAlert(
+        "Failed to delete change",
+        err.response?.data?.error || "Please try again",
+        "error"
+      );
     } finally {
       setDeletingId(null);
     }
@@ -363,6 +388,16 @@ export default function ViewChanges() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 p-4 md:p-6">
+      {/* Alert Component */}
+      {alert && (
+        <Alert
+          main={alert.main}
+          info={alert.info}
+          type={alert.type}
+          onClose={() => setAlert(null)}
+        />
+      )}
+
       {/* Decorative Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-indigo-100 to-transparent rounded-full opacity-20"></div>
