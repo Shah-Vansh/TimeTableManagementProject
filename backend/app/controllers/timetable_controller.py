@@ -158,7 +158,7 @@ def save_timetable():
                     old_val = normalized_tt[day][i]
 
                     # ❌ conflict found
-                    if new_val != "free" and old_val != "free":
+                    if new_val != "free" and old_val != "free" and old_val!=new_val:
                         return jsonify({
                             "error": "Faculty lecture conflict",
                             "faculty": faculty_id,

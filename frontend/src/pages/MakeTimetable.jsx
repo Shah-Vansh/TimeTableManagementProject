@@ -6,6 +6,13 @@ import {
   GraduationCap,
   Users,
   Calendar,
+  Clock,
+  ChevronRight,
+  AlertCircle,
+  CheckCircle,
+  Plus,
+  Minus,
+  Grid
 } from "lucide-react";
 import api from "../configs/api";
 
@@ -17,24 +24,18 @@ export default function MakeTimetable() {
     "Thursday",
     "Friday",
     "Saturday",
-    "Sunday",
   ];
 
   const timeSlots = [
-    "Time Slot 1",
-    "Time Slot 2",
-    "Time Slot 3",
-    "Time Slot 4",
+    { label: "8:00 - 9:00", value: "Time Slot 1" },
+    { label: "9:00 - 10:00", value: "Time Slot 2" },
+    { label: "10:00 - 11:00", value: "Time Slot 3" },
+    { label: "11:00 - 12:00", value: "Time Slot 4" },
+    { label: "12:00 - 1:00", value: "Time Slot 5" },
+    { label: "1:00 - 2:00", value: "Time Slot 6" },
+    { label: "2:00 - 3:00", value: "Time Slot 7" },
+    { label: "3:00 - 4:00", value: "Time Slot 8" },
   ];
-
-  const additionalSlots = [
-    "Time Slot 5",
-    "Time Slot 6",
-    "Time Slot 7",
-    "Time Slot 8",
-  ];
-
-  const allTimeSlots = [...timeSlots, ...additionalSlots];
 
   /* =======================
      🔹 STATE
@@ -45,53 +46,59 @@ export default function MakeTimetable() {
   const [isLoading, setIsLoading] = useState(false);
   const [saved, setSaved] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [collapsedDays, setCollapsedDays] = useState({});
 
   const facultyOptions = [
     {
       value: "free",
       label: "Free",
-      color: "text-green-600 bg-green-50 border-green-200",
+      color: "border-emerald-200 bg-emerald-50 text-emerald-700",
+      bgColor: "bg-emerald-50",
+      textColor: "text-emerald-700"
     },
     {
       value: "ABC",
-      label: "ABC",
-      color: "text-blue-600 bg-blue-50 border-blue-200",
+      label: "Dr. Smith (ABC)",
+      color: "border-blue-200 bg-blue-50 text-blue-700",
+      bgColor: "bg-blue-50",
+      textColor: "text-blue-700"
     },
     {
       value: "DEF",
-      label: "DEF",
-      color: "text-purple-600 bg-purple-50 border-purple-200",
+      label: "Prof. Johnson (DEF)",
+      color: "border-purple-200 bg-purple-50 text-purple-700",
+      bgColor: "bg-purple-50",
+      textColor: "text-purple-700"
     },
     {
       value: "XYZ",
-      label: "XYZ",
-      color: "text-amber-600 bg-amber-50 border-amber-200",
+      label: "Dr. Williams (XYZ)",
+      color: "border-amber-200 bg-amber-50 text-amber-700",
+      bgColor: "bg-amber-50",
+      textColor: "text-amber-700"
     },
     {
       value: "PQR",
-      label: "PQR",
-      color: "text-red-600 bg-red-50 border-red-200",
+      label: "Prof. Brown (PQR)",
+      color: "border-red-200 bg-red-50 text-red-700",
+      bgColor: "bg-red-50",
+      textColor: "text-red-700"
     },
     {
       value: "LMN",
-      label: "LMN",
-      color: "text-indigo-600 bg-indigo-50 border-indigo-200",
-    },
-    {
-      value: "JKL",
-      label: "JKL",
-      color: "text-pink-600 bg-pink-50 border-pink-200",
-    },
-    {
-      value: "GHI",
-      label: "GHI",
-      color: "text-cyan-600 bg-cyan-50 border-cyan-200",
+      label: "Dr. Davis (LMN)",
+      color: "border-indigo-200 bg-indigo-50 text-indigo-700",
+      bgColor: "bg-indigo-50",
+      textColor: "text-indigo-700"
     },
   ];
 
+  const branchOptions = ["CSE", "CSE(AIML)", "DS", "ECE", "EEE", "ME", "CE"];
+  const classOptions = ["D1", "D2", "D3", "D4", "A1", "A2", "B1", "B2"];
+
   const initialSchedule = days.reduce((acc, day) => {
-    acc[day] = allTimeSlots.reduce((t, slot) => {
-      t[slot] = "free";
+    acc[day] = timeSlots.reduce((t, slot) => {
+      t[slot.value] = "free";
       return t;
     }, {});
     return acc;
@@ -105,6 +112,14 @@ export default function MakeTimetable() {
       [day]: { ...prev[day], [timeSlot]: value },
     }));
     setSaved(false);
+    setErrorMsg("");
+  };
+
+  const toggleDayCollapse = (day) => {
+    setCollapsedDays(prev => ({
+      ...prev,
+      [day]: !prev[day]
+    }));
   };
 
   /* =======================
@@ -138,7 +153,6 @@ export default function MakeTimetable() {
 
       if (error.response && error.response.status === 409) {
         const data = error.response.data;
-
         const dayMap = {
           mon: "Monday",
           tue: "Tuesday",
@@ -149,12 +163,12 @@ export default function MakeTimetable() {
         };
 
         setErrorMsg(
-          `❌ Faculty ${data.faculty} is already assigned on ${
+          `Faculty ${data.faculty} is already assigned on ${
             dayMap[data.day]
-          } (${data.time_slot})`
+          } (${data.time_slot}). Please choose a different faculty member.`
         );
       } else {
-        setErrorMsg("❌ Failed to save timetable. Please try again.");
+        setErrorMsg("Failed to save timetable. Please try again.");
       }
     } finally {
       setIsLoading(false);
@@ -164,154 +178,359 @@ export default function MakeTimetable() {
   const handleReset = () => {
     setSchedule(initialSchedule);
     setSaved(false);
+    setErrorMsg("");
   };
 
   const handleClear = () => {
-    if (window.confirm("Clear all selections?")) {
+    if (window.confirm("Clear all faculty assignments?")) {
       setSchedule(initialSchedule);
       setSaved(false);
+      setErrorMsg("");
     }
   };
 
   const getFacultyColor = (val) =>
-    facultyOptions.find((f) => f.value === val)?.color || "";
+    facultyOptions.find((f) => f.value === val)?.color || "border-gray-200 bg-gray-50 text-gray-700";
+
+  const getFacultyStyle = (val) => {
+    const faculty = facultyOptions.find((f) => f.value === val);
+    return faculty || facultyOptions[0];
+  };
 
   return (
-    <div className="min-h-screen p-6 bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-7xl mx-auto">
-        {/* =======================
-            🔹 HEADER
-        ======================= */}
-        <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-6">
-          Faculty Timetable Management
-        </h1>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 p-4 md:p-6">
+      {/* Decorative Background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-100 to-transparent rounded-full opacity-20"></div>
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-emerald-100 to-transparent rounded-full opacity-10"></div>
+      </div>
 
-        {/* =======================
-            🔹 Error
-        ======================= */}
+      <div className="relative z-10 max-w-7xl mx-auto">
+        {/* Breadcrumb */}
+        <div className="mb-6">
+          <div className="flex items-center text-sm text-gray-600 mb-4">
+            <span className="hover:text-gray-800 cursor-pointer">Dashboard</span>
+            <ChevronRight className="w-4 h-4 mx-2" />
+            <span className="hover:text-gray-800 cursor-pointer">Timetable Management</span>
+            <ChevronRight className="w-4 h-4 mx-2" />
+            <span className="font-medium text-blue-600">Create Timetable</span>
+          </div>
+        </div>
+
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Timetable</h1>
+            <p className="text-gray-600">
+              Assign faculty members to time slots and manage weekly schedules
+            </p>
+          </div>
+          <div className="p-3 bg-white rounded-xl border border-gray-200 shadow-sm">
+            <Grid className="w-6 h-6 text-blue-600" />
+          </div>
+        </div>
+
+        {/* Error Message */}
         {errorMsg && (
-          <div className="mb-6 p-4 rounded-xl border border-red-300 bg-red-50 text-red-700 font-semibold">
-            {errorMsg}
+          <div className="mb-6 p-4 rounded-xl border border-red-200 bg-red-50 flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="font-medium text-red-800">Schedule Conflict</p>
+              <p className="text-red-600 text-sm mt-1">{errorMsg}</p>
+            </div>
           </div>
         )}
 
-        {/* =======================
-            🔹 SEM + BRANCH + CLASS
-        ======================= */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {/* Semester */}
-          <div className="relative">
-            <GraduationCap className="absolute left-3 top-3 text-blue-500" />
-            <select
-              value={sem}
-              onChange={(e) => setSem(Number(e.target.value))}
-              className="w-full pl-10 p-3 rounded-xl border focus:ring-2 focus:ring-blue-500"
-            >
-              {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
-                <option key={s} value={s}>
-                  Semester {s}
-                </option>
-              ))}
-            </select>
+        {/* Success Message */}
+        {saved && (
+          <div className="mb-6 p-4 rounded-xl border border-emerald-200 bg-emerald-50 flex items-center gap-3">
+            <CheckCircle className="w-5 h-5 text-emerald-500" />
+            <div>
+              <p className="font-medium text-emerald-800">Timetable Saved Successfully</p>
+              <p className="text-emerald-600 text-sm mt-1">
+                Your schedule has been saved and is ready for use.
+              </p>
+            </div>
           </div>
+        )}
 
-          {/* Branch */}
-          <div className="relative">
-            <Calendar className="absolute left-3 top-3 text-green-500" />
-            <select
-              value={branch}
-              onChange={(e) => setBranch(e.target.value)}
-              className="w-full pl-10 p-3 rounded-xl border focus:ring-2 focus:ring-green-500"
-            >
-              <option value="CSE">CSE</option>
-              <option value="CSE(AIML)">CSE (AIML)</option>
-              <option value="DS">DS</option>
-            </select>
-          </div>
+        {/* Configuration Panel */}
+        <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm mb-8">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Configuration</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Semester */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Semester
+              </label>
+              <div className="relative">
+                <GraduationCap className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-blue-500" />
+                <select
+                  value={sem}
+                  onChange={(e) => setSem(Number(e.target.value))}
+                  className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                >
+                  {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
+                    <option key={s} value={s}>
+                      Semester {s}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
 
-          {/* Class */}
-          <div className="relative">
-            <Users className="absolute left-3 top-3 text-purple-500" />
-            <input
-              type="text"
-              placeholder="Class (e.g. D1, A, B2)"
-              value={className}
-              onChange={(e) => setClassName(e.target.value)}
-              className="w-full pl-10 p-3 rounded-xl border focus:ring-2 focus:ring-purple-500"
-            />
+            {/* Branch */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Branch
+              </label>
+              <div className="relative">
+                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-emerald-500" />
+                <select
+                  value={branch}
+                  onChange={(e) => setBranch(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                >
+                  {branchOptions.map((b) => (
+                    <option key={b} value={b}>
+                      {b}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Class */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Class
+              </label>
+              <div className="relative">
+                <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-purple-500" />
+                <select
+                  value={className}
+                  onChange={(e) => setClassName(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                >
+                  <option value="" className="text-gray-500">Select Class</option>
+                  {classOptions.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* =======================
-            🔹 TIMETABLE
-        ======================= */}
-        <div className="overflow-x-auto bg-white rounded-xl shadow">
-          <table className="w-full">
-            <thead className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-              <tr>
-                <th className="p-4">Time</th>
-                {days.map((d) => (
-                  <th key={d} className="p-4">
-                    {d}
+        {/* Legend */}
+        <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm mb-6">
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">Faculty Legend</h3>
+          <div className="flex flex-wrap gap-2">
+            {facultyOptions.map((faculty) => (
+              <div
+                key={faculty.value}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium ${faculty.color} border`}
+              >
+                {faculty.label}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Timetable */}
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden mb-8">
+          <div className="p-4 border-b border-gray-200 bg-gray-50">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-gray-900">Weekly Schedule</h2>
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <Clock className="w-4 h-4" />
+                <span>8:00 AM - 4:00 PM</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
+                <tr>
+                  <th className="w-32 p-4 text-left text-sm font-semibold text-gray-700 border-r border-gray-200">
+                    Time Slot
                   </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {allTimeSlots.map((slot) => (
-                <tr key={slot} className="border-b">
-                  <td className="p-4 font-semibold">{slot}</td>
                   {days.map((day) => (
-                    <td key={day} className="p-2">
-                      <select
-                        value={schedule[day][slot]}
-                        onChange={(e) =>
-                          handleFacultyChange(day, slot, e.target.value)
-                        }
-                        className={`w-full p-2 rounded-lg border ${getFacultyColor(
-                          schedule[day][slot]
-                        )}`}
-                      >
-                        {facultyOptions.map((f) => (
-                          <option key={f.value} value={f.value}>
-                            {f.label}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
+                    <th key={day} className="p-4 text-left">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-semibold text-gray-700">{day}</span>
+                        <button
+                          onClick={() => toggleDayCollapse(day)}
+                          className="p-1 hover:bg-gray-200 rounded-lg transition-colors"
+                        >
+                          {collapsedDays[day] ? (
+                            <Plus className="w-4 h-4 text-gray-500" />
+                          ) : (
+                            <Minus className="w-4 h-4 text-gray-500" />
+                          )}
+                        </button>
+                      </div>
+                    </th>
                   ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {timeSlots.map((slot) => (
+                  <tr key={slot.value} className="hover:bg-gray-50 transition-colors">
+                    <td className="p-4 border-r border-gray-200">
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-gray-400" />
+                        <span className="font-medium text-gray-900">{slot.label}</span>
+                      </div>
+                    </td>
+                    {days.map((day) => {
+                      const faculty = getFacultyStyle(schedule[day][slot.value]);
+                      const isCollapsed = collapsedDays[day];
+                      
+                      if (isCollapsed && schedule[day][slot.value] === "free") {
+                        return null;
+                      }
+
+                      return (
+                        <td key={day} className="p-3">
+                          <div className="relative">
+                            <select
+                              value={schedule[day][slot.value]}
+                              onChange={(e) =>
+                                handleFacultyChange(day, slot.value, e.target.value)
+                              }
+                              className={`w-full p-2.5 rounded-lg border transition-all focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                                faculty.color
+                              } ${isCollapsed ? 'opacity-75' : ''}`}
+                            >
+                              {facultyOptions.map((f) => (
+                                <option key={f.value} value={f.value}>
+                                  {f.label}
+                                </option>
+                              ))}
+                            </select>
+                            {schedule[day][slot.value] !== "free" && !isCollapsed && (
+                              <div className="absolute -top-2 -right-2">
+                                <div className={`w-5 h-5 rounded-full flex items-center justify-center ${faculty.bgColor}`}>
+                                  <div className={`w-2 h-2 rounded-full ${faculty.textColor}`}></div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
-        {/* =======================
-            🔹 ACTIONS
-        ======================= */}
-        <div className="flex flex-wrap gap-4 justify-center mt-8">
+        {/* Action Buttons */}
+        <div className="flex flex-wrap gap-4 justify-center">
           <button
             onClick={handleSubmit}
-            disabled={isLoading}
-            className="px-8 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold flex items-center gap-2"
+            disabled={isLoading || !className}
+            className={`px-8 py-3 rounded-lg font-medium flex items-center gap-2 transition-all duration-300 ${
+              isLoading || !className
+                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                : "bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-sm hover:shadow-md"
+            }`}
           >
-            <Save />
-            {saved ? "Saved" : "Save Timetable"}
+            <Save className="w-5 h-5" />
+            {isLoading ? "Saving..." : saved ? "Saved Successfully" : "Save Timetable"}
           </button>
 
           <button
             onClick={handleClear}
-            className="px-8 py-4 rounded-xl border text-red-600 flex items-center gap-2"
+            className="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 font-medium flex items-center gap-2 hover:bg-gray-50 transition-all duration-300"
           >
-            <Trash2 /> Clear
+            <Trash2 className="w-5 h-5" />
+            Clear All
           </button>
 
           <button
             onClick={handleReset}
-            className="px-8 py-4 rounded-xl border flex items-center gap-2"
+            className="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 font-medium flex items-center gap-2 hover:bg-gray-50 transition-all duration-300"
           >
-            <RefreshCw /> Reset
+            <RefreshCw className="w-5 h-5" />
+            Reset to Default
           </button>
+        </div>
+
+        {/* Statistics */}
+        <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Assigned Slots</p>
+                <p className="text-2xl font-bold text-gray-900 mt-2">
+                  {Object.values(schedule).flatMap(day => 
+                    Object.values(day).filter(val => val !== "free")
+                  ).length}
+                </p>
+              </div>
+              <div className="p-3 bg-blue-50 rounded-lg">
+                <Clock className="w-6 h-6 text-blue-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Free Slots</p>
+                <p className="text-2xl font-bold text-gray-900 mt-2">
+                  {Object.values(schedule).flatMap(day => 
+                    Object.values(day).filter(val => val === "free")
+                  ).length}
+                </p>
+              </div>
+              <div className="p-3 bg-emerald-50 rounded-lg">
+                <Users className="w-6 h-6 text-emerald-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Total Slots</p>
+                <p className="text-2xl font-bold text-gray-900 mt-2">
+                  {days.length * timeSlots.length}
+                </p>
+              </div>
+              <div className="p-3 bg-purple-50 rounded-lg">
+                <Calendar className="w-6 h-6 text-purple-600" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Tips */}
+        <div className="mt-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100">
+          <h3 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
+            <AlertCircle className="w-5 h-5" />
+            Quick Tips
+          </h3>
+          <ul className="space-y-2 text-blue-800 text-sm">
+            <li className="flex items-start gap-2">
+              <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5"></div>
+              <span>Click on any time slot to assign a faculty member</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5"></div>
+              <span>Use the collapse buttons to hide free slots for better focus</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5"></div>
+              <span>Faculty assignments are color-coded for easy identification</span>
+            </li>
+          </ul>
         </div>
       </div>
     </div>
