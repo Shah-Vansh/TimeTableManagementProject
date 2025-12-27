@@ -15,11 +15,12 @@ import {
   Minus,
   Grid,
   Loader2,
-  Search,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import api from "../configs/api";
 
-export default function EditTimetable() {
+export default function TimeTable() {
   const location = useLocation();
   const days = [
     "Monday",
@@ -44,19 +45,6 @@ export default function EditTimetable() {
   const branchOptions = ["CSE", "CSE(AIML)", "DS", "ECE", "EEE", "ME", "CE"];
   const classOptions = ["D1", "D2", "D3", "D4", "A1", "A2", "B1", "B2"];
 
-  /* =======================
-     🔹 STATE
-  ======================= */
-  const [sem, setSem] = useState(location.state?.sem || 1);
-  const [branch, setBranch] = useState(location.state?.branch || "CSE");
-  const [className, setClassName] = useState(location.state?.className || "");
-  const [isLoading, setIsLoading] = useState(false);
-  const [fetching, setFetching] = useState(false);
-  const [saved, setSaved] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
-  const [initialLoad, setInitialLoad] = useState(false);
-  const [collapsedDays, setCollapsedDays] = useState({});
-
   const facultyOptions = [
     {
       value: "free",
@@ -67,54 +55,69 @@ export default function EditTimetable() {
     },
     {
       value: "ABC",
-      label: "ABC",
+      label: "Dr. Smith (ABC)",
       color: "border-blue-200 bg-blue-50 text-blue-700",
       bgColor: "bg-blue-50",
       textColor: "text-blue-700",
     },
     {
       value: "DEF",
-      label: "DEF",
+      label: "Prof. Johnson (DEF)",
       color: "border-purple-200 bg-purple-50 text-purple-700",
       bgColor: "bg-purple-50",
       textColor: "text-purple-700",
     },
     {
       value: "XYZ",
-      label: "XYZ",
+      label: "Dr. Williams (XYZ)",
       color: "border-amber-200 bg-amber-50 text-amber-700",
       bgColor: "bg-amber-50",
       textColor: "text-amber-700",
     },
     {
       value: "PQR",
-      label: "PQR",
+      label: "Prof. Brown (PQR)",
       color: "border-red-200 bg-red-50 text-red-700",
       bgColor: "bg-red-50",
       textColor: "text-red-700",
     },
     {
       value: "LMN",
-      label: "LMN",
+      label: "Dr. Davis (LMN)",
       color: "border-indigo-200 bg-indigo-50 text-indigo-700",
       bgColor: "bg-indigo-50",
       textColor: "text-indigo-700",
     },
     {
       value: "JKL",
-      label: "JKL",
+      label: "Dr. Wilson (JKL)",
       color: "border-pink-200 bg-pink-50 text-pink-700",
       bgColor: "bg-pink-50",
       textColor: "text-pink-700",
     },
     {
       value: "GHI",
-      label: "GHI",
+      label: "Dr. Taylor (GHI)",
       color: "border-cyan-200 bg-cyan-50 text-cyan-700",
       bgColor: "bg-cyan-50",
       textColor: "text-cyan-700",
     },
   ];
+
+  /* =======================
+     🔹 STATE
+  ======================= */
+  // Initialize from location state if available
+  const [sem, setSem] = useState(location.state?.sem || 1);
+  const [branch, setBranch] = useState(location.state?.branch || "CSE");
+  const [className, setClassName] = useState(location.state?.className || "");
+  const [isLoading, setIsLoading] = useState(false);
+  const [fetching, setFetching] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [collapsedDays, setCollapsedDays] = useState({});
+  const [existingTimetable, setExistingTimetable] = useState(false);
+  const [showFreeSlots, setShowFreeSlots] = useState(true);
 
   const initialSchedule = days.reduce((acc, day) => {
     acc[day] = timeSlots.reduce((t, slot) => {
@@ -136,6 +139,7 @@ export default function EditTimetable() {
 
     setFetching(true);
     setErrorMsg("");
+    setExistingTimetable(false);
 
     try {
       const response = await api.get("/api/fetchtimetable", {
@@ -164,7 +168,7 @@ export default function EditTimetable() {
       });
 
       setSchedule(updatedSchedule);
-      setInitialLoad(true);
+      setExistingTimetable(true);
       setErrorMsg("");
     } catch (error) {
       console.error("Error fetching timetable:", error);
@@ -172,7 +176,7 @@ export default function EditTimetable() {
       if (error.response && error.response.status === 404) {
         // If no timetable exists, reset to initial
         setSchedule(initialSchedule);
-        setInitialLoad(true);
+        setExistingTimetable(false);
         setErrorMsg("No existing timetable found. You can create a new one.");
       } else {
         setErrorMsg("Failed to fetch timetable. Please try again.");
@@ -183,18 +187,32 @@ export default function EditTimetable() {
   };
 
   /* =======================
-     🔹 FETCH ON PARAMS CHANGE
+     🔹 FETCH ON PARAMS CHANGE OR LOCATION STATE
   ======================= */
+  useEffect(() => {
+    // If we have location state (coming from dashboard), fetch immediately
+    if (location.state?.className) {
+      fetchTimetable();
+    }
+  }, []); // Run once on mount if location state exists
+
   useEffect(() => {
     if (className.trim()) {
       const debounceTimer = setTimeout(() => {
         fetchTimetable();
-      }, 500);
+      }, 300);
 
       return () => clearTimeout(debounceTimer);
+    } else {
+      setSchedule(initialSchedule);
+      setExistingTimetable(false);
+      setErrorMsg("");
     }
   }, [sem, branch, className]);
 
+  /* =======================
+     🔹 HANDLERS
+  ======================= */
   const handleFacultyChange = (day, timeSlot, value) => {
     setSchedule((prev) => ({
       ...prev,
@@ -212,7 +230,7 @@ export default function EditTimetable() {
   };
 
   /* =======================
-     🔹 SUBMIT
+     🔹 SAVE/UPDATE TIMETABLE
   ======================= */
   const handleSubmit = async () => {
     if (!className.trim()) {
@@ -230,20 +248,20 @@ export default function EditTimetable() {
       formData.append("class", className);
       formData.append("schedule", JSON.stringify(schedule));
 
-      const res = await api.post("/api/timetable", formData, {
+      const endpoint = existingTimetable ? "/api/timetable" : "/api/timetable";
+      const res = await api.post(endpoint, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
       console.log("Saved timetable:", res.data);
       setSaved(true);
+      setExistingTimetable(true);
       setErrorMsg("");
-      setInitialLoad(true);
     } catch (error) {
       console.error("Error saving timetable:", error);
 
       if (error.response && error.response.status === 409) {
         const data = error.response.data;
-
         const dayMap = {
           mon: "Monday",
           tue: "Tuesday",
@@ -267,7 +285,7 @@ export default function EditTimetable() {
   };
 
   const handleReset = () => {
-    if (initialLoad) {
+    if (existingTimetable) {
       fetchTimetable();
     } else {
       setSchedule(initialSchedule);
@@ -276,7 +294,7 @@ export default function EditTimetable() {
   };
 
   const handleClear = () => {
-    if (window.confirm("Clear all faculty assignments in the current view?")) {
+    if (window.confirm("Clear all faculty assignments?")) {
       setSchedule(initialSchedule);
       setSaved(false);
     }
@@ -287,6 +305,9 @@ export default function EditTimetable() {
     return faculty || facultyOptions[0];
   };
 
+  /* =======================
+     🔹 RENDER
+  ======================= */
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 p-4 md:p-6">
       {/* Decorative Background */}
@@ -299,15 +320,13 @@ export default function EditTimetable() {
         {/* Breadcrumb */}
         <div className="mb-6">
           <div className="flex items-center text-sm text-gray-600 mb-4">
-            <span className="hover:text-gray-800 cursor-pointer">
-              Dashboard
-            </span>
+            <span className="hover:text-gray-800 cursor-pointer">Dashboard</span>
             <ChevronRight className="w-4 h-4 mx-2" />
-            <span className="hover:text-gray-800 cursor-pointer">
-              Timetable Management
-            </span>
+            <span className="hover:text-gray-800 cursor-pointer">Timetable Management</span>
             <ChevronRight className="w-4 h-4 mx-2" />
-            <span className="font-medium text-blue-600">Edit Timetable</span>
+            <span className="font-medium text-blue-600">
+              {existingTimetable ? "Edit Timetable" : "Create Timetable"}
+            </span>
           </div>
         </div>
 
@@ -315,75 +334,72 @@ export default function EditTimetable() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Edit Timetable
+              {existingTimetable ? "Edit Timetable" : "Create Timetable"}
             </h1>
             <p className="text-gray-600">
-              Modify existing schedules or update faculty assignments
+              {existingTimetable
+                ? "Modify existing schedules or update faculty assignments"
+                : "Assign faculty members to time slots and manage weekly schedules"}
             </p>
           </div>
-          <div className="p-3 bg-white rounded-xl border border-gray-200 shadow-sm">
-            <Grid className="w-6 h-6 text-blue-600" />
+          <div className="flex items-center gap-3">
+            <div className={`px-3 py-1.5 rounded-lg text-sm font-medium ${
+              existingTimetable
+                ? "bg-green-100 text-green-800 border border-green-200"
+                : "bg-blue-100 text-blue-800 border border-blue-200"
+            }`}>
+              {existingTimetable ? "Existing Timetable" : "New Timetable"}
+            </div>
+            <div className="p-3 bg-white rounded-xl border border-gray-200 shadow-sm">
+              <Grid className="w-6 h-6 text-blue-600" />
+            </div>
           </div>
         </div>
 
-        {/* Error Message */}
+        {/* Status Messages */}
         {errorMsg && (
-          <div
-            className={`mb-6 p-4 rounded-xl border flex items-start gap-3 ${
-              errorMsg.includes("No existing") ||
-              errorMsg.includes("Failed to fetch")
-                ? "border-amber-200 bg-amber-50"
-                : errorMsg.includes("already assigned")
-                ? "border-red-200 bg-red-50"
-                : "border-red-200 bg-red-50"
-            }`}
-          >
-            <AlertCircle
-              className={`w-5 h-5 mt-0.5 flex-shrink-0 ${
-                errorMsg.includes("No existing") ||
-                errorMsg.includes("Failed to fetch")
-                  ? "text-amber-500"
-                  : "text-red-500"
-              }`}
-            />
+          <div className={`mb-6 p-4 rounded-xl border flex items-start gap-3 ${
+            errorMsg.includes("No existing") || errorMsg.includes("Failed to fetch")
+              ? "border-amber-200 bg-amber-50"
+              : errorMsg.includes("already assigned")
+              ? "border-red-200 bg-red-50"
+              : "border-red-200 bg-red-50"
+          }`}>
+            <AlertCircle className={`w-5 h-5 mt-0.5 flex-shrink-0 ${
+              errorMsg.includes("No existing") || errorMsg.includes("Failed to fetch")
+                ? "text-amber-500"
+                : "text-red-500"
+            }`} />
             <div>
-              <p
-                className={`font-medium ${
-                  errorMsg.includes("No existing") ||
-                  errorMsg.includes("Failed to fetch")
-                    ? "text-amber-800"
-                    : "text-red-800"
-                }`}
-              >
-                {errorMsg.includes("No existing") ||
-                errorMsg.includes("Failed to fetch")
+              <p className={`font-medium ${
+                errorMsg.includes("No existing") || errorMsg.includes("Failed to fetch")
+                  ? "text-amber-800"
+                  : "text-red-800"
+              }`}>
+                {errorMsg.includes("No existing") || errorMsg.includes("Failed to fetch")
                   ? "Information"
                   : "Schedule Conflict"}
               </p>
-              <p
-                className={`text-sm mt-1 ${
-                  errorMsg.includes("No existing") ||
-                  errorMsg.includes("Failed to fetch")
-                    ? "text-amber-600"
-                    : "text-red-600"
-                }`}
-              >
+              <p className={`text-sm mt-1 ${
+                errorMsg.includes("No existing") || errorMsg.includes("Failed to fetch")
+                  ? "text-amber-600"
+                  : "text-red-600"
+              }`}>
                 {errorMsg}
               </p>
             </div>
           </div>
         )}
 
-        {/* Success Message */}
         {saved && (
           <div className="mb-6 p-4 rounded-xl border border-emerald-200 bg-emerald-50 flex items-center gap-3">
             <CheckCircle className="w-5 h-5 text-emerald-500" />
             <div>
               <p className="font-medium text-emerald-800">
-                Timetable Updated Successfully
+                Timetable {existingTimetable ? "Updated" : "Saved"} Successfully
               </p>
               <p className="text-emerald-600 text-sm mt-1">
-                Your changes have been saved and updated in the system.
+                Your schedule has been {existingTimetable ? "updated" : "saved"} and is ready for use.
               </p>
             </div>
           </div>
@@ -391,9 +407,17 @@ export default function EditTimetable() {
 
         {/* Configuration Panel */}
         <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm mb-8">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            Select Timetable
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-900">
+              {location.state?.className ? "Editing Selected Timetable" : "Select/Create Timetable"}
+            </h2>
+            {fetching && (
+              <div className="flex items-center gap-2 text-sm text-blue-600">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Loading...
+              </div>
+            )}
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Semester */}
             <div>
@@ -408,9 +432,7 @@ export default function EditTimetable() {
                   className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 >
                   {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
-                    <option key={s} value={s}>
-                      Semester {s}
-                    </option>
+                    <option key={s} value={s}>Semester {s}</option>
                   ))}
                 </select>
               </div>
@@ -429,9 +451,7 @@ export default function EditTimetable() {
                   className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
                 >
                   {branchOptions.map((b) => (
-                    <option key={b} value={b}>
-                      {b}
-                    </option>
+                    <option key={b} value={b}>{b}</option>
                   ))}
                 </select>
               </div>
@@ -449,13 +469,9 @@ export default function EditTimetable() {
                   onChange={(e) => setClassName(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
                 >
-                  <option value="" className="text-gray-500">
-                    Select Class
-                  </option>
+                  <option value="" className="text-gray-500">Select Class</option>
                   {classOptions.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
+                    <option key={c} value={c}>{c}</option>
                   ))}
                 </select>
               </div>
@@ -463,20 +479,37 @@ export default function EditTimetable() {
           </div>
         </div>
 
-        {/* Legend */}
-        <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm mb-6">
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">
-            Faculty Legend
-          </h3>
-          <div className="flex flex-wrap gap-2">
-            {facultyOptions.map((faculty) => (
-              <div
-                key={faculty.value}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium ${faculty.color} border`}
+        {/* Legend & Controls */}
+        <div className="flex flex-col md:flex-row gap-4 mb-6">
+          <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm flex-1">
+            <h3 className="text-sm font-semibold text-gray-700 mb-3">Faculty Legend</h3>
+            <div className="flex flex-wrap gap-2">
+              {facultyOptions.map((faculty) => (
+                <div
+                  key={faculty.value}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium ${faculty.color} border`}
+                >
+                  {faculty.label}
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
+            <h3 className="text-sm font-semibold text-gray-700 mb-3">View Options</h3>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowFreeSlots(!showFreeSlots)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 ${
+                  showFreeSlots
+                    ? "bg-blue-100 text-blue-700 border border-blue-200"
+                    : "bg-gray-100 text-gray-700 border border-gray-200"
+                }`}
               >
-                {faculty.label}
-              </div>
-            ))}
+                {showFreeSlots ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                {showFreeSlots ? "Show Free" : "Hide Free"}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -486,12 +519,15 @@ export default function EditTimetable() {
             <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden mb-8">
               <div className="p-4 border-b border-gray-200 bg-gray-50">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-gray-900">
-                    Weekly Schedule
-                  </h2>
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Clock className="w-4 h-4" />
-                    <span>8:00 AM - 4:00 PM</span>
+                  <h2 className="text-lg font-semibold text-gray-900">Weekly Schedule</h2>
+                  <div className="flex items-center gap-4">
+                    <div className="text-sm text-gray-600 flex items-center gap-2">
+                      <Clock className="w-4 h-4" />
+                      <span>8:00 AM - 4:00 PM</span>
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {fetching ? "Loading..." : existingTimetable ? "Editing existing timetable" : "Creating new timetable"}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -506,9 +542,7 @@ export default function EditTimetable() {
                       {days.map((day) => (
                         <th key={day} className="p-4 text-left">
                           <div className="flex items-center justify-between">
-                            <span className="text-sm font-semibold text-gray-700">
-                              {day}
-                            </span>
+                            <span className="text-sm font-semibold text-gray-700">{day}</span>
                             <button
                               onClick={() => toggleDayCollapse(day)}
                               className="p-1 hover:bg-gray-200 rounded-lg transition-colors"
@@ -526,28 +560,20 @@ export default function EditTimetable() {
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {timeSlots.map((slot) => (
-                      <tr
-                        key={slot.value}
-                        className="hover:bg-gray-50 transition-colors"
-                      >
+                      <tr key={slot.value} className="hover:bg-gray-50 transition-colors">
                         <td className="p-4 border-r border-gray-200">
                           <div className="flex items-center gap-2">
                             <Clock className="w-4 h-4 text-gray-400" />
-                            <span className="font-medium text-gray-900">
-                              {slot.label}
-                            </span>
+                            <span className="font-medium text-gray-900">{slot.label}</span>
                           </div>
                         </td>
                         {days.map((day) => {
-                          const faculty = getFacultyStyle(
-                            schedule[day][slot.value]
-                          );
+                          const faculty = getFacultyStyle(schedule[day][slot.value]);
                           const isCollapsed = collapsedDays[day];
+                          const isFree = schedule[day][slot.value] === "free";
 
-                          if (
-                            isCollapsed &&
-                            schedule[day][slot.value] === "free"
-                          ) {
+                          // Hide if collapsed and free, or if free slots are hidden
+                          if ((isCollapsed && isFree) || (!showFreeSlots && isFree)) {
                             return null;
                           }
 
@@ -557,15 +583,11 @@ export default function EditTimetable() {
                                 <select
                                   value={schedule[day][slot.value]}
                                   onChange={(e) =>
-                                    handleFacultyChange(
-                                      day,
-                                      slot.value,
-                                      e.target.value
-                                    )
+                                    handleFacultyChange(day, slot.value, e.target.value)
                                   }
                                   className={`w-full p-2.5 rounded-lg border transition-all focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                                     faculty.color
-                                  } ${isCollapsed ? "opacity-75" : ""}`}
+                                  } ${isCollapsed ? 'opacity-75' : ''}`}
                                 >
                                   {facultyOptions.map((f) => (
                                     <option key={f.value} value={f.value}>
@@ -573,18 +595,13 @@ export default function EditTimetable() {
                                     </option>
                                   ))}
                                 </select>
-                                {schedule[day][slot.value] !== "free" &&
-                                  !isCollapsed && (
-                                    <div className="absolute -top-2 -right-2">
-                                      <div
-                                        className={`w-5 h-5 rounded-full flex items-center justify-center ${faculty.bgColor}`}
-                                      >
-                                        <div
-                                          className={`w-2 h-2 rounded-full ${faculty.textColor}`}
-                                        ></div>
-                                      </div>
+                                {!isFree && !isCollapsed && (
+                                  <div className="absolute -top-2 -right-2">
+                                    <div className={`w-5 h-5 rounded-full flex items-center justify-center ${faculty.bgColor}`}>
+                                      <div className={`w-2 h-2 rounded-full ${faculty.textColor}`}></div>
                                     </div>
-                                  )}
+                                  </div>
+                                )}
                               </div>
                             </td>
                           );
@@ -603,11 +620,9 @@ export default function EditTimetable() {
                   <div>
                     <p className="text-sm text-gray-600">Assigned Slots</p>
                     <p className="text-2xl font-bold text-gray-900 mt-2">
-                      {
-                        Object.values(schedule).flatMap((day) =>
-                          Object.values(day).filter((val) => val !== "free")
-                        ).length
-                      }
+                      {Object.values(schedule).flatMap(day => 
+                        Object.values(day).filter(val => val !== "free")
+                      ).length}
                     </p>
                   </div>
                   <div className="p-3 bg-blue-50 rounded-lg">
@@ -621,11 +636,9 @@ export default function EditTimetable() {
                   <div>
                     <p className="text-sm text-gray-600">Free Slots</p>
                     <p className="text-2xl font-bold text-gray-900 mt-2">
-                      {
-                        Object.values(schedule).flatMap((day) =>
-                          Object.values(day).filter((val) => val === "free")
-                        ).length
-                      }
+                      {Object.values(schedule).flatMap(day => 
+                        Object.values(day).filter(val => val === "free")
+                      ).length}
                     </p>
                   </div>
                   <div className="p-3 bg-emerald-50 rounded-lg">
@@ -664,8 +677,8 @@ export default function EditTimetable() {
                 {isLoading
                   ? "Saving..."
                   : saved
-                  ? "Updated Successfully"
-                  : "Update Timetable"}
+                  ? `${existingTimetable ? "Updated" : "Saved"} Successfully`
+                  : `${existingTimetable ? "Update" : "Save"} Timetable`}
               </button>
 
               <button
@@ -691,7 +704,7 @@ export default function EditTimetable() {
                 }`}
               >
                 <RefreshCw className="w-5 h-5" />
-                Reset to Original
+                {existingTimetable ? "Reset to Original" : "Reset to Default"}
               </button>
             </div>
           </>
@@ -701,26 +714,24 @@ export default function EditTimetable() {
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100">
           <h3 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
             <AlertCircle className="w-5 h-5" />
-            Editing Guide
+            How It Works
           </h3>
           <ul className="space-y-2 text-blue-800 text-sm">
             <li className="flex items-start gap-2">
               <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5"></div>
-              <span>
-                Select semester, branch, and class to load existing timetable
-              </span>
+              <span><strong>Select semester, branch, and class</strong> - The system will automatically check if a timetable exists</span>
             </li>
             <li className="flex items-start gap-2">
               <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5"></div>
-              <span>Click on any time slot to change faculty assignments</span>
+              <span><strong>If timetable exists</strong> - It will be loaded for editing. Make changes and click "Update Timetable"</span>
             </li>
             <li className="flex items-start gap-2">
               <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5"></div>
-              <span>Use collapse buttons to focus only on assigned slots</span>
+              <span><strong>If no timetable exists</strong> - All slots will be free. Assign faculty and click "Save Timetable"</span>
             </li>
             <li className="flex items-start gap-2">
               <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5"></div>
-              <span>Click "Update Timetable" to save your changes</span>
+              <span><strong>Use view options</strong> - Collapse days or hide free slots to focus on assigned slots</span>
             </li>
           </ul>
         </div>
