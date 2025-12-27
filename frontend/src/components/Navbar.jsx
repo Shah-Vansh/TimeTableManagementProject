@@ -20,8 +20,6 @@ const Navbar = () => {
     name: "John Doe",
     email: "john@example.com",
   });
-  const [pendingChanges] = useState(2);
-  const [conflictsCount] = useState(1);
 
   const handleReplaceClick = () => {
     navigate("/replace");
@@ -60,11 +58,7 @@ const Navbar = () => {
             >
               <LayoutDashboard size={18} />
               Dashboard
-              {pendingChanges > 0 && (
-                <span className="ml-1 text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">
-                  {pendingChanges}
-                </span>
-              )}
+              
             </Link>
 
             {/* Replace */}
@@ -74,11 +68,7 @@ const Navbar = () => {
             >
               <RefreshCw size={18} />
               Replace
-              {conflictsCount > 0 && (
-                <span className="ml-1 text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-800">
-                  {conflictsCount}
-                </span>
-              )}
+              
             </button>
 
             <button
@@ -89,11 +79,6 @@ const Navbar = () => {
             >
               <SwatchBookIcon size={18} />
               View Changes
-              {conflictsCount > 0 && (
-                <span className="ml-1 text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-800">
-                  {conflictsCount}
-                </span>
-              )}
             </button>
 
             {/* User */}
@@ -139,11 +124,7 @@ const Navbar = () => {
               className="relative p-2 hover:bg-slate-100 rounded-lg"
             >
               <RefreshCw size={20} />
-              {conflictsCount > 0 && (
-                <span className="absolute -top-1 -right-1 text-xs px-1.5 py-0.5 rounded-full bg-red-500 text-white">
-                  {conflictsCount}
-                </span>
-              )}
+              
             </button>
 
             {user ? (

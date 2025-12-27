@@ -5,16 +5,14 @@ from datetime import date
 rearrange_lecture_bp = Blueprint("rearrange_lecture", __name__)
 
 
-def is_faculty_free(fac_id, day, lec_no):
-    today = date.today().isoformat()
-
-    # 1️⃣ Temp timetable check (highest priority)
+def is_faculty_free(fac_id, day, lec_no, selected_date):
+    # 1️⃣ Temp timetable check (highest priority) for specific date
     if db.temp_faculty_timetable.find_one(
-        {"faculty_id": fac_id, "date": today, "day": day, "lec_no": lec_no}
+        {"faculty_id": fac_id, "date": selected_date, "day": day, "lec_no": lec_no}
     ):
         return False
 
-    # 2️⃣ Permanent timetable
+    # 2️⃣ Permanent timetable (for recurring schedule)
     fac_doc = db.faculty_timetable.find_one({"_id": fac_id})
     if not fac_doc:
         return False
@@ -33,11 +31,11 @@ def get_faculty_name(fac_id):
     return faculty.get("name", fac_id) if faculty else fac_id
 
 
-def assign_temp(fac_id, day, lec_no, assignment):
+def assign_temp(fac_id, day, lec_no, assignment, selected_date):
     db.temp_faculty_timetable.insert_one(
         {
             "faculty_id": fac_id,
-            "date": date.today().isoformat(),
+            "date": selected_date,
             "day": day,
             "lec_no": lec_no,
             "assigned_to": assignment,
@@ -45,7 +43,7 @@ def assign_temp(fac_id, day, lec_no, assignment):
     )
 
 
-def replace_lecture_helper(day, class_name, sem, branch, lec_no):
+def replace_lecture_helper(selected_date, day, class_name, sem, branch, lec_no):
     class_doc = db.classwise_faculty.find_one(
         {"class": class_name, "sem": sem, "branch": branch}
     )
@@ -54,7 +52,7 @@ def replace_lecture_helper(day, class_name, sem, branch, lec_no):
         return {"success": False}
 
     for fac_id in class_doc.get("allowed_faculty", []):
-        if is_faculty_free(fac_id, day, lec_no):
+        if is_faculty_free(fac_id, day, lec_no, selected_date):
             return {"success": True, "assigned_faculty": fac_id}
 
     return {"success": False}
@@ -62,20 +60,21 @@ def replace_lecture_helper(day, class_name, sem, branch, lec_no):
 
 @rearrange_lecture_bp.route("/get-rearrange-options", methods=["POST", "OPTIONS"])
 def get_rearrange_options():
-    """Get all possible rearrangement options for a lecture"""
+    """Get all possible rearrangement options for a lecture on a specific date"""
     if request.method == "OPTIONS":
         return "", 200
 
     data = request.get_json()
 
     # Extract fields
+    selected_date = data.get("date")
     day = data.get("day")
     class_name = data.get("class")
     sem = data.get("sem")
     branch = data.get("branch")
     lec_no = data.get("lec_no")
 
-    if not all([day, class_name, sem, branch, lec_no is not None]):
+    if not all([selected_date, day, class_name, sem, branch, lec_no is not None]):
         return jsonify({"success": False, "message": "Missing required fields"}), 400
 
     try:
@@ -123,7 +122,7 @@ def get_rearrange_options():
 
         # Try to find another faculty for the occupied class
         reassign_attempt = replace_lecture_helper(
-            day, occupied_class, occupied_sem, occupied_branch, lec_no
+            selected_date, day, occupied_class, occupied_sem, occupied_branch, lec_no
         )
 
         if not reassign_attempt["success"]:
@@ -180,13 +179,14 @@ def get_rearrange_options():
 
 @rearrange_lecture_bp.route("/execute-rearrange", methods=["POST", "OPTIONS"])
 def execute_rearrange():
-    """Execute a selected rearrangement option"""
+    """Execute a selected rearrangement option on a specific date"""
     if request.method == "OPTIONS":
         return "", 200
 
     data = request.get_json()
 
     # Extract fields
+    selected_date = data.get("date")
     day = data.get("day")
     class_name = data.get("class")
     sem = data.get("sem")
@@ -197,6 +197,7 @@ def execute_rearrange():
 
     if not all(
         [
+            selected_date,
             day,
             class_name,
             sem,
@@ -251,7 +252,7 @@ def execute_rearrange():
         )
 
     # Verify secondary faculty is free
-    if not is_faculty_free(secondary_faculty_id, day, lec_no):
+    if not is_faculty_free(secondary_faculty_id, day, lec_no, selected_date):
         return (
             jsonify(
                 {
@@ -264,11 +265,11 @@ def execute_rearrange():
 
     # Execute the swap
     # 1. Assign the occupied class to secondary faculty
-    assign_temp(secondary_faculty_id, day, lec_no, current_slot)
+    assign_temp(secondary_faculty_id, day, lec_no, current_slot, selected_date)
 
     # 2. Assign the target class to primary faculty
     target_assignment = f"{branch}-{class_name}-Sem{sem}-{time_slot_str}"
-    assign_temp(primary_faculty_id, day, lec_no, target_assignment)
+    assign_temp(primary_faculty_id, day, lec_no, target_assignment, selected_date)
 
     primary_fac_name = get_faculty_name(primary_faculty_id)
     secondary_fac_name = get_faculty_name(secondary_faculty_id)
@@ -277,7 +278,7 @@ def execute_rearrange():
     target_class_message = (
         f"@ {branch}_{class_name}\n"
         f"Lecture Rearranged\n"
-        f"Date: {date.today().strftime('%d/%m/%Y')}\n"
+        f"Date: {selected_date}\n"
         f"Lecture no.: {lec_no+1}\n"
         f"New Faculty: {primary_fac_name}\n"
         f"(Previously occupied by: {secondary_fac_name})\n"
@@ -287,7 +288,7 @@ def execute_rearrange():
     occupied_class_message = (
         f"@ {occupied_branch}_{occupied_class}\n"
         f"Lecture Reassigned\n"
-        f"Date: {date.today().strftime('%d/%m/%Y')}\n"
+        f"Date: {selected_date}\n"
         f"Lecture no.: {lec_no+1}\n"
         f"New Faculty: {secondary_fac_name}\n"
         f"(Previous Faculty: {primary_fac_name})\n"
@@ -338,13 +339,14 @@ def rearrange_lecture():
     data = request.get_json()
 
     # Extract fields
+    selected_date = data.get("date")
     day = data.get("day")
     class_name = data.get("class")
     sem = data.get("sem")
     branch = data.get("branch")
     lec_no = data.get("lec_no")
 
-    if not all([day, class_name, sem, branch, lec_no is not None]):
+    if not all([selected_date, day, class_name, sem, branch, lec_no is not None]):
         return jsonify({"success": False, "message": "Missing required fields"}), 400
 
     try:
@@ -353,13 +355,13 @@ def rearrange_lecture():
         return jsonify({"success": False, "message": "lec_no must be an integer"}), 400
 
     # 1️⃣ FIRST TRY — Normal replace
-    first_try = replace_lecture_helper(day, class_name, sem, branch, lec_no)
+    first_try = replace_lecture_helper(selected_date, day, class_name, sem, branch, lec_no)
 
     if first_try["success"]:
         # Assign the lecture
         fac_id = first_try["assigned_faculty"]
         assign_temp(
-            fac_id, day, lec_no, f"{branch}-{class_name}-Sem{sem}-Time Slot {lec_no+1}"
+            fac_id, day, lec_no, f"{branch}-{class_name}-Sem{sem}-Time Slot {lec_no+1}", selected_date
         )
 
         fac_name = get_faculty_name(fac_id)
@@ -374,7 +376,7 @@ def rearrange_lecture():
                     "message": (
                         f"@ {branch}_{class_name}\n"
                         f"Change in Lecture\n"
-                        f"Date: {date.today().strftime('%d/%m/%Y')}\n"
+                        f"Date: {selected_date}\n"
                         f"Subject: subject\n"
                         f"Lecture no.: {lec_no+1}\n"
                         f"Faculty: {fac_name}\n"
@@ -421,7 +423,7 @@ def rearrange_lecture():
             continue
 
         reassign_attempt = replace_lecture_helper(
-            day, occupied_class, occupied_sem, occupied_branch, lec_no
+            selected_date, day, occupied_class, occupied_sem, occupied_branch, lec_no
         )
 
         if not reassign_attempt["success"]:
@@ -429,9 +431,9 @@ def rearrange_lecture():
 
         new_fac = reassign_attempt["assigned_faculty"]
 
-        assign_temp(new_fac, day, lec_no, current_slot)
+        assign_temp(new_fac, day, lec_no, current_slot, selected_date)
         assign_temp(
-            fac_id, day, lec_no, f"{branch}-{class_name}-Sem{sem}-Time Slot {lec_no+1}"
+            fac_id, day, lec_no, f"{branch}-{class_name}-Sem{sem}-Time Slot {lec_no+1}", selected_date
         )
 
         fac_name = get_faculty_name(fac_id)
@@ -446,7 +448,7 @@ def rearrange_lecture():
                     "message": (
                         f"@ {branch}_{class_name}\n"
                         f"Lecture Rearranged\n"
-                        f"Date: {date.today().strftime('%d/%m/%Y')}\n"
+                        f"Date: {selected_date}\n"
                         f"Lecture no.: {lec_no+1}\n"
                         f"Faculty: {fac_name}\n"
                         f"Location: Same as per timetable"

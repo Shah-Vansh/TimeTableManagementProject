@@ -32,6 +32,7 @@ import {
   Info,
 } from "lucide-react";
 import api from "../configs/api";
+import Alert from "../components/Alert";
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -45,10 +46,17 @@ function Dashboard() {
   const [viewMode, setViewMode] = useState("grid"); // grid or list
   const [sortBy, setSortBy] = useState("recent");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [alert, setAlert] = useState(null);
 
   const branches = ["CSE", "CSE(AIML)", "DS", "ECE", "EEE"];
   const semesters = Array.from({ length: 8 }, (_, i) => i + 1);
   const classes = ["D1", "D2", "D3", "D4"];
+
+  // Show alert message
+  const showAlert = (main, info, type) => {
+    setAlert({ main, info, type });
+    setTimeout(() => setAlert(null), 5000);
+  };
 
   // Aggregate timetables by branch
   const aggregateByBranch = (timetables) => {
@@ -106,6 +114,7 @@ function Dashboard() {
       setBranchData(aggregateByBranch(enriched));
     } catch (err) {
       console.error("Failed to fetch timetables", err);
+      showAlert("Failed to fetch timetables", "Please try again later", "error");
     }
   };
 
@@ -156,13 +165,21 @@ function Dashboard() {
       });
 
       await Promise.all(deletePromises);
-      alert(`Successfully deleted all timetables for ${branchInfo.branch} Semester ${branchInfo.sem}`);
+      showAlert(
+        "Branch timetables deleted successfully",
+        `${branchInfo.totalClasses} classes from ${branchInfo.branch} Semester ${branchInfo.sem} have been removed`,
+        "success"
+      );
       
       // Refresh the list
       fetchTimetables();
     } catch (err) {
       console.error(err);
-      alert("Something went wrong while deleting timetables");
+      showAlert(
+        "Failed to delete timetables",
+        "Something went wrong while deleting timetables",
+        "error"
+      );
     }
   };
 
@@ -243,6 +260,16 @@ function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
+      {/* Alert Component */}
+      {alert && (
+        <Alert
+          main={alert.main}
+          info={alert.info}
+          type={alert.type}
+          onClose={() => setAlert(null)}
+        />
+      )}
+
       {/* Decorative Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 right-10 w-72 h-72 bg-gradient-to-br from-blue-100 to-transparent rounded-full opacity-40"></div>

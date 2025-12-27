@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   RefreshCw,
   Calendar,
@@ -23,8 +23,10 @@ import {
   ArrowRight,
   GitBranch,
   Bell,
+  CalendarDays,
 } from "lucide-react";
 import api from "../configs/api";
+import Alert from "../components/Alert"; // Import the Alert component
 
 export default function ReplaceLecture() {
   const days = [
@@ -47,8 +49,28 @@ export default function ReplaceLecture() {
     { value: 7, label: "4:00 PM - 5:00 PM" },
   ];
 
+  // Get today's date and day
+  const today = new Date();
+  const todayDate = today.toISOString().split("T")[0];
+  const todayDayIndex = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
+  const todayDay =
+    todayDayIndex === 0
+      ? "sun"
+      : todayDayIndex === 1
+      ? "mon"
+      : todayDayIndex === 2
+      ? "tue"
+      : todayDayIndex === 3
+      ? "wed"
+      : todayDayIndex === 4
+      ? "thu"
+      : todayDayIndex === 5
+      ? "fri"
+      : "sat";
+
   const [formData, setFormData] = useState({
-    day: "",
+    date: todayDate,
+    day: days.find((d) => d.value === todayDay)?.value || "",
     class: "",
     sem: 1,
     branch: "CSE",
@@ -73,13 +95,103 @@ export default function ReplaceLecture() {
   const [showClassToast, setShowClassToast] = useState(false);
   const [classToastMessages, setClassToastMessages] = useState([]);
   const [currentToastIndex, setCurrentToastIndex] = useState(0);
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertData, setAlertData] = useState({ main: "", info: "" });
+
+  // Function to get day name from date string
+  const getDayFromDate = (dateString) => {
+    const date = new Date(dateString);
+    const dayIndex = date.getDay();
+
+    // Map JavaScript day index to your day values
+    const dayMap = {
+      0: "sun", // Sunday
+      1: "mon", // Monday
+      2: "tue", // Tuesday
+      3: "wed", // Wednesday
+      4: "thu", // Thursday
+      5: "fri", // Friday
+      6: "sat", // Saturday
+    };
+
+    return dayMap[dayIndex] || "";
+  };
+
+  // Function to get date for a specific day of the week
+  const getDateForDay = (dayValue) => {
+    const today = new Date();
+    const currentDayIndex = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
+
+    // Map your day values to JavaScript day indices
+    const dayValueToIndex = {
+      sun: 0,
+      mon: 1,
+      tue: 2,
+      wed: 3,
+      thu: 4,
+      fri: 5,
+      sat: 6,
+    };
+
+    const targetDayIndex = dayValueToIndex[dayValue];
+
+    if (targetDayIndex === undefined) return todayDate;
+
+    // Calculate the difference in days
+    let diff = targetDayIndex - currentDayIndex;
+
+    // If the target day is earlier in the week, move to next week
+    if (diff < 0) {
+      diff += 7;
+    }
+
+    // If same day, use today
+    if (diff === 0) {
+      return todayDate;
+    }
+
+    // Calculate the target date
+    const targetDate = new Date(today);
+    targetDate.setDate(today.getDate() + diff);
+
+    return targetDate.toISOString().split("T")[0];
+  };
+
+  // Function to show alert
+  const showAlertMessage = (main, info, type="success") => {
+    setAlertData({ main, info, type });
+    setShowAlert(true);
+  };
+
+  // Function to hide alert
+  const hideAlert = () => {
+    setShowAlert(false);
+    setAlertData({ main: "", info: "" });
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: name === "sem" ? parseInt(value) : value,
-    }));
+
+    setFormData((prev) => {
+      const newData = {
+        ...prev,
+        [name]: name === "sem" || name === "lec_no" ? parseInt(value) : value,
+      };
+
+      // Auto-sync date and day
+      if (name === "date" && value) {
+        // Update day based on selected date
+        const selectedDay = getDayFromDate(value);
+        newData.day = selectedDay;
+      } else if (name === "day" && value) {
+        // Update date based on selected day
+        const selectedDate = getDateForDay(value);
+        newData.date = selectedDate;
+      }
+
+      return newData;
+    });
+
     setResult(null);
     setAvailableFaculty([]);
     setRearrangeOptions([]);
@@ -89,17 +201,32 @@ export default function ReplaceLecture() {
     setSuccessMsg("");
     setShowClassToast(false);
     setClassToastMessages([]);
+    setShowAlert(false);
   };
+
+  // Update form when component mounts or when today changes
+  useEffect(() => {
+    const today = new Date();
+    const todayDate = today.toISOString().split("T")[0];
+    const todayDay = getDayFromDate(todayDate);
+
+    setFormData((prev) => ({
+      ...prev,
+      date: todayDate,
+      day: todayDay,
+    }));
+  }, []);
 
   const handleFetchAvailableFaculty = async () => {
     if (
+      !formData.date ||
       !formData.day ||
       !formData.class ||
       !formData.sem ||
       !formData.branch ||
       formData.lec_no === ""
     ) {
-      setErrorMsg("Please fill all required fields");
+      showAlertMessage("Validation Error", "Please fill all required fields", "error");
       return;
     }
 
@@ -113,15 +240,23 @@ export default function ReplaceLecture() {
     setSuccessMsg("");
     setShowClassToast(false);
     setClassToastMessages([]);
+    setShowAlert(false);
 
     try {
       const response = await api.post("/api/get-available-faculty", formData);
 
       if (response.data.success) {
         setAvailableFaculty(response.data.available_faculty);
-        setSuccessMsg(`Found ${response.data.count} available faculty`);
+        showAlertMessage(
+          "Available Faculty Found",
+          `Found ${response.data.count} available faculty`
+        );
       } else {
-        setErrorMsg(response.data.message || "Failed to fetch available faculty");
+        showAlertMessage(
+          "Failed to Fetch Faculty",
+          response.data.message || "Failed to fetch available faculty",
+          "error"
+        );
       }
     } catch (error) {
       console.error("Error fetching available faculty:", error);
@@ -129,14 +264,22 @@ export default function ReplaceLecture() {
       if (error.response) {
         const { status, data } = error.response;
         if (status === 404) {
-          setErrorMsg(data.message || "Class not found");
+          showAlertMessage("Class Not Found", data.message || "Class not found", "error");
         } else if (status === 409) {
-          setErrorMsg(data.message || "No faculty available for this time slot");
+          showAlertMessage(
+            "No Faculty Available",
+            data.message || "No faculty available for this time slot",
+            "error"
+          );
         } else {
-          setErrorMsg(data.message || "Failed to fetch available faculty");
+          showAlertMessage(
+            "Failed to Fetch Faculty",
+            data.message || "Failed to fetch available faculty",
+            "error"
+          );
         }
       } else {
-        setErrorMsg("Network error. Please try again.");
+        showAlertMessage("Network Error", "Network error. Please try again.", "error");
       }
     } finally {
       setIsFetchingFaculty(false);
@@ -145,13 +288,14 @@ export default function ReplaceLecture() {
 
   const handleFetchRearrangeOptions = async () => {
     if (
+      !formData.date ||
       !formData.day ||
       !formData.class ||
       !formData.sem ||
       !formData.branch ||
       formData.lec_no === ""
     ) {
-      setErrorMsg("Please fill all required fields");
+      showAlertMessage("Validation Error", "Please fill all required fields", "error");
       return;
     }
 
@@ -165,15 +309,23 @@ export default function ReplaceLecture() {
     setSuccessMsg("");
     setShowClassToast(false);
     setClassToastMessages([]);
+    setShowAlert(false);
 
     try {
       const response = await api.post("/api/get-rearrange-options", formData);
 
       if (response.data.success) {
         setRearrangeOptions(response.data.options);
-        setSuccessMsg(`Found ${response.data.count} possible rearrangement option(s)`);
+        showAlertMessage(
+          "Rearrangement Options Found",
+          `Found ${response.data.count} possible rearrangement option(s)`
+        );
       } else {
-        setErrorMsg(response.data.message || "Failed to fetch rearrange options");
+        showAlertMessage(
+          "Failed to Fetch Options",
+          response.data.message || "Failed to fetch rearrange options",
+          "error"
+        );
       }
     } catch (error) {
       console.error("Error fetching rearrange options:", error);
@@ -181,14 +333,22 @@ export default function ReplaceLecture() {
       if (error.response) {
         const { status, data } = error.response;
         if (status === 404) {
-          setErrorMsg(data.message || "Class not found");
+          showAlertMessage("Class Not Found", data.message || "Class not found");
         } else if (status === 409) {
-          setErrorMsg(data.message || "No possible rearrangement options found");
+          showAlertMessage(
+            "No Rearrangement Options",
+            data.message || "No possible rearrangement options found",
+            "error"
+          );
         } else {
-          setErrorMsg(data.message || "Failed to fetch rearrange options");
+          showAlertMessage(
+            "Failed to Fetch Options",
+            data.message || "Failed to fetch rearrange options",
+            "error"
+          );
         }
       } else {
-        setErrorMsg("Network error. Please try again.");
+        showAlertMessage("Network Error", "Network error. Please try again.", "error");
       }
     } finally {
       setIsFetchingOptions(false);
@@ -197,7 +357,7 @@ export default function ReplaceLecture() {
 
   const handleExecuteRearrange = async () => {
     if (!selectedOption) {
-      setErrorMsg("Please select a rearrangement option");
+      showAlertMessage("Selection Required", "Please select a rearrangement option", "error");
       return;
     }
 
@@ -206,6 +366,7 @@ export default function ReplaceLecture() {
     setSuccessMsg("");
     setShowClassToast(false);
     setClassToastMessages([]);
+    setShowAlert(false);
 
     try {
       const response = await api.post("/api/execute-rearrange", {
@@ -216,32 +377,40 @@ export default function ReplaceLecture() {
 
       if (response.data.success) {
         setResult(response.data);
-        
+
         // If it's a rearrangement, show multiple toasts for affected classes
-        if (response.data.type === "rearranged" && response.data.affected_classes) {
-          const messages = response.data.affected_classes.map(cls => ({
+        if (
+          response.data.type === "rearranged" &&
+          response.data.affected_classes
+        ) {
+          const messages = response.data.affected_classes.map((cls) => ({
             class: `${cls.branch}-${cls.class}-Sem${cls.sem}`,
             message: cls.message,
             faculty: cls.new_faculty,
           }));
-          
+
           setClassToastMessages(messages);
           setCurrentToastIndex(0);
           setShowClassToast(true);
         } else {
           // For direct assignments, show single toast
-          const message = response.data.message || "Lecture successfully assigned!";
+          const message =
+            response.data.message || "Lecture successfully assigned!";
           setToastMessage(message);
           setShowToast(true);
         }
 
-        // Update success message
-        setSuccessMsg(response.data.message || "Operation successful");
+        // Show success alert
+        showAlertMessage("Operation Successful", response.data.message || "Operation successful");
 
         setRearrangeOptions([]);
         setSelectedOption(null);
       } else {
-        setErrorMsg(response.data.message || "Failed to execute rearrangement");
+        showAlertMessage(
+          "Failed to Execute Rearrangement",
+          response.data.message || "Failed to execute rearrangement",
+          "error"
+        );
       }
     } catch (error) {
       console.error("Error executing rearrangement:", error);
@@ -249,14 +418,22 @@ export default function ReplaceLecture() {
       if (error.response) {
         const { status, data } = error.response;
         if (status === 404) {
-          setErrorMsg(data.message || "Faculty not found");
+          showAlertMessage("Faculty Not Found", data.message || "Faculty not found", "error");
         } else if (status === 409) {
-          setErrorMsg(data.message || "Rearrangement no longer possible");
+          showAlertMessage(
+            "Rearrangement Not Possible",
+            data.message || "Rearrangement no longer possible",
+            "error"
+          );
         } else {
-          setErrorMsg(data.message || "Failed to execute rearrangement");
+          showAlertMessage(
+            "Failed to Execute Rearrangement",
+            data.message || "Failed to execute rearrangement",
+            "error"
+          );
         }
       } else {
-        setErrorMsg("Network error. Please try again.");
+        showAlertMessage("Network Error", "Network error. Please try again.", "error");
       }
     } finally {
       setIsExecutingSwap(false);
@@ -265,7 +442,7 @@ export default function ReplaceLecture() {
 
   const handleAssignFaculty = async () => {
     if (!selectedFaculty) {
-      setErrorMsg("Please select a faculty to assign");
+      showAlertMessage("Selection Required", "Please select a faculty to assign", "error");
       return;
     }
 
@@ -274,6 +451,7 @@ export default function ReplaceLecture() {
     setSuccessMsg("");
     setShowClassToast(false);
     setClassToastMessages([]);
+    setShowAlert(false);
 
     try {
       const response = await api.post("/api/assign-faculty", {
@@ -283,9 +461,12 @@ export default function ReplaceLecture() {
 
       if (response.data.success) {
         setResult(response.data);
+
+        const message =
+          response.data.message || "Lecture successfully assigned!";
         
-        const message = response.data.message || "Lecture successfully assigned!";
-        setSuccessMsg(message);
+        // Show success alert
+        showAlertMessage("Assignment Successful", message);
 
         setToastMessage(message);
         setShowToast(true);
@@ -293,7 +474,11 @@ export default function ReplaceLecture() {
         setAvailableFaculty([]);
         setSelectedFaculty(null);
       } else {
-        setErrorMsg(response.data.message || "Failed to assign faculty");
+        showAlertMessage(
+          "Failed to Assign Faculty",
+          response.data.message || "Failed to assign faculty",
+          "error"
+        );
       }
     } catch (error) {
       console.error("Error assigning faculty:", error);
@@ -301,14 +486,26 @@ export default function ReplaceLecture() {
       if (error.response) {
         const { status, data } = error.response;
         if (status === 403) {
-          setErrorMsg(data.message || "Faculty not allowed for this class");
+          showAlertMessage(
+            "Faculty Not Allowed",
+            data.message || "Faculty not allowed for this class",
+            "error"
+          );
         } else if (status === 409) {
-          setErrorMsg(data.message || "Faculty is no longer available");
+          showAlertMessage(
+            "Faculty No Longer Available",
+            data.message || "Faculty is no longer available",
+            "error"
+          );
         } else {
-          setErrorMsg(data.message || "Failed to assign faculty");
+          showAlertMessage(
+            "Failed to Assign Faculty",
+            data.message || "Failed to assign faculty",
+            "error"
+          );
         }
       } else {
-        setErrorMsg("Network error. Please try again.");
+        showAlertMessage("Network Error", "Network error. Please try again.", "error");
       }
     } finally {
       setIsAssigning(false);
@@ -317,13 +514,14 @@ export default function ReplaceLecture() {
 
   const handleSubmit = async (action = "replace") => {
     if (
+      !formData.date ||
       !formData.day ||
       !formData.class ||
       !formData.sem ||
       !formData.branch ||
       formData.lec_no === ""
     ) {
-      setErrorMsg("Please fill all required fields");
+      showAlertMessage("Validation Error", "Please fill all required fields", "error");
       return;
     }
 
@@ -339,6 +537,7 @@ export default function ReplaceLecture() {
     setSuccessMsg("");
     setShowClassToast(false);
     setClassToastMessages([]);
+    setShowAlert(false);
 
     try {
       const endpoint = isRearrange
@@ -348,29 +547,36 @@ export default function ReplaceLecture() {
 
       if (response.data.success) {
         setResult(response.data);
-        
+
         // Handle different notification types
-        if (response.data.type === "rearranged" && response.data.affected_classes) {
-          const messages = response.data.affected_classes.map(cls => ({
+        if (
+          response.data.type === "rearranged" &&
+          response.data.affected_classes
+        ) {
+          const messages = response.data.affected_classes.map((cls) => ({
             class: `${cls.branch}-${cls.class}-Sem${cls.sem}`,
             message: cls.message,
             faculty: cls.new_faculty,
           }));
-          
+
           setClassToastMessages(messages);
           setCurrentToastIndex(0);
           setShowClassToast(true);
         } else {
-          const message = response.data.message || "Lecture successfully managed!";
+          const message =
+            response.data.message || "Lecture successfully managed!";
           setToastMessage(message);
           setShowToast(true);
         }
 
-        setSuccessMsg(response.data.message || "Operation successful");
+        // Show success alert
+        showAlertMessage("Operation Successful", response.data.message || "Operation successful");
       } else {
-        setErrorMsg(
+        showAlertMessage(
+          "Operation Failed",
           response.data.message ||
-            `Failed to ${isRearrange ? "rearrange" : "replace"} lecture`
+            `Failed to ${isRearrange ? "rearrange" : "replace"} lecture`,
+            "error"
         );
       }
     } catch (error) {
@@ -382,22 +588,26 @@ export default function ReplaceLecture() {
       if (error.response) {
         const { status, data } = error.response;
         if (status === 404) {
-          setErrorMsg(data.message || "Class not found");
+          showAlertMessage("Class Not Found", data.message || "Class not found", "error");
         } else if (status === 409) {
-          setErrorMsg(
+          showAlertMessage(
+            "No Options Available",
             data.message ||
               (isRearrange
                 ? "No possible rearrangement found"
-                : "No faculty available at this time slot")
+                : "No faculty available at this time slot"),
+                "error"
           );
         } else {
-          setErrorMsg(
+          showAlertMessage(
+            "Operation Failed",
             data.message ||
-              `Failed to ${isRearrange ? "rearrange" : "replace"} lecture`
+              `Failed to ${isRearrange ? "rearrange" : "replace"} lecture`,
+            "error"
           );
         }
       } else {
-        setErrorMsg("Network error. Please try again.");
+        showAlertMessage("Network Error", "Network error. Please try again.", "error");
       }
     } finally {
       setIsLoading(false);
@@ -406,8 +616,13 @@ export default function ReplaceLecture() {
   };
 
   const handleReset = () => {
+    const today = new Date();
+    const todayDate = today.toISOString().split("T")[0];
+    const todayDay = getDayFromDate(todayDate);
+
     setFormData({
-      day: "",
+      date: todayDate,
+      day: todayDay,
       class: "",
       sem: 1,
       branch: "CSE",
@@ -422,10 +637,14 @@ export default function ReplaceLecture() {
     setSuccessMsg("");
     setShowClassToast(false);
     setClassToastMessages([]);
+    setShowAlert(false);
   };
 
   const copyToClipboard = () => {
-    const textToCopy = result?.message || `Lecture Replacement Result:
+    const textToCopy =
+      result?.message ||
+      `Lecture Replacement Result:
+Date: ${formData.date}
 Assigned Faculty: ${result?.assigned_faculty || "N/A"}
 Faculty Name: ${result?.faculty_name || "N/A"}
 Day: ${days.find((d) => d.value === formData.day)?.label || formData.day}
@@ -433,16 +652,16 @@ Class: ${formData.class}
 Semester: ${formData.sem}
 Branch: ${formData.branch}
 Time Slot: ${
-      timeSlots.find((t) => t.value === parseInt(formData.lec_no))?.label
-    }
+        timeSlots.find((t) => t.value === parseInt(formData.lec_no))?.label
+      }
 Slot Index: ${formData.lec_no}
 Method: ${
-      result?.type === "rearranged"
-        ? "Lecture Rearrangement"
-        : result?.type === "direct"
-        ? "Direct Assignment"
-        : "Standard Replacement"
-    }
+        result?.type === "rearranged"
+          ? "Lecture Rearrangement"
+          : result?.type === "direct"
+          ? "Direct Assignment"
+          : "Standard Replacement"
+      }
 Status: Successfully Completed`;
 
     navigator.clipboard.writeText(textToCopy).then(() => {
@@ -482,7 +701,7 @@ Status: Successfully Completed`;
 
   const copyClassMessage = () => {
     if (classToastMessages.length === 0) return;
-    
+
     const currentMessage = classToastMessages[currentToastIndex];
     navigator.clipboard.writeText(currentMessage.message).then(() => {
       const classCopyBtn = document.getElementById("class-toast-copy-btn");
@@ -517,15 +736,24 @@ Status: Successfully Completed`;
 
   const formatMessage = (message) => {
     if (!message) return "";
-    return message.split('\n').map((line, index) => (
+    return message.split("\n").map((line, index) => (
       <React.Fragment key={index}>
         {line}
-        {index < message.split('\n').length - 1 && <br />}
+        {index < message.split("\n").length - 1 && <br />}
       </React.Fragment>
     ));
   };
 
   const branchOptions = ["CSE", "CSE(AIML)", "DS", "ECE", "EEE", "ME", "CE"];
+
+  // Generate time slot options (1-5 as requested)
+  const timeSlotOptions = [
+    { value: 0, label: "1 (9:00 AM - 10:00 AM)" },
+    { value: 1, label: "2 (10:00 AM - 11:00 AM)" },
+    { value: 2, label: "3 (11:00 AM - 12:00 PM)" },
+    { value: 3, label: "4 (12:00 PM - 1:00 PM)" },
+    { value: 4, label: "5 (1:00 PM - 2:00 PM)" },
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 p-4 md:p-6">
@@ -583,7 +811,10 @@ Status: Successfully Completed`;
               </div>
               <div className="ml-3 flex-1">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="font-medium">Lecture Rearrangement ({currentToastIndex + 1}/{classToastMessages.length})</p>
+                  <p className="font-medium">
+                    Lecture Rearrangement ({currentToastIndex + 1}/
+                    {classToastMessages.length})
+                  </p>
                   <span className="px-2 py-0.5 bg-orange-500 text-white rounded text-xs font-medium">
                     {classToastMessages[currentToastIndex].class}
                   </span>
@@ -630,15 +861,33 @@ Status: Successfully Completed`;
         </div>
       )}
 
+      {/* Alert Component for Success/Error Messages */}
+      {showAlert && (
+        <div className="fixed top-20 right-4 z-50 animate-slide-in">
+          <Alert
+            main={alertData.main}
+            info={alertData.info}
+            type={alertData.type}
+            onClose={hideAlert}
+          />
+        </div>
+      )}
+
       <div className="relative z-10 max-w-6xl mx-auto">
         {/* Breadcrumb */}
         <div className="mb-6">
           <div className="flex items-center text-sm text-gray-600 mb-4">
-            <span className="hover:text-gray-800 cursor-pointer">Dashboard</span>
+            <span className="hover:text-gray-800 cursor-pointer">
+              Dashboard
+            </span>
             <ChevronRight className="w-4 h-4 mx-2" />
-            <span className="hover:text-gray-800 cursor-pointer">Timetable Management</span>
+            <span className="hover:text-gray-800 cursor-pointer">
+              Timetable Management
+            </span>
             <ChevronRight className="w-4 h-4 mx-2" />
-            <span className="font-medium text-blue-600">Lecture Replacement</span>
+            <span className="font-medium text-blue-600">
+              Lecture Replacement
+            </span>
           </div>
         </div>
 
@@ -654,7 +903,8 @@ Status: Successfully Completed`;
                   Lecture Replacement
                 </h1>
                 <p className="text-gray-600">
-                  Find available faculty or rearrange existing lectures to manage scheduling conflicts
+                  Find available faculty or rearrange existing lectures to
+                  manage scheduling conflicts
                 </p>
               </div>
             </div>
@@ -664,62 +914,50 @@ Status: Successfully Completed`;
           </div>
         </div>
 
-        {/* Messages */}
-        {errorMsg && (
-          <div className="mb-6 p-4 rounded-xl border border-red-200 bg-red-50 flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
-            <div className="flex-1">
-              <p className="font-medium text-red-800">Schedule Conflict</p>
-              <p className="text-red-600 text-sm mt-1">{errorMsg}</p>
-            </div>
-          </div>
-        )}
-
-        {successMsg && !showToast && !showClassToast && (
-          <div className="mb-6 p-4 rounded-xl border border-emerald-200 bg-emerald-50 flex items-start gap-3">
-            <CheckCircle className="w-5 h-5 text-emerald-500 mt-0.5 flex-shrink-0" />
-            <div className="flex-1">
-              <p className="font-medium text-emerald-800">Success!</p>
-              <div className="text-emerald-600 text-sm mt-1 whitespace-pre-line font-mono">
-                {formatMessage(successMsg)}
-              </div>
-            </div>
-            <button
-              onClick={() => {
-                navigator.clipboard.writeText(successMsg);
-                const btn = document.getElementById("success-copy-btn");
-                if (btn) {
-                  btn.innerHTML = "Copied!";
-                  setTimeout(() => {
-                    btn.innerHTML = "Copy";
-                  }, 2000);
-                }
-              }}
-              id="success-copy-btn"
-              className="flex items-center gap-1 px-3 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 rounded-lg text-sm font-medium transition-colors"
-            >
-              <Copy className="w-4 h-4" />
-              <span>Copy</span>
-            </button>
-          </div>
-        )}
-
         {/* Main Form Card */}
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden mb-8">
           <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100">
-            <h2 className="text-lg font-semibold text-gray-900">Lecture Details</h2>
+            <h2 className="text-lg font-semibold text-gray-900">
+              Lecture Details
+            </h2>
             <p className="text-sm text-gray-600 mt-1">
-              Select the lecture slot you want to manage
+              Select the lecture slot you want to manage. Date and day are
+              auto-synced.
             </p>
           </div>
 
           <div className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Date Selection */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                  <CalendarDays className="w-4 h-4 text-blue-500" />
+                  Date
+                  <span className="ml-auto text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
+                    Auto-sync
+                  </span>
+                </label>
+                <input
+                  type="date"
+                  name="date"
+                  value={formData.date}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Selecting a date will automatically update the day
+                </p>
+              </div>
+
               {/* Day Selection */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-blue-500" />
                   Day
+                  <span className="ml-auto text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
+                    Auto-sync
+                  </span>
                 </label>
                 <select
                   name="day"
@@ -728,13 +966,19 @@ Status: Successfully Completed`;
                   required
                   className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 >
-                  <option value="" className="text-gray-500">Select Day</option>
+                  <option value="" className="text-gray-500">
+                    Select Day
+                  </option>
                   {days.map((day) => (
                     <option key={day.value} value={day.value}>
                       {day.label}
                     </option>
                   ))}
                 </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  Selecting a day will automatically update the date to the next
+                  occurrence
+                </p>
               </div>
 
               {/* Class Name */}
@@ -795,66 +1039,78 @@ Status: Successfully Completed`;
                   ))}
                 </select>
               </div>
+
+              {/* Time Slot Selection - Changed to dropdown */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-amber-500" />
+                  Time Slot
+                </label>
+                <select
+                  name="lec_no"
+                  value={formData.lec_no}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
+                >
+                  <option value="" className="text-gray-500">
+                    Select Time Slot
+                  </option>
+                  {timeSlotOptions.map((slot) => (
+                    <option key={slot.value} value={slot.value}>
+                      {slot.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
-            {/* Time Slot Selection */}
-            <div className="mt-6">
-              <label className="block text-sm font-medium text-gray-700 mb-4 flex items-center gap-2">
-                <Clock className="w-4 h-4 text-amber-500" />
-                Time Slot
-              </label>
-
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {timeSlots.map((slot) => (
-                  <div key={slot.value} className="relative">
-                    <input
-                      type="radio"
-                      id={`slot-${slot.value}`}
-                      name="lec_no"
-                      value={slot.value}
-                      checked={formData.lec_no === slot.value.toString()}
-                      onChange={handleChange}
-                      className="hidden peer"
-                    />
-                    <label
-                      htmlFor={`slot-${slot.value}`}
-                      className="block p-3 rounded-xl border-2 border-gray-200 bg-gray-50 hover:border-blue-300 hover:bg-blue-50 cursor-pointer transition-all duration-300 peer-checked:border-blue-500 peer-checked:bg-blue-50"
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-medium text-gray-500">
-                          Slot {slot.value}
-                        </span>
-                        {formData.lec_no === slot.value.toString() && (
-                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                        )}
-                      </div>
-                      <div className="text-sm font-medium text-gray-900">
-                        {slot.label.split(" - ")[0]}
-                      </div>
-                      <div className="text-xs text-gray-500 mt-1">to</div>
-                      <div className="text-sm font-medium text-gray-900">
-                        {slot.label.split(" - ")[1]}
-                      </div>
-                    </label>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-3 flex items-center justify-between">
-                <p className="text-sm text-gray-600">
-                  Selected slot:{" "}
-                  <span className="font-medium text-gray-900">
-                    {formData.lec_no !== ""
-                      ? timeSlots.find((t) => t.value === parseInt(formData.lec_no))?.label
-                      : "None selected"}
-                  </span>
-                </p>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  <span className="text-xs text-gray-500">Selected</span>
+            {/* Date & Day Sync Info */}
+            <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <ArrowRightLeft className="w-5 h-5 text-blue-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-blue-900">
+                    Auto-Sync Information
+                  </p>
+                  <p className="text-sm text-blue-700">
+                    Date and day are automatically synchronized. Changing one
+                    will update the other.
+                    <br />
+                    <span className="font-medium">Current: </span>
+                    {formData.date} (
+                    {days.find((d) => d.value === formData.day)?.label ||
+                      "Select a day"}
+                    )
+                  </p>
                 </div>
               </div>
             </div>
+
+            {/* Selected Time Slot Info */}
+            {formData.lec_no !== "" && (
+              <div className="mt-4 p-4 bg-gradient-to-r from-amber-50 to-amber-100 rounded-xl border border-amber-200">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-amber-100 rounded-lg">
+                    <Clock className="w-5 h-5 text-amber-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-amber-900">
+                      Selected Time Slot
+                    </p>
+                    <p className="text-lg font-bold text-amber-900">
+                      {
+                        timeSlotOptions.find(
+                          (t) => t.value === parseInt(formData.lec_no)
+                        )?.label
+                      }
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Action Buttons */}
             <div className="mt-8 pt-6 border-t border-gray-200">
@@ -862,11 +1118,15 @@ Status: Successfully Completed`;
                 <button
                   type="button"
                   onClick={handleFetchAvailableFaculty}
-                  disabled={isFetchingFaculty || !formData.lec_no}
+                  disabled={
+                    isFetchingFaculty ||
+                    formData.lec_no === "" ||
+                    isNaN(formData.lec_no)
+                  }
                   className={`px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-all duration-300 ${
                     isFetchingFaculty
                       ? "bg-purple-100 text-purple-400 cursor-not-allowed"
-                      : !formData.lec_no
+                      : formData.lec_no === "" || isNaN(formData.lec_no)
                       ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                       : "bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800 shadow-sm hover:shadow-md"
                   }`}
@@ -882,11 +1142,11 @@ Status: Successfully Completed`;
                 <button
                   type="button"
                   onClick={handleFetchRearrangeOptions}
-                  disabled={isFetchingOptions || !formData.lec_no}
+                  disabled={isFetchingOptions || formData.lec_no === "" || isNaN(formData.lec_no)}
                   className={`px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-all duration-300 ${
                     isFetchingOptions
                       ? "bg-orange-100 text-orange-400 cursor-not-allowed"
-                      : !formData.lec_no
+                      : formData.lec_no === "" || isNaN(formData.lec_no)
                       ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                       : "bg-gradient-to-r from-orange-600 to-orange-700 text-white hover:from-orange-700 hover:to-orange-800 shadow-sm hover:shadow-md"
                   }`}
@@ -902,11 +1162,11 @@ Status: Successfully Completed`;
                 <button
                   type="button"
                   onClick={() => handleSubmit("replace")}
-                  disabled={isLoading || !formData.lec_no}
+                  disabled={isLoading || formData.lec_no === "" || isNaN(formData.lec_no)}
                   className={`px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-all duration-300 ${
                     isLoading && !isRearranging
                       ? "bg-blue-100 text-blue-400 cursor-not-allowed"
-                      : !formData.lec_no
+                      : formData.lec_no === "" || isNaN(formData.lec_no)
                       ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                       : "bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-sm hover:shadow-md"
                   }`}
@@ -916,17 +1176,19 @@ Status: Successfully Completed`;
                   ) : (
                     <Search className="w-5 h-5" />
                   )}
-                  {isLoading && !isRearranging ? "Searching..." : "Auto Replace"}
+                  {isLoading && !isRearranging
+                    ? "Searching..."
+                    : "Auto Replace"}
                 </button>
 
                 <button
                   type="button"
                   onClick={() => handleSubmit("rearrange")}
-                  disabled={isLoading || !formData.lec_no}
+                  disabled={isLoading || formData.lec_no === "" || isNaN(formData.lec_no)}
                   className={`px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-all duration-300 ${
                     isLoading && isRearranging
                       ? "bg-amber-100 text-amber-400 cursor-not-allowed"
-                      : !formData.lec_no
+                      : formData.lec_no === "" || isNaN(formData.lec_no)
                       ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                       : "bg-gradient-to-r from-amber-600 to-orange-600 text-white hover:from-amber-700 hover:to-orange-700 shadow-sm hover:shadow-md"
                   }`}
@@ -936,7 +1198,9 @@ Status: Successfully Completed`;
                   ) : (
                     <Repeat className="w-5 h-5" />
                   )}
-                  {isLoading && isRearranging ? "Rearranging..." : "Auto Rearrange"}
+                  {isLoading && isRearranging
+                    ? "Rearranging..."
+                    : "Auto Rearrange"}
                 </button>
 
                 <button
@@ -987,20 +1251,28 @@ Status: Successfully Completed`;
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3 flex-1">
-                        <div className={`p-2 rounded-lg ${
-                          selectedFaculty?.faculty_id === faculty.faculty_id
-                            ? "bg-purple-100"
-                            : "bg-white"
-                        }`}>
-                          <UserCheck className={`w-5 h-5 ${
+                        <div
+                          className={`p-2 rounded-lg ${
                             selectedFaculty?.faculty_id === faculty.faculty_id
-                              ? "text-purple-600"
-                              : "text-gray-600"
-                          }`} />
+                              ? "bg-purple-100"
+                              : "bg-white"
+                          }`}
+                        >
+                          <UserCheck
+                            className={`w-5 h-5 ${
+                              selectedFaculty?.faculty_id === faculty.faculty_id
+                                ? "text-purple-600"
+                                : "text-gray-600"
+                            }`}
+                          />
                         </div>
                         <div className="flex-1">
-                          <p className="font-semibold text-gray-900">{faculty.name}</p>
-                          <p className="text-sm text-gray-600">ID: {faculty.faculty_id}</p>
+                          <p className="font-semibold text-gray-900">
+                            {faculty.name}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            ID: {faculty.faculty_id}
+                          </p>
                           <p className="text-xs text-gray-500 mt-1">
                             Department: {faculty.department}
                           </p>
@@ -1022,9 +1294,15 @@ Status: Successfully Completed`;
                 <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-4 border border-purple-200">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-purple-900">Selected Faculty</p>
-                      <p className="text-lg font-bold text-purple-900">{selectedFaculty.name}</p>
-                      <p className="text-sm text-purple-700">{selectedFaculty.faculty_id}</p>
+                      <p className="text-sm font-medium text-purple-900">
+                        Selected Faculty
+                      </p>
+                      <p className="text-lg font-bold text-purple-900">
+                        {selectedFaculty.name}
+                      </p>
+                      <p className="text-sm text-purple-700">
+                        {selectedFaculty.faculty_id}
+                      </p>
                     </div>
                     <button
                       onClick={handleAssignFaculty}
@@ -1094,16 +1372,22 @@ Status: Successfully Completed`;
                             </div>
                           )}
                         </div>
-                        
+
                         <div className="space-y-3">
                           {/* Primary Faculty */}
                           <div className="bg-white rounded-lg p-3 border border-gray-200">
                             <div className="flex items-center gap-2 mb-2">
                               <UserCheck className="w-4 h-4 text-blue-600" />
-                              <span className="text-xs font-semibold text-gray-600">Primary Faculty</span>
+                              <span className="text-xs font-semibold text-gray-600">
+                                Primary Faculty
+                              </span>
                             </div>
-                            <p className="font-semibold text-gray-900">{option.primary_faculty.name}</p>
-                            <p className="text-xs text-gray-600 mt-1">ID: {option.primary_faculty.id}</p>
+                            <p className="font-semibold text-gray-900">
+                              {option.primary_faculty.name}
+                            </p>
+                            <p className="text-xs text-gray-600 mt-1">
+                              ID: {option.primary_faculty.id}
+                            </p>
                             <div className="mt-2 flex items-center gap-2 text-sm">
                               <span className="text-gray-600">Moves from:</span>
                               <span className="px-2 py-0.5 bg-red-100 text-red-700 rounded text-xs font-medium">
@@ -1120,10 +1404,16 @@ Status: Successfully Completed`;
                           <div className="bg-white rounded-lg p-3 border border-gray-200">
                             <div className="flex items-center gap-2 mb-2">
                               <UserCircle className="w-4 h-4 text-purple-600" />
-                              <span className="text-xs font-semibold text-gray-600">Secondary Faculty</span>
+                              <span className="text-xs font-semibold text-gray-600">
+                                Secondary Faculty
+                              </span>
                             </div>
-                            <p className="font-semibold text-gray-900">{option.secondary_faculty.name}</p>
-                            <p className="text-xs text-gray-600 mt-1">ID: {option.secondary_faculty.id}</p>
+                            <p className="font-semibold text-gray-900">
+                              {option.secondary_faculty.name}
+                            </p>
+                            <p className="text-xs text-gray-600 mt-1">
+                              ID: {option.secondary_faculty.id}
+                            </p>
                             <div className="mt-2 flex items-center gap-2 text-sm">
                               <span className="text-gray-600">Takes over:</span>
                               <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-medium">
@@ -1150,9 +1440,15 @@ Status: Successfully Completed`;
                 <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl p-4 border border-orange-200">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-orange-900">Selected Rearrangement</p>
-                      <p className="text-lg font-bold text-orange-900">{selectedOption.primary_faculty.name}</p>
-                      <p className="text-sm text-orange-700">will be assigned to {formData.class}</p>
+                      <p className="text-sm font-medium text-orange-900">
+                        Selected Rearrangement
+                      </p>
+                      <p className="text-lg font-bold text-orange-900">
+                        {selectedOption.primary_faculty.name}
+                      </p>
+                      <p className="text-sm text-orange-700">
+                        will be assigned to {formData.class}
+                      </p>
                       <p className="text-xs text-orange-600 mt-1">
                         Note: Two classes will be affected by this rearrangement
                       </p>
@@ -1171,7 +1467,9 @@ Status: Successfully Completed`;
                       ) : (
                         <Zap className="w-5 h-5" />
                       )}
-                      {isExecutingSwap ? "Executing..." : "Execute Rearrangement"}
+                      {isExecutingSwap
+                        ? "Executing..."
+                        : "Execute Rearrangement"}
                     </button>
                   </div>
                 </div>
@@ -1190,7 +1488,8 @@ Status: Successfully Completed`;
               <h3 className="font-semibold text-purple-900">Select Faculty</h3>
             </div>
             <p className="text-purple-800 text-sm mb-4">
-              View all available faculty members and manually select who you want to assign to the lecture.
+              View all available faculty members and manually select who you
+              want to assign to the lecture.
             </p>
             <ul className="space-y-2 text-purple-700 text-sm">
               <li className="flex items-start gap-2">
@@ -1216,7 +1515,8 @@ Status: Successfully Completed`;
               <h3 className="font-semibold text-blue-900">Auto Replace</h3>
             </div>
             <p className="text-blue-800 text-sm mb-4">
-              Automatically find and assign the first available faculty from the allowed list.
+              Automatically find and assign the first available faculty from the
+              allowed list.
             </p>
             <ul className="space-y-2 text-blue-700 text-sm">
               <li className="flex items-start gap-2">
@@ -1239,10 +1539,13 @@ Status: Successfully Completed`;
               <div className="p-2 bg-orange-100 rounded-lg">
                 <GitBranch className="w-5 h-5 text-orange-600" />
               </div>
-              <h3 className="font-semibold text-orange-900">Rearrange Options</h3>
+              <h3 className="font-semibold text-orange-900">
+                Rearrange Options
+              </h3>
             </div>
             <p className="text-orange-800 text-sm mb-4">
-              View all possible lecture swaps and choose the best rearrangement option.
+              View all possible lecture swaps and choose the best rearrangement
+              option.
             </p>
             <ul className="space-y-2 text-orange-700 text-sm">
               <li className="flex items-start gap-2">
@@ -1271,8 +1574,12 @@ Status: Successfully Completed`;
                     <CheckCircle className="w-5 h-5 text-emerald-600" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-semibold text-gray-900">Assignment Result</h2>
-                    <p className="text-sm text-gray-600">Lecture successfully managed</p>
+                    <h2 className="text-lg font-semibold text-gray-900">
+                      Assignment Result
+                    </h2>
+                    <p className="text-sm text-gray-600">
+                      Lecture successfully managed
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -1311,7 +1618,9 @@ Status: Successfully Completed`;
                       <UserCheck className="w-4 h-4 text-blue-600" />
                     </div>
                     <div>
-                      <p className="text-xs font-medium text-blue-700">Primary Faculty</p>
+                      <p className="text-xs font-medium text-blue-700">
+                        Primary Faculty
+                      </p>
                       <p className="text-lg font-semibold text-blue-900">
                         {result.faculty_name || result.assigned_faculty}
                       </p>
@@ -1325,7 +1634,9 @@ Status: Successfully Completed`;
                       <Zap className="w-4 h-4 text-emerald-600" />
                     </div>
                     <div>
-                      <p className="text-xs font-medium text-emerald-700">Method</p>
+                      <p className="text-xs font-medium text-emerald-700">
+                        Method
+                      </p>
                       <p className="text-lg font-semibold text-emerald-900">
                         {result.type === "rearranged"
                           ? "Lecture Rearrangement"
@@ -1344,7 +1655,9 @@ Status: Successfully Completed`;
                         <UserCircle className="w-4 h-4 text-purple-600" />
                       </div>
                       <div>
-                        <p className="text-xs font-medium text-purple-700">Secondary Faculty</p>
+                        <p className="text-xs font-medium text-purple-700">
+                          Secondary Faculty
+                        </p>
                         <p className="text-lg font-semibold text-purple-900">
                           {result.secondary_faculty_name}
                         </p>
@@ -1363,7 +1676,10 @@ Status: Successfully Completed`;
                   </h3>
                   <div className="space-y-4">
                     {result.affected_classes.map((cls, index) => (
-                      <div key={index} className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl p-4 border border-orange-200">
+                      <div
+                        key={index}
+                        className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl p-4 border border-orange-200"
+                      >
                         <div className="flex items-center justify-between mb-3">
                           <div>
                             <span className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-xs font-medium">
@@ -1375,7 +1691,9 @@ Status: Successfully Completed`;
                           </div>
                           <div className="text-right">
                             <p className="text-sm text-gray-600">New Faculty</p>
-                            <p className="font-semibold text-gray-900">{cls.new_faculty}</p>
+                            <p className="font-semibold text-gray-900">
+                              {cls.new_faculty}
+                            </p>
                           </div>
                         </div>
                         <div className="bg-white rounded-lg p-3 border border-orange-100">
@@ -1397,32 +1715,50 @@ Status: Successfully Completed`;
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                    <span className="text-sm text-gray-600">Date</span>
+                    <span className="font-medium text-gray-900">
+                      {new Date(formData.date).toLocaleDateString("en-US", {
+                        weekday: "long",
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-gray-200">
                     <span className="text-sm text-gray-600">Day</span>
                     <span className="font-medium text-gray-900">
-                      {days.find((d) => d.value === formData.day)?.label || formData.day}
+                      {days.find((d) => d.value === formData.day)?.label ||
+                        formData.day}
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-2 border-b border-gray-200">
                     <span className="text-sm text-gray-600">Class</span>
-                    <span className="font-medium text-gray-900">{formData.class}</span>
+                    <span className="font-medium text-gray-900">
+                      {formData.class}
+                    </span>
                   </div>
                   <div className="flex justify-between items-center py-2 border-b border-gray-200">
                     <span className="text-sm text-gray-600">Semester</span>
-                    <span className="font-medium text-gray-900">{formData.sem}</span>
+                    <span className="font-medium text-gray-900">
+                      {formData.sem}
+                    </span>
                   </div>
                   <div className="flex justify-between items-center py-2 border-b border-gray-200">
                     <span className="text-sm text-gray-600">Branch</span>
-                    <span className="font-medium text-gray-900">{formData.branch}</span>
+                    <span className="font-medium text-gray-900">
+                      {formData.branch}
+                    </span>
                   </div>
                   <div className="flex justify-between items-center py-2 border-b border-gray-200">
                     <span className="text-sm text-gray-600">Time Slot</span>
                     <span className="font-medium text-gray-900">
-                      {timeSlots.find((t) => t.value === parseInt(formData.lec_no))?.label}
+                      {
+                        timeSlotOptions.find(
+                          (t) => t.value === parseInt(formData.lec_no)
+                        )?.label
+                      }
                     </span>
-                  </div>
-                  <div className="flex justify-between items-center py-2 border-b border-gray-200">
-                    <span className="text-sm text-gray-600">Slot Index</span>
-                    <span className="font-medium text-gray-900">{formData.lec_no}</span>
                   </div>
                 </div>
               </div>
@@ -1446,7 +1782,9 @@ Status: Successfully Completed`;
                 <Clock className="w-5 h-5 text-gray-600" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-gray-900">Time Slot Guide</h2>
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Time Slot Guide
+                </h2>
                 <p className="text-sm text-gray-600">
                   Reference for slot numbers and timings
                 </p>
@@ -1470,19 +1808,24 @@ Status: Successfully Completed`;
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {timeSlots.map((slot, index) => (
-                  <tr key={slot.value} className="hover:bg-gray-50 transition-colors">
+                {timeSlotOptions.map((slot) => (
+                  <tr
+                    key={slot.value}
+                    className="hover:bg-gray-50 transition-colors"
+                  >
                     <td className="py-3 px-4">
                       <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        {slot.value}
+                        {slot.value + 1}
                       </span>
                     </td>
-                    <td className="py-3 px-4 font-medium text-gray-900">{slot.label}</td>
+                    <td className="py-3 px-4 font-medium text-gray-900">
+                      {timeSlots.find((t) => t.value === slot.value)?.label}
+                    </td>
                     <td className="py-3 px-4 text-sm text-gray-600">
-                      {index === 0
+                      {slot.value === 0
                         ? "First lecture of the day"
-                        : index === 7
-                        ? "Last lecture of the day"
+                        : slot.value === 4
+                        ? "Last lecture before lunch"
                         : `Regular lecture ${slot.value + 1}`}
                     </td>
                   </tr>
@@ -1494,7 +1837,9 @@ Status: Successfully Completed`;
           <div className="p-4 border-t border-gray-200 bg-gray-50">
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <Info className="w-4 h-4" />
-              <span>All time slots are 1 hour each, running from 9:00 AM to 5:00 PM</span>
+              <span>
+                Time slots 1-5 run from 9:00 AM to 2:00 PM (before lunch break)
+              </span>
             </div>
           </div>
         </div>

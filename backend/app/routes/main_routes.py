@@ -6,6 +6,12 @@ from app.controllers.rearrange_lecture_controller import rearrange_lecture, get_
 from app.controllers.fetch_timetable import fetch_timetable
 from app.controllers.delete_timetable_controller import delete_timetable
 from app.controllers.fetch_all_changes import fetch_all_changes, delete_temp_change
+from app.controllers.fetch_allowed_faculty import (
+    fetch_allowed_faculty, 
+    update_allowed_faculty, 
+    delete_allowed_faculty
+)
+from app.controllers.fetch_all_faculties import get_all_faculties, create_faculty, get_faculty
 
 main_bp = Blueprint("main", __name__)
 
@@ -24,3 +30,8 @@ main_bp.route("/api/timetable", methods=["GET"])(get_all_timetables)
 
 main_bp.route("/api/fetch-all-changes", methods=["GET"])(fetch_all_changes)
 main_bp.route("/api/delete-temp-change", methods=["DELETE"])(delete_temp_change)
+main_bp.route("/api/classwise-faculty", methods=["GET"])(fetch_allowed_faculty)
+
+main_bp.route("/api/faculties", methods=["GET"])(get_all_faculties)
+main_bp.route("/api/faculties", methods=["POST"])(create_faculty)
+main_bp.route("/api/faculties/<faculty_id>", methods=["GET"])(get_faculty)

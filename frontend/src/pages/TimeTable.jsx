@@ -19,81 +19,47 @@ import {
   ChevronUp,
   Building,
   Info,
+  UserPlus,
+  X,
+  Search,
+  Check,
+  Plus,
+  User,
+  Hash,
 } from "lucide-react";
 import api from "../configs/api";
 
 export default function TimeTable() {
   const location = useLocation();
-  
-  const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-  
+
+  const days = [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
+
   const timeSlots = [
-    { label: "8:00 - 9:00", value: "Time Slot 1" },
-    { label: "9:00 - 10:00", value: "Time Slot 2" },
-    { label: "10:00 - 11:00", value: "Time Slot 3" },
-    { label: "11:00 - 12:00", value: "Time Slot 4" },
-    { label: "12:00 - 1:00", value: "Time Slot 5" },
+    { label: "Lecture 1", value: "Time Slot 1" },
+    { label: "Lecture 2", value: "Time Slot 2" },
+    { label: "Lecture 3", value: "Time Slot 3" },
+    { label: "Lecture 4", value: "Time Slot 4" },
+    { label: "Lecture 5", value: "Time Slot 5" },
   ];
 
   const branchOptions = ["CSE", "CSE(AIML)", "DS", "ECE", "EEE", "ME", "CE"];
   const divisionOptions = ["D1", "D2", "D3", "D4", "A1", "A2", "B1", "B2"];
 
-  const facultyOptions = [
+  // Default faculty options - will be overridden by fetched data
+  const baseFacultyOptions = [
     {
       value: "free",
       label: "Free",
       color: "border-emerald-200 bg-emerald-50 text-emerald-700",
       bgColor: "bg-emerald-50",
       textColor: "text-emerald-700",
-    },
-    {
-      value: "ABC",
-      label: "Dr. Smith (ABC)",
-      color: "border-blue-200 bg-blue-50 text-blue-700",
-      bgColor: "bg-blue-50",
-      textColor: "text-blue-700",
-    },
-    {
-      value: "DEF",
-      label: "Prof. Johnson (DEF)",
-      color: "border-purple-200 bg-purple-50 text-purple-700",
-      bgColor: "bg-purple-50",
-      textColor: "text-purple-700",
-    },
-    {
-      value: "XYZ",
-      label: "Dr. Williams (XYZ)",
-      color: "border-amber-200 bg-amber-50 text-amber-700",
-      bgColor: "bg-amber-50",
-      textColor: "text-amber-700",
-    },
-    {
-      value: "PQR",
-      label: "Prof. Brown (PQR)",
-      color: "border-red-200 bg-red-50 text-red-700",
-      bgColor: "bg-red-50",
-      textColor: "text-red-700",
-    },
-    {
-      value: "LMN",
-      label: "Dr. Davis (LMN)",
-      color: "border-indigo-200 bg-indigo-50 text-indigo-700",
-      bgColor: "bg-indigo-50",
-      textColor: "text-indigo-700",
-    },
-    {
-      value: "JKL",
-      label: "Dr. Wilson (JKL)",
-      color: "border-pink-200 bg-pink-50 text-pink-700",
-      bgColor: "bg-pink-50",
-      textColor: "text-pink-700",
-    },
-    {
-      value: "GHI",
-      label: "Dr. Taylor (GHI)",
-      color: "border-cyan-200 bg-cyan-50 text-cyan-700",
-      bgColor: "bg-cyan-50",
-      textColor: "text-cyan-700",
     },
   ];
 
@@ -112,11 +78,46 @@ export default function TimeTable() {
   const [existingTimetables, setExistingTimetables] = useState({});
   const [showFreeSlots, setShowFreeSlots] = useState(true);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [facultyOptions, setFacultyOptions] = useState(baseFacultyOptions);
+  const [classFacultyMap, setClassFacultyMap] = useState({}); // Map of class -> allowed faculty
+
+  // Faculty management states
+  const [showFacultyModal, setShowFacultyModal] = useState(false);
+  const [allAvailableFaculties, setAllAvailableFaculties] = useState([]);
+  const [selectedFacultiesToAdd, setSelectedFacultiesToAdd] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isLoadingAllFaculties, setIsLoadingAllFaculties] = useState(false);
+  
+  // New faculty creation states
+  const [showCreateFaculty, setShowCreateFaculty] = useState(false);
+  const [newFacultyId, setNewFacultyId] = useState("");
+  const [newFacultyName, setNewFacultyName] = useState("");
+  const [isCreatingFaculty, setIsCreatingFaculty] = useState(false);
+  const [createFacultyError, setCreateFacultyError] = useState("");
+
+  // Faculty color mapping for consistent styling
+  const facultyColors = [
+    "border-blue-200 bg-blue-50 text-blue-700",
+    "border-purple-200 bg-purple-50 text-purple-700",
+    "border-amber-200 bg-amber-50 text-amber-700",
+    "border-red-200 bg-red-50 text-red-700",
+    "border-indigo-200 bg-indigo-50 text-indigo-700",
+    "border-pink-200 bg-pink-50 text-pink-700",
+    "border-cyan-200 bg-cyan-50 text-cyan-700",
+    "border-green-200 bg-green-50 text-green-700",
+    "border-yellow-200 bg-yellow-50 text-yellow-700",
+    "border-orange-200 bg-orange-50 text-orange-700",
+    "border-teal-200 bg-teal-50 text-teal-700",
+    "border-rose-200 bg-rose-50 text-rose-700",
+    "border-violet-200 bg-violet-50 text-violet-700",
+    "border-fuchsia-200 bg-fuchsia-50 text-fuchsia-700",
+    "border-sky-200 bg-sky-50 text-sky-700",
+  ];
 
   // Initialize empty schedule for all divisions and days
   const initializeSchedule = (divisions) => {
     const schedule = {};
-    divisions.forEach(division => {
+    divisions.forEach((division) => {
       schedule[division] = days.reduce((dayAcc, day) => {
         dayAcc[day] = timeSlots.reduce((slotAcc, slot) => {
           slotAcc[slot.value] = "free";
@@ -131,6 +132,273 @@ export default function TimeTable() {
   const [schedule, setSchedule] = useState(() => initializeSchedule([]));
 
   /* =======================
+     🔹 FETCH ALL FACULTIES FROM DATABASE
+  ======================= */
+  const fetchAllFaculties = async () => {
+    setIsLoadingAllFaculties(true);
+    try {
+      const response = await api.get("/api/faculties");
+      if (response.data.success) {
+        const faculties = response.data.faculties || [];
+
+        // Format faculties for display in modal
+        const formattedFaculties = faculties.map((faculty, index) => {
+          // Use faculty.id as both id and facultyId since your API returns them as the same
+          const facultyId = faculty.id || faculty._id || `faculty-${index}`;
+          const facultyName = faculty.name || "Unknown Faculty";
+          
+          return {
+            id: facultyId,  // Use the same ID
+            facultyId: facultyId,  // Same as id
+            name: facultyName,
+            displayLabel: `${facultyName} (${facultyId})`,
+            colorIndex: index % facultyColors.length,
+          };
+        });
+
+        setAllAvailableFaculties(formattedFaculties);
+        return formattedFaculties;
+      } else {
+        throw new Error("Failed to fetch faculties");
+      }
+    } catch (error) {
+      console.error("Error fetching all faculties:", error);
+      
+      // Fallback to sample data for demo
+      const sampleFaculties = [
+        {
+          id: "FAC001",
+          facultyId: "FAC001",
+          name: "Dr. Rajesh Kumar",
+          displayLabel: "Dr. Rajesh Kumar (FAC001)",
+          colorIndex: 0,
+        },
+        {
+          id: "FAC002",
+          facultyId: "FAC002",
+          name: "Prof. Anita Sharma",
+          displayLabel: "Prof. Anita Sharma (FAC002)",
+          colorIndex: 1,
+        },
+        {
+          id: "FAC003",
+          facultyId: "FAC003",
+          name: "Dr. Vikram Singh",
+          displayLabel: "Dr. Vikram Singh (FAC003)",
+          colorIndex: 2,
+        },
+        {
+          id: "FAC004",
+          facultyId: "FAC004",
+          name: "Prof. Meena Patel",
+          displayLabel: "Prof. Meena Patel (FAC004)",
+          colorIndex: 3,
+        },
+        {
+          id: "FAC005",
+          facultyId: "FAC005",
+          name: "Dr. Sanjay Gupta",
+          displayLabel: "Dr. Sanjay Gupta (FAC005)",
+          colorIndex: 4,
+        },
+        {
+          id: "FAC006",
+          facultyId: "FAC006",
+          name: "Dr. Priya Nair",
+          displayLabel: "Dr. Priya Nair (FAC006)",
+          colorIndex: 5,
+        },
+        {
+          id: "FAC007",
+          facultyId: "FAC007",
+          name: "Prof. Ramesh Iyer",
+          displayLabel: "Prof. Ramesh Iyer (FAC007)",
+          colorIndex: 6,
+        },
+        {
+          id: "FAC008",
+          facultyId: "FAC008",
+          name: "Dr. Kavita Reddy",
+          displayLabel: "Dr. Kavita Reddy (FAC008)",
+          colorIndex: 7,
+        },
+      ];
+      setAllAvailableFaculties(sampleFaculties);
+      return sampleFaculties;
+    } finally {
+      setIsLoadingAllFaculties(false);
+    }
+  };
+
+  /* =======================
+     🔹 CREATE NEW FACULTY
+  ======================= */
+  const handleCreateNewFaculty = async () => {
+    // Validate inputs
+    if (!newFacultyId.trim()) {
+      setCreateFacultyError("Faculty ID is required");
+      return;
+    }
+    
+    if (!newFacultyName.trim()) {
+      setCreateFacultyError("Faculty Name is required");
+      return;
+    }
+
+    // Check if faculty ID already exists
+    const facultyExists = allAvailableFaculties.some(
+      (faculty) => 
+        faculty.facultyId.toLowerCase() === newFacultyId.trim().toLowerCase() ||
+        faculty.id.toLowerCase() === newFacultyId.trim().toLowerCase()
+    );
+
+    if (facultyExists) {
+      setCreateFacultyError("A faculty with this ID already exists");
+      return;
+    }
+
+    setIsCreatingFaculty(true);
+    setCreateFacultyError("");
+
+    try {
+      // Create faculty in backend
+      const response = await api.post("/api/faculties", {
+        id: newFacultyId.trim(),
+        name: newFacultyName.trim(),
+      });
+
+      if (response.data.success) {
+        // Create new faculty object
+        const newFaculty = {
+          id: newFacultyId.trim(),
+          facultyId: newFacultyId.trim(),
+          name: newFacultyName.trim(),
+          displayLabel: `${newFacultyName.trim()} (${newFacultyId.trim()})`,
+          colorIndex: allAvailableFaculties.length % facultyColors.length,
+        };
+
+        // Update all available faculties list
+        const updatedFaculties = [...allAvailableFaculties, newFaculty];
+        setAllAvailableFaculties(updatedFaculties);
+
+        // Also select the new faculty automatically
+        setSelectedFacultiesToAdd((prev) => [...prev, newFaculty]);
+
+        // Reset form
+        setNewFacultyId("");
+        setNewFacultyName("");
+        setShowCreateFaculty(false);
+
+        // Show success message
+        setCreateFacultyError("");
+        setErrorMsg(`Faculty "${newFacultyName}" created successfully and selected for addition!`);
+        setTimeout(() => setErrorMsg(""), 3000);
+      } else {
+        throw new Error(response.data.message || "Failed to create faculty");
+      }
+    } catch (error) {
+      console.error("Error creating faculty:", error);
+      setCreateFacultyError(
+        error.response?.data?.message || 
+        "Failed to create faculty. Please try again."
+      );
+    } finally {
+      setIsCreatingFaculty(false);
+    }
+  };
+
+  /* =======================
+     🔹 FETCH ALLOWED FACULTY FOR EACH CLASS
+  ======================= */
+  const fetchAllowedFacultyForClasses = async (classes) => {
+    if (!classes || classes.length === 0) return {};
+
+    try {
+      const facultyMap = {};
+
+      // Fetch faculty data for each class
+      const fetchPromises = classes.map(async (className) => {
+        try {
+          const response = await api.get("/api/classwise-faculty", {
+            params: {
+              sem: sem,
+              branch: branch,
+              class: className,
+            },
+          });
+
+          return {
+            class: className,
+            faculty: response.data.allowed_faculty || [],
+            success: true,
+          };
+        } catch (error) {
+          console.warn(`No faculty data found for class ${className}:`, error);
+          return {
+            class: className,
+            faculty: [],
+            success: false,
+          };
+        }
+      });
+
+      const results = await Promise.all(fetchPromises);
+
+      // Build faculty map
+      results.forEach((result) => {
+        if (result.success && result.faculty.length > 0) {
+          facultyMap[result.class] = result.faculty;
+        } else {
+          facultyMap[result.class] = [];
+        }
+      });
+
+      // Update faculty options based on all unique faculty from all classes
+      const allFaculty = new Set();
+      Object.values(facultyMap).forEach((facultyList) => {
+        facultyList.forEach((faculty) => allFaculty.add(faculty));
+      });
+
+      // Convert faculty codes to options with colors
+      const uniqueFaculty = Array.from(allFaculty);
+      const newFacultyOptions = [
+        ...baseFacultyOptions,
+        ...uniqueFaculty.map((facultyId, index) => {
+          // Find faculty details from all available faculties
+          const facultyDetails = allAvailableFaculties.find(
+            (f) => f.facultyId === facultyId || f.id === facultyId
+          );
+
+          const facultyName = facultyDetails?.name || "";
+
+          return {
+            value: facultyId,
+            label: facultyName ? `${facultyId} (${facultyName})` : facultyId,
+            name: facultyName,
+            color: facultyColors[index % facultyColors.length],
+            bgColor: facultyColors[index % facultyColors.length]
+              .split(" ")
+              .slice(2, 4)
+              .join(" "),
+            textColor: facultyColors[index % facultyColors.length]
+              .split(" ")
+              .slice(4, 5)
+              .join(" "),
+          };
+        }),
+      ];
+
+      setFacultyOptions(newFacultyOptions);
+      setClassFacultyMap(facultyMap);
+
+      return facultyMap;
+    } catch (error) {
+      console.error("Error fetching allowed faculty:", error);
+      return {};
+    }
+  };
+
+  /* =======================
      🔹 FETCH ALL CLASSES FOR BRANCH
   ======================= */
   const fetchAllClassesForBranch = async () => {
@@ -138,24 +406,32 @@ export default function TimeTable() {
 
     setFetching(true);
     setErrorMsg("");
-    
+
     try {
-      // First, fetch all timetables to see which classes exist for this branch-semester
+      // Fetch all available faculties first
+      await fetchAllFaculties();
+
+      // Then fetch all timetables to see which classes exist for this branch-semester
       const allTimetablesRes = await api.get("/api/timetable");
       const allTimetables = allTimetablesRes.data;
-      
+
       // Filter timetables for the current branch and semester
       const branchTimetables = allTimetables.filter(
-        t => t.branch === branch && t.sem === sem
+        (t) => t.branch === branch && t.sem === sem
       );
-      
+
       // Extract unique classes from these timetables
-      const existingClasses = [...new Set(branchTimetables.map(t => t.class))];
-      
+      const existingClasses = [
+        ...new Set(branchTimetables.map((t) => t.class)),
+      ];
+
       // Update selected divisions with existing classes
       if (existingClasses.length > 0) {
         setSelectedDivisions(existingClasses);
-        
+
+        // Fetch allowed faculty for these classes
+        const facultyMap = await fetchAllowedFacultyForClasses(existingClasses);
+
         // Also fetch schedule data for each class
         const fetchPromises = existingClasses.map(async (division) => {
           try {
@@ -176,7 +452,7 @@ export default function TimeTable() {
         });
 
         const results = await Promise.all(fetchPromises);
-        
+
         // Update existing timetables state
         const fetchedTimetables = {};
         results.forEach(({ division, exists }) => {
@@ -186,15 +462,16 @@ export default function TimeTable() {
 
         // Update schedule with fetched data
         const updatedSchedule = initializeSchedule(existingClasses);
-        
+
         results.forEach(({ division, data, exists }) => {
           if (exists && data) {
             // Copy fetched data into the schedule
-            Object.keys(data).forEach(day => {
+            Object.keys(data).forEach((day) => {
               if (updatedSchedule[division][day]) {
-                Object.keys(data[day]).forEach(timeSlot => {
+                Object.keys(data[day]).forEach((timeSlot) => {
                   if (updatedSchedule[division][day][timeSlot] !== undefined) {
-                    updatedSchedule[division][day][timeSlot] = data[day][timeSlot];
+                    updatedSchedule[division][day][timeSlot] =
+                      data[day][timeSlot];
                   }
                 });
               }
@@ -203,10 +480,12 @@ export default function TimeTable() {
         });
 
         setSchedule(updatedSchedule);
-        
+
         // Show success message
         if (existingClasses.length > 0) {
-          setErrorMsg(`Loaded ${existingClasses.length} existing classes for ${branch} - Semester ${sem}`);
+          setErrorMsg(
+            `Loaded ${existingClasses.length} existing classes for ${branch} - Semester ${sem}`
+          );
           setTimeout(() => setErrorMsg(""), 3000);
         }
       } else {
@@ -239,6 +518,9 @@ export default function TimeTable() {
     const fetchedTimetables = {};
 
     try {
+      // First, fetch allowed faculty for the selected classes
+      await fetchAllowedFacultyForClasses(selectedDivisions);
+
       // Fetch timetables for each selected division
       const fetchPromises = selectedDivisions.map(async (division) => {
         try {
@@ -260,7 +542,7 @@ export default function TimeTable() {
       });
 
       const results = await Promise.all(fetchPromises);
-      
+
       // Process results
       results.forEach(({ division, data, exists }) => {
         fetchedTimetables[division] = exists;
@@ -270,15 +552,16 @@ export default function TimeTable() {
 
       // Update schedule with fetched data
       const updatedSchedule = initializeSchedule(selectedDivisions);
-      
+
       results.forEach(({ division, data, exists }) => {
         if (exists && data) {
           // Copy fetched data into the schedule
-          Object.keys(data).forEach(day => {
+          Object.keys(data).forEach((day) => {
             if (updatedSchedule[division][day]) {
-              Object.keys(data[day]).forEach(timeSlot => {
+              Object.keys(data[day]).forEach((timeSlot) => {
                 if (updatedSchedule[division][day][timeSlot] !== undefined) {
-                  updatedSchedule[division][day][timeSlot] = data[day][timeSlot];
+                  updatedSchedule[division][day][timeSlot] =
+                    data[day][timeSlot];
                 }
               });
             }
@@ -297,17 +580,80 @@ export default function TimeTable() {
   };
 
   /* =======================
+     🔹 ADD FACULTIES TO LEGEND AND DROPDOWNS
+  ======================= */
+  const handleAddFaculties = () => {
+    if (selectedFacultiesToAdd.length === 0) return;
+
+    // 1️⃣ Add to Faculty Legend
+    const updatedFacultyOptions = [...facultyOptions];
+
+    selectedFacultiesToAdd.forEach((faculty, idx) => {
+      const exists = updatedFacultyOptions.some(
+        (f) => f.value === faculty.facultyId || f.value === faculty.id
+      );
+
+      if (!exists) {
+        const color =
+          facultyColors[
+            (updatedFacultyOptions.length - 1) % facultyColors.length
+          ];
+        const parts = color.split(" ");
+        
+        updatedFacultyOptions.push({
+          value: faculty.facultyId || faculty.id, // Use facultyId or id
+          label: `${faculty.name} (${faculty.facultyId || faculty.id})`,
+          name: faculty.name,
+          color,
+          bgColor: parts[2] + " " + (parts[3] || ""),
+          textColor: parts[4] || parts[3],
+        });
+      }
+    });
+
+    setFacultyOptions(updatedFacultyOptions);
+
+    // 2️⃣ 🔥 ALSO add to classFacultyMap for selected divisions
+    setClassFacultyMap((prev) => {
+      const updated = { ...prev };
+
+      selectedDivisions.forEach((division) => {
+        const existing = updated[division] || [];
+
+        selectedFacultiesToAdd.forEach((faculty) => {
+          const facultyId = faculty.facultyId || faculty.id;
+          if (facultyId && !existing.includes(facultyId)) {
+            existing.push(facultyId);
+          }
+        });
+
+        updated[division] = [...existing];
+      });
+
+      return updated;
+    });
+
+    // 3️⃣ Reset modal
+    setSelectedFacultiesToAdd([]);
+    setShowFacultyModal(false);
+    setSearchQuery("");
+
+    setErrorMsg(`Added ${selectedFacultiesToAdd.length} faculty to legend`);
+    setTimeout(() => setErrorMsg(""), 3000);
+  };
+
+  /* =======================
      🔹 HANDLE DIVISION SELECTION
   ======================= */
   const handleDivisionToggle = (division) => {
-    setSelectedDivisions(prev => {
+    setSelectedDivisions((prev) => {
       const newDivisions = prev.includes(division)
-        ? prev.filter(d => d !== division)
+        ? prev.filter((d) => d !== division)
         : [...prev, division];
-      
+
       // Update schedule with newly added divisions
       if (!prev.includes(division)) {
-        setSchedule(prevSchedule => ({
+        setSchedule((prevSchedule) => ({
           ...prevSchedule,
           [division]: days.reduce((dayAcc, day) => {
             dayAcc[day] = timeSlots.reduce((slotAcc, slot) => {
@@ -315,19 +661,22 @@ export default function TimeTable() {
               return slotAcc;
             }, {});
             return dayAcc;
-          }, {})
+          }, {}),
         }));
+
+        // Fetch faculty for the newly added class
+        fetchAllowedFacultyForClasses([division]);
       } else {
         // Remove division from schedule
         const { [division]: removed, ...newSchedule } = schedule;
         setSchedule(newSchedule);
-        
+
         // Remove from collapsed divisions
         const newCollapsed = { ...collapsedDivisions };
         delete newCollapsed[division];
         setCollapsedDivisions(newCollapsed);
       }
-      
+
       return newDivisions;
     });
     setSaved(false);
@@ -357,37 +706,62 @@ export default function TimeTable() {
     }
   }, [sem, branch, selectedDivisions]);
 
+  // Fetch all faculties when modal opens
+  useEffect(() => {
+    if (showFacultyModal && allAvailableFaculties.length === 0) {
+      fetchAllFaculties();
+    }
+  }, [showFacultyModal]);
+
   /* =======================
      🔹 HANDLERS
   ======================= */
   const handleFacultyChange = (division, day, timeSlot, value) => {
-    setSchedule(prev => ({
+    setSchedule((prev) => ({
       ...prev,
       [division]: {
         ...prev[division],
         [day]: {
           ...prev[division][day],
-          [timeSlot]: value
-        }
-      }
+          [timeSlot]: value,
+        },
+      },
     }));
     setSaved(false);
     setErrorMsg("");
   };
 
   const toggleDivisionCollapse = (division) => {
-    setCollapsedDivisions(prev => ({
+    setCollapsedDivisions((prev) => ({
       ...prev,
       [division]: !prev[division],
     }));
   };
 
   const toggleDayCollapse = (division, day) => {
-    setCollapsedDays(prev => ({
+    setCollapsedDays((prev) => ({
       ...prev,
       [`${division}-${day}`]: !prev[`${division}-${day}`],
     }));
   };
+
+  const toggleFacultySelection = (faculty) => {
+    setSelectedFacultiesToAdd((prev) => {
+      const isSelected = prev.some((f) => f.id === faculty.id);
+      if (isSelected) {
+        return prev.filter((f) => f.id !== faculty.id);
+      } else {
+        return [...prev, faculty];
+      }
+    });
+  };
+
+  const filteredFaculties = allAvailableFaculties.filter(
+    (faculty) =>
+      faculty.displayLabel.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (faculty.facultyId && faculty.facultyId.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      faculty.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   /* =======================
      🔹 SAVE TIMETABLES FOR ALL DIVISIONS
@@ -405,15 +779,15 @@ export default function TimeTable() {
       // Create save promises for each division
       const savePromises = selectedDivisions.map(async (division) => {
         const divisionSchedule = schedule[division];
-        
+
         const formData = new FormData();
         formData.append("sem", sem);
         formData.append("branch", branch);
         formData.append("class", division);
         formData.append("schedule", JSON.stringify(divisionSchedule));
 
-        const endpoint = existingTimetables[division] 
-          ? "/api/timetable" 
+        const endpoint = existingTimetables[division]
+          ? "/api/timetable"
           : "/api/timetable";
 
         return api.post(endpoint, formData, {
@@ -423,17 +797,17 @@ export default function TimeTable() {
 
       // Execute all save operations in parallel
       const results = await Promise.all(savePromises);
-      
+
       console.log("Saved all timetables:", results);
       setSaved(true);
-      
+
       // Update existing timetables state
       const updatedExisting = { ...existingTimetables };
-      selectedDivisions.forEach(division => {
+      selectedDivisions.forEach((division) => {
         updatedExisting[division] = true;
       });
       setExistingTimetables(updatedExisting);
-      
+
       setErrorMsg("");
     } catch (error) {
       console.error("Error saving timetables:", error);
@@ -450,7 +824,9 @@ export default function TimeTable() {
         };
 
         setErrorMsg(
-          `Faculty ${data.faculty} is already assigned on ${dayMap[data.day]} (${data.time_slot}). Please choose a different faculty member.`
+          `Faculty ${data.faculty} is already assigned on ${
+            dayMap[data.day]
+          } (${data.time_slot}). Please choose a different faculty member.`
         );
       } else {
         setErrorMsg("Failed to save timetables. Please try again.");
@@ -466,7 +842,11 @@ export default function TimeTable() {
   };
 
   const handleClear = () => {
-    if (window.confirm("Clear all faculty assignments for all selected divisions?")) {
+    if (
+      window.confirm(
+        "Clear all faculty assignments for all selected divisions?"
+      )
+    ) {
       setSchedule(initializeSchedule(selectedDivisions));
       setSaved(false);
     }
@@ -477,9 +857,35 @@ export default function TimeTable() {
     return faculty || facultyOptions[0];
   };
 
+  // Get faculty options for a specific class
+  const getFacultyOptionsForClass = (division) => {
+    const classFaculty = classFacultyMap[division] || [];
+
+    // Always include "free" option
+    const options = [facultyOptions[0]];
+
+    // Add only faculty that are in the allowed list for this class
+    classFaculty.forEach((facultyCode) => {
+      const facultyOption = facultyOptions.find((f) => f.value === facultyCode);
+      if (facultyOption) {
+        options.push(facultyOption);
+      }
+    });
+
+    return options;
+  };
+
   // Load all classes for current branch
   const handleLoadBranchClasses = () => {
     fetchAllClassesForBranch();
+  };
+
+  // Reset new faculty form
+  const resetNewFacultyForm = () => {
+    setNewFacultyId("");
+    setNewFacultyName("");
+    setCreateFacultyError("");
+    setShowCreateFaculty(false);
   };
 
   /* =======================
@@ -493,16 +899,302 @@ export default function TimeTable() {
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-emerald-100 to-transparent rounded-full opacity-10"></div>
       </div>
 
+      {/* Faculty Management Modal */}
+      {showFacultyModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+            {/* Modal Header */}
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">
+                    Add Faculty Members
+                  </h2>
+                  <p className="text-gray-600 text-sm mt-1">
+                    Select faculties to add to your timetable dropdowns or create new faculty
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowFacultyModal(false);
+                    setSelectedFacultiesToAdd([]);
+                    setSearchQuery("");
+                    resetNewFacultyForm();
+                  }}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Search Bar */}
+              <div className="mt-4 relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search faculties by name or ID..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+
+              {/* Selected Count */}
+              <div className="mt-3 flex items-center justify-between">
+                <span className="text-sm text-gray-600">
+                  {selectedFacultiesToAdd.length} faculty selected
+                </span>
+                <span className="text-sm text-gray-600">
+                  {filteredFaculties.length} available
+                </span>
+              </div>
+            </div>
+
+            {/* Create New Faculty Form */}
+            {showCreateFaculty ? (
+              <div className="p-6 border-b border-gray-200 bg-blue-50">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-bold text-gray-900">Create New Faculty</h3>
+                  <button
+                    onClick={resetNewFacultyForm}
+                    className="p-1 hover:bg-blue-100 rounded-lg transition-colors"
+                  >
+                    <X className="w-5 h-5 text-gray-600" />
+                  </button>
+                </div>
+                
+                {createFacultyError && (
+                  <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-red-700 text-sm">{createFacultyError}</p>
+                  </div>
+                )}
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <div className="flex items-center gap-2">
+                        <Hash className="w-4 h-4" />
+                        Faculty ID
+                      </div>
+                    </label>
+                    <input
+                      type="text"
+                      value={newFacultyId}
+                      onChange={(e) => setNewFacultyId(e.target.value)}
+                      placeholder="e.g., FAC009"
+                      className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                    <p className="text-xs text-gray-500 mt-2">Unique identifier for the faculty</p>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <div className="flex items-center gap-2">
+                        <User className="w-4 h-4" />
+                        Faculty Name
+                      </div>
+                    </label>
+                    <input
+                      type="text"
+                      value={newFacultyName}
+                      onChange={(e) => setNewFacultyName(e.target.value)}
+                      placeholder="e.g., Dr. Sunil Verma"
+                      className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                    <p className="text-xs text-gray-500 mt-2">Full name of the faculty member</p>
+                  </div>
+                </div>
+                
+                <div className="flex gap-3 mt-6">
+                  <button
+                    onClick={resetNewFacultyForm}
+                    className="px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleCreateNewFaculty}
+                    disabled={isCreatingFaculty || !newFacultyId.trim() || !newFacultyName.trim()}
+                    className={`px-4 py-2.5 rounded-lg font-medium transition-colors flex items-center gap-2 ${
+                      isCreatingFaculty || !newFacultyId.trim() || !newFacultyName.trim()
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : "bg-blue-600 text-white hover:bg-blue-700"
+                    }`}
+                  >
+                    {isCreatingFaculty ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Creating...
+                      </>
+                    ) : (
+                      <>
+                        <Check className="w-4 h-4" />
+                        Create Faculty
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="p-4 border-b border-gray-200">
+                <button
+                  onClick={() => setShowCreateFaculty(true)}
+                  className="w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-600 hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50 transition-all flex items-center justify-center gap-2"
+                >
+                  <Plus className="w-5 h-5" />
+                  Create New Faculty
+                </button>
+              </div>
+            )}
+
+            {/* Modal Body */}
+            <div className="flex-1 overflow-y-auto p-6">
+              {isLoadingAllFaculties ? (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-blue-600 mb-4" />
+                  <p className="text-gray-600">Loading all faculties...</p>
+                </div>
+              ) : filteredFaculties.length === 0 ? (
+                <div className="text-center py-12">
+                  <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-600">No faculties found</p>
+                  {searchQuery && (
+                    <p className="text-gray-500 text-sm mt-1">
+                      Try a different search term
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {filteredFaculties.map((faculty) => {
+                    const isSelected = selectedFacultiesToAdd.some(
+                      (f) => f.id === faculty.id
+                    );
+                    const isAlreadyInOptions = facultyOptions.some(
+                      (option) => 
+                        option.value === faculty.facultyId || 
+                        option.value === faculty.id
+                    );
+
+                    return (
+                      <div
+                        key={faculty.id}
+                        onClick={() =>
+                          !isAlreadyInOptions && toggleFacultySelection(faculty)
+                        }
+                        className={`p-4 rounded-xl border cursor-pointer transition-all ${
+                          isAlreadyInOptions
+                            ? "border-gray-200 bg-gray-50 opacity-75 cursor-not-allowed"
+                            : isSelected
+                            ? "border-blue-500 bg-blue-50"
+                            : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                        }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div
+                            className={`w-5 h-5 rounded-full border flex items-center justify-center mt-0.5 flex-shrink-0 ${
+                              isAlreadyInOptions
+                                ? "border-gray-300 bg-gray-200"
+                                : isSelected
+                                ? "border-blue-500 bg-blue-500"
+                                : "border-gray-300"
+                            }`}
+                          >
+                            {isAlreadyInOptions ? (
+                              <Check className="w-3 h-3 text-gray-500" />
+                            ) : isSelected ? (
+                              <Check className="w-3 h-3 text-white" />
+                            ) : null}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between">
+                              <div>
+                                <h3 className="font-medium text-gray-900 truncate">
+                                  {faculty.name}
+                                </h3>
+                                <p className="text-sm text-gray-600 mt-1">
+                                  ID: {faculty.facultyId || faculty.id}
+                                </p>
+                              </div>
+                              {isAlreadyInOptions && (
+                                <span className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded whitespace-nowrap">
+                                  Already added
+                                </span>
+                              )}
+                            </div>
+                            {isAlreadyInOptions && (
+                              <p className="text-xs text-gray-500 mt-2">
+                                This faculty is already available in dropdowns
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-6 border-t border-gray-200 bg-gray-50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">
+                    Selected: {selectedFacultiesToAdd.length} faculty
+                  </p>
+                  {selectedFacultiesToAdd.length > 0 && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      Selected faculty will be added to all class dropdowns
+                    </p>
+                  )}
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => {
+                      setShowFacultyModal(false);
+                      setSelectedFacultiesToAdd([]);
+                      setSearchQuery("");
+                      resetNewFacultyForm();
+                    }}
+                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleAddFaculties}
+                    disabled={selectedFacultiesToAdd.length === 0}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                      selectedFacultiesToAdd.length === 0
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : "bg-blue-600 text-white hover:bg-blue-700"
+                    }`}
+                  >
+                    Add Selected Faculty
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="relative z-10 max-w-7xl mx-auto">
         {/* Breadcrumb */}
         <div className="mb-6">
           <div className="flex items-center text-sm text-gray-600 mb-4">
-            <span className="hover:text-gray-800 cursor-pointer">Dashboard</span>
+            <span className="hover:text-gray-800 cursor-pointer">
+              Dashboard
+            </span>
             <ChevronRight className="w-4 h-4 mx-2" />
-            <span className="hover:text-gray-800 cursor-pointer">Timetable Management</span>
+            <span className="hover:text-gray-800 cursor-pointer">
+              Timetable Management
+            </span>
             <ChevronRight className="w-4 h-4 mx-2" />
             <span className="font-medium text-blue-600">
-              {selectedDivisions.length > 0 ? `Edit ${branch} - Sem ${sem}` : "Create Timetables"}
+              {selectedDivisions.length > 0
+                ? `Edit ${branch} - Sem ${sem}`
+                : "Create Timetables"}
             </span>
           </div>
         </div>
@@ -511,13 +1203,15 @@ export default function TimeTable() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              {selectedDivisions.length > 0 
-                ? `${branch} - Semester ${sem} Timetable` 
+              {selectedDivisions.length > 0
+                ? `${branch} - Semester ${sem} Timetable`
                 : "Branch Timetable Management"}
             </h1>
             <p className="text-gray-600">
               {selectedDivisions.length > 0
-                ? `Managing ${selectedDivisions.length} class${selectedDivisions.length !== 1 ? 'es' : ''} for ${branch}`
+                ? `Managing ${selectedDivisions.length} class${
+                    selectedDivisions.length !== 1 ? "es" : ""
+                  } for ${branch}`
                 : "Manage timetables for multiple classes within a branch"}
             </p>
           </div>
@@ -530,35 +1224,55 @@ export default function TimeTable() {
 
         {/* Status Messages */}
         {errorMsg && (
-          <div className={`mb-6 p-4 rounded-xl border flex items-start gap-3 ${
-            errorMsg.includes("Loaded") || errorMsg.includes("No existing") || errorMsg.includes("Failed to fetch")
-              ? "border-amber-200 bg-amber-50"
-              : errorMsg.includes("already assigned")
-              ? "border-red-200 bg-red-50"
-              : "border-red-200 bg-red-50"
-          }`}>
-            <AlertCircle className={`w-5 h-5 mt-0.5 flex-shrink-0 ${
-              errorMsg.includes("Loaded") || errorMsg.includes("No existing") || errorMsg.includes("Failed to fetch")
-                ? "text-amber-500"
-                : "text-red-500"
-            }`} />
+          <div
+            className={`mb-6 p-4 rounded-xl border flex items-start gap-3 ${
+              errorMsg.includes("Loaded") ||
+              errorMsg.includes("Added") ||
+              errorMsg.includes("created successfully") ||
+              errorMsg.includes("Failed to fetch")
+                ? "border-blue-200 bg-blue-50"
+                : errorMsg.includes("already assigned")
+                ? "border-red-200 bg-red-50"
+                : "border-red-200 bg-red-50"
+            }`}
+          >
+            <AlertCircle
+              className={`w-5 h-5 mt-0.5 flex-shrink-0 ${
+                errorMsg.includes("Loaded") ||
+                errorMsg.includes("Added") ||
+                errorMsg.includes("created successfully") ||
+                errorMsg.includes("Failed to fetch")
+                  ? "text-blue-500"
+                  : "text-red-500"
+              }`}
+            />
             <div>
-              <p className={`font-medium ${
-                errorMsg.includes("Loaded") || errorMsg.includes("No existing") || errorMsg.includes("Failed to fetch")
-                  ? "text-amber-800"
-                  : "text-red-800"
-              }`}>
-                {errorMsg.includes("Loaded") 
-                  ? "Information" 
+              <p
+                className={`font-medium ${
+                  errorMsg.includes("Loaded") ||
+                  errorMsg.includes("Added") ||
+                  errorMsg.includes("created successfully") ||
+                  errorMsg.includes("Failed to fetch")
+                    ? "text-blue-800"
+                    : "text-red-800"
+                }`}
+              >
+                {errorMsg.includes("Added") || errorMsg.includes("created successfully")
+                  ? "Success"
                   : errorMsg.includes("already assigned")
                   ? "Schedule Conflict"
                   : "Information"}
               </p>
-              <p className={`text-sm mt-1 ${
-                errorMsg.includes("Loaded") || errorMsg.includes("No existing") || errorMsg.includes("Failed to fetch")
-                  ? "text-amber-600"
-                  : "text-red-600"
-              }`}>
+              <p
+                className={`text-sm mt-1 ${
+                  errorMsg.includes("Loaded") ||
+                  errorMsg.includes("Added") ||
+                  errorMsg.includes("created successfully") ||
+                  errorMsg.includes("Failed to fetch")
+                    ? "text-blue-600"
+                    : "text-red-600"
+                }`}
+              >
                 {errorMsg}
               </p>
             </div>
@@ -573,7 +1287,8 @@ export default function TimeTable() {
                 Timetables Saved Successfully
               </p>
               <p className="text-emerald-600 text-sm mt-1">
-                All {selectedDivisions.length} class timetables have been saved for {branch} - Semester {sem}.
+                All {selectedDivisions.length} class timetables have been saved
+                for {branch} - Semester {sem}.
               </p>
             </div>
           </div>
@@ -601,7 +1316,9 @@ export default function TimeTable() {
                   className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 >
                   {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
-                    <option key={s} value={s}>Semester {s}</option>
+                    <option key={s} value={s}>
+                      Semester {s}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -623,7 +1340,9 @@ export default function TimeTable() {
                   className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
                 >
                   {branchOptions.map((b) => (
-                    <option key={b} value={b}>{b}</option>
+                    <option key={b} value={b}>
+                      {b}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -675,7 +1394,8 @@ export default function TimeTable() {
               {divisionOptions.map((division) => {
                 const isSelected = selectedDivisions.includes(division);
                 const exists = existingTimetables[division];
-                
+                const allowedFaculty = classFacultyMap[division] || [];
+
                 return (
                   <button
                     key={division}
@@ -687,10 +1407,20 @@ export default function TimeTable() {
                           : "bg-blue-100 border-blue-300 text-blue-800 hover:bg-blue-200"
                         : "bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200"
                     }`}
+                    title={`Allowed faculty: ${
+                      allowedFaculty.length > 0
+                        ? allowedFaculty.join(", ")
+                        : "None assigned"
+                    }`}
                   >
                     {division}
                     {isSelected && exists && (
                       <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    )}
+                    {allowedFaculty.length > 0 && (
+                      <span className="text-xs bg-gray-200 px-1.5 py-0.5 rounded">
+                        {allowedFaculty.length}
+                      </span>
                     )}
                   </button>
                 );
@@ -703,11 +1433,19 @@ export default function TimeTable() {
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-green-100 border border-green-300 rounded"></div>
-                <span className="text-sm text-gray-600">Selected (Existing)</span>
+                <span className="text-sm text-gray-600">
+                  Selected (Existing)
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-gray-100 border border-gray-300 rounded"></div>
                 <span className="text-sm text-gray-600">Not Selected</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-purple-100 border border-purple-300 rounded"></div>
+                <span className="text-sm text-gray-600">
+                  Has Allowed Faculty
+                </span>
               </div>
             </div>
           </div>
@@ -716,21 +1454,57 @@ export default function TimeTable() {
         {/* Legend & Controls */}
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm flex-1">
-            <h3 className="text-sm font-semibold text-gray-700 mb-3">Faculty Legend</h3>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-gray-700">
+                Faculty Legend
+              </h3>
+              <button
+                onClick={() => setShowFacultyModal(true)}
+                className="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-xs font-medium flex items-center gap-2 hover:bg-blue-100 transition-colors"
+              >
+                <UserPlus className="w-3 h-3" />
+                Add Faculty
+              </button>
+            </div>
             <div className="flex flex-wrap gap-2">
-              {facultyOptions.map((faculty) => (
-                <div
-                  key={faculty.value}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium ${faculty.color} border`}
-                >
-                  {faculty.label}
-                </div>
-              ))}
+              {facultyOptions.map((faculty) => {
+                // Skip formatting for "free" option
+                if (faculty.value === "free") {
+                  return (
+                    <div
+                      key={faculty.value}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium ${faculty.color} border`}
+                    >
+                      {faculty.label}
+                    </div>
+                  );
+                }
+
+                // For faculty entries, use the stored name if available
+                const facultyId = faculty.value;
+                const facultyName = faculty.name || "";
+
+                return (
+                  <div
+                    key={faculty.value}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium ${faculty.color} border`}
+                    title={`${facultyId}${facultyName ? ` (${facultyName})` : ''}`}
+                  >
+                    {facultyName ? `${facultyId} (${facultyName})` : facultyId}
+                  </div>
+                );
+              })}
+            </div>
+            <div className="text-xs text-gray-500 mt-3">
+              Note: Each class only shows faculty assigned to it from the
+              classwise_faculty collection.
             </div>
           </div>
-          
+
           <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
-            <h3 className="text-sm font-semibold text-gray-700 mb-3">View Options</h3>
+            <h3 className="text-sm font-semibold text-gray-700 mb-3">
+              View Options
+            </h3>
             <div className="flex flex-col gap-2">
               <button
                 onClick={() => setShowFreeSlots(!showFreeSlots)}
@@ -740,11 +1514,16 @@ export default function TimeTable() {
                     : "bg-gray-100 text-gray-700 border border-gray-200"
                 }`}
               >
-                {showFreeSlots ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                {showFreeSlots ? (
+                  <Eye className="w-3 h-3" />
+                ) : (
+                  <EyeOff className="w-3 h-3" />
+                )}
                 {showFreeSlots ? "Show Free Slots" : "Hide Free Slots"}
               </button>
               <div className="text-xs text-gray-500 mt-1">
-                Showing {selectedDivisions.length} class{selectedDivisions.length !== 1 ? 'es' : ''}
+                Showing {selectedDivisions.length} class
+                {selectedDivisions.length !== 1 ? "es" : ""}
               </div>
             </div>
           </div>
@@ -758,29 +1537,59 @@ export default function TimeTable() {
               {selectedDivisions.map((division) => {
                 const isCollapsed = collapsedDivisions[division];
                 const exists = existingTimetables[division];
-                
+                const allowedFaculty = classFacultyMap[division] || [];
+
                 return (
-                  <div key={division} className="bg-white rounded-xl border border-gray-200 shadow-sm">
+                  <div
+                    key={division}
+                    className="bg-white rounded-xl border border-gray-200 shadow-sm"
+                  >
                     {/* Division Header */}
-                    <div className={`p-4 border-b ${exists ? 'bg-green-50 border-green-200' : 'bg-blue-50 border-blue-200'}`}>
+                    <div
+                      className={`p-4 border-b ${
+                        exists
+                          ? "bg-green-50 border-green-200"
+                          : "bg-blue-50 border-blue-200"
+                      }`}
+                    >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <Building className={`w-5 h-5 ${exists ? 'text-green-600' : 'text-blue-600'}`} />
+                          <Building
+                            className={`w-5 h-5 ${
+                              exists ? "text-green-600" : "text-blue-600"
+                            }`}
+                          />
                           <div>
-                            <h3 className="font-bold text-lg text-gray-900">{division}</h3>
+                            <h3 className="font-bold text-lg text-gray-900">
+                              {division}
+                            </h3>
                             <div className="flex items-center gap-2 mt-1">
-                              <div className={`text-xs px-2 py-1 rounded-full ${
-                                exists 
-                                  ? 'bg-green-100 text-green-800 border border-green-200'
-                                  : 'bg-blue-100 text-blue-800 border border-blue-200'
-                              }`}>
-                                {exists ? 'Existing' : 'New'}
+                              <div
+                                className={`text-xs px-2 py-1 rounded-full ${
+                                  exists
+                                    ? "bg-green-100 text-green-800 border border-green-200"
+                                    : "bg-blue-100 text-blue-800 border border-blue-200"
+                                }`}
+                              >
+                                {exists ? "Existing" : "New"}
                               </div>
                               <div className="text-xs text-gray-500">
-                                {Object.values(schedule[division] || {}).flatMap(day => 
-                                  Object.values(day).filter(val => val !== 'free')
-                                ).length} assigned slots
+                                {
+                                  Object.values(
+                                    schedule[division] || {}
+                                  ).flatMap((day) =>
+                                    Object.values(day).filter(
+                                      (val) => val !== "free"
+                                    )
+                                  ).length
+                                }{" "}
+                                assigned slots
                               </div>
+                              {allowedFaculty.length > 0 && (
+                                <div className="text-xs px-2 py-1 rounded-full bg-purple-100 text-purple-800 border border-purple-200">
+                                  {allowedFaculty.length} faculty
+                                </div>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -796,30 +1605,40 @@ export default function TimeTable() {
                         </button>
                       </div>
                     </div>
-                    
+
                     {/* Weekdays inside Division (when not collapsed) */}
                     {!isCollapsed && (
                       <div className="p-4">
                         <div className="space-y-3">
                           {days.map((day) => {
                             const dayCollapsedKey = `${division}-${day}`;
-                            const isDayCollapsed = collapsedDays[dayCollapsedKey];
-                            
+                            const isDayCollapsed =
+                              collapsedDays[dayCollapsedKey];
+
                             // Count assigned slots for this day
-                            const assignedCount = schedule[division]?.[day] 
-                              ? Object.values(schedule[division][day]).filter(val => val !== 'free').length
+                            const assignedCount = schedule[division]?.[day]
+                              ? Object.values(schedule[division][day]).filter(
+                                  (val) => val !== "free"
+                                ).length
                               : 0;
-                            
+
                             return (
-                              <div key={day} className="border border-gray-200 rounded-lg overflow-hidden">
+                              <div
+                                key={day}
+                                className="border border-gray-200 rounded-lg overflow-hidden"
+                              >
                                 {/* Day Header */}
-                                <div 
-                                  onClick={() => toggleDayCollapse(division, day)}
+                                <div
+                                  onClick={() =>
+                                    toggleDayCollapse(division, day)
+                                  }
                                   className="p-3 bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors flex items-center justify-between"
                                 >
                                   <div className="flex items-center gap-2">
                                     <Calendar className="w-4 h-4 text-gray-500" />
-                                    <span className="font-medium text-gray-900">{day}</span>
+                                    <span className="font-medium text-gray-900">
+                                      {day}
+                                    </span>
                                     <span className="text-xs text-gray-500">
                                       ({assignedCount}/{timeSlots.length} slots)
                                     </span>
@@ -832,31 +1651,71 @@ export default function TimeTable() {
                                     )}
                                   </div>
                                 </div>
-                                
+
                                 {/* Time slots for this day (when not collapsed) */}
                                 {!isDayCollapsed && (
                                   <div className="p-3 bg-white">
                                     <div className="space-y-2 max-h-96 overflow-y-auto">
                                       {timeSlots.map((slot) => {
-                                        const facultyValue = schedule[division]?.[day]?.[slot.value] || 'free';
-                                        const faculty = getFacultyStyle(facultyValue);
-                                        const isFree = facultyValue === 'free';
-                                        
-                                        if (!showFreeSlots && isFree) return null;
-                                        
+                                        const facultyValue =
+                                          schedule[division]?.[day]?.[
+                                            slot.value
+                                          ] || "free";
+                                        const faculty =
+                                          getFacultyStyle(facultyValue);
+                                        const isFree = facultyValue === "free";
+                                        const classFacultyOptions =
+                                          getFacultyOptionsForClass(division);
+
+                                        if (!showFreeSlots && isFree)
+                                          return null;
+
                                         return (
-                                          <div key={slot.value} className="flex items-center gap-2 p-2 border border-gray-100 rounded hover:bg-gray-50 transition-colors">
-                                            <div className="w-16 text-xs text-gray-600 font-medium">{slot.label}</div>
+                                          <div
+                                            key={slot.value}
+                                            className="flex items-center gap-2 p-2 border border-gray-100 rounded hover:bg-gray-50 transition-colors"
+                                          >
+                                            <div className="w-16 text-xs text-gray-600 font-medium">
+                                              {slot.label}
+                                            </div>
                                             <select
                                               value={facultyValue}
-                                              onChange={(e) => handleFacultyChange(division, day, slot.value, e.target.value)}
+                                              onChange={(e) =>
+                                                handleFacultyChange(
+                                                  division,
+                                                  day,
+                                                  slot.value,
+                                                  e.target.value
+                                                )
+                                              }
                                               className={`flex-1 px-3 py-1.5 text-sm rounded-lg border ${faculty.color} focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all`}
                                             >
-                                              {facultyOptions.map((f) => (
-                                                <option key={f.value} value={f.value}>
-                                                  {f.label}
-                                                </option>
-                                              ))}
+                                              {classFacultyOptions.map((f) => {
+                                                // For "free" option, keep as is
+                                                if (f.value === "free") {
+                                                  return (
+                                                    <option
+                                                      key={f.value}
+                                                      value={f.value}
+                                                    >
+                                                      {f.label}
+                                                    </option>
+                                                  );
+                                                }
+
+                                                // For faculty entries, show ID (and name if available)
+                                                const facultyId = f.value;
+                                                const facultyName = f.name || "";
+
+                                                return (
+                                                  <option
+                                                    key={f.value}
+                                                    value={f.value}
+                                                  >
+                                                    {facultyId}
+                                                  </option>
+                                                );
+                                              })}
                                             </select>
                                           </div>
                                         );
@@ -870,7 +1729,7 @@ export default function TimeTable() {
                         </div>
                       </div>
                     )}
-                    
+
                     {/* Collapsed View */}
                     {isCollapsed && (
                       <div className="p-4 text-center">
@@ -878,10 +1737,21 @@ export default function TimeTable() {
                           <Calendar className="w-8 h-8 mx-auto mb-2 opacity-50" />
                           <p>Click expand to view {days.length} days</p>
                           <p className="text-xs mt-1">
-                            {Object.values(schedule[division] || {}).flatMap(day => 
-                              Object.values(day).filter(val => val !== 'free')
-                            ).length} assigned slots
+                            {
+                              Object.values(schedule[division] || {}).flatMap(
+                                (day) =>
+                                  Object.values(day).filter(
+                                    (val) => val !== "free"
+                                  )
+                              ).length
+                            }{" "}
+                            assigned slots
                           </p>
+                          {allowedFaculty.length > 0 && (
+                            <p className="text-xs mt-2">
+                              Allowed faculty: {allowedFaculty.length}
+                            </p>
+                          )}
                         </div>
                       </div>
                     )}
@@ -909,12 +1779,18 @@ export default function TimeTable() {
               <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Total Assigned Slots</p>
+                    <p className="text-sm text-gray-600">
+                      Total Assigned Slots
+                    </p>
                     <p className="text-2xl font-bold text-gray-900 mt-2">
                       {selectedDivisions.reduce((total, division) => {
-                        return total + Object.values(schedule[division] || {}).flatMap(day => 
-                          Object.values(day).filter(val => val !== "free")
-                        ).length;
+                        return (
+                          total +
+                          Object.values(schedule[division] || {}).flatMap(
+                            (day) =>
+                              Object.values(day).filter((val) => val !== "free")
+                          ).length
+                        );
                       }, 0)}
                     </p>
                   </div>
@@ -927,13 +1803,13 @@ export default function TimeTable() {
               <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Existing Timetables</p>
+                    <p className="text-sm text-gray-600">Available Faculty</p>
                     <p className="text-2xl font-bold text-gray-900 mt-2">
-                      {Object.values(existingTimetables).filter(v => v).length}
+                      {facultyOptions.length - 1} {/* Subtract "free" option */}
                     </p>
                   </div>
                   <div className="p-3 bg-green-50 rounded-lg">
-                    <CheckCircle className="w-6 h-6 text-green-600" />
+                    <GraduationCap className="w-6 h-6 text-green-600" />
                   </div>
                 </div>
               </div>
@@ -943,7 +1819,9 @@ export default function TimeTable() {
                   <div>
                     <p className="text-sm text-gray-600">New Timetables</p>
                     <p className="text-2xl font-bold text-gray-900 mt-2">
-                      {selectedDivisions.length - Object.values(existingTimetables).filter(v => v).length}
+                      {selectedDivisions.length -
+                        Object.values(existingTimetables).filter((v) => v)
+                          .length}
                     </p>
                   </div>
                   <div className="p-3 bg-amber-50 rounded-lg">
@@ -969,7 +1847,9 @@ export default function TimeTable() {
                   ? "Saving..."
                   : saved
                   ? "All Timetables Saved"
-                  : `Save ${selectedDivisions.length} Timetable${selectedDivisions.length !== 1 ? 's' : ''}`}
+                  : `Save ${selectedDivisions.length} Timetable${
+                      selectedDivisions.length !== 1 ? "s" : ""
+                    }`}
               </button>
 
               <button
@@ -1010,19 +1890,41 @@ export default function TimeTable() {
           <ul className="space-y-2 text-blue-800 text-sm">
             <li className="flex items-start gap-2">
               <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5"></div>
-              <span><strong>From Dashboard</strong> - When you click "Edit" on a branch, all classes for that branch-semester will be automatically loaded.</span>
+              <span>
+                <strong>Faculty Management</strong> - Use the "Add Faculty"
+                button to add faculty members from the database to your dropdown
+                options.
+              </span>
             </li>
             <li className="flex items-start gap-2">
               <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5"></div>
-              <span><strong>Create New</strong> - Select branch and semester, then click "Load Branch Classes" to see existing classes or manually select classes.</span>
+              <span>
+                <strong>Create New Faculty</strong> - Click "Create New Faculty"
+                in the modal to add a new faculty member by entering their ID and Name.
+              </span>
             </li>
             <li className="flex items-start gap-2">
               <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5"></div>
-              <span><strong>Batch Management</strong> - All selected classes will be saved simultaneously when you click "Save Timetables".</span>
+              <span>
+                <strong>Class-Specific Faculty</strong> - Each class dropdown
+                only shows faculty assigned to that specific class in
+                classwise_faculty collection.
+              </span>
             </li>
             <li className="flex items-start gap-2">
               <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5"></div>
-              <span><strong>Collapse Views</strong> - Use chevron buttons to collapse/expand entire classes or individual days.</span>
+              <span>
+                <strong>Added Faculty</strong> - Faculty added via the modal
+                will appear in the legend and be available in all class
+                dropdowns.
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5"></div>
+              <span>
+                <strong>From Dashboard</strong> - When editing a branch, all
+                classes and their assigned faculty are automatically loaded.
+              </span>
             </li>
           </ul>
         </div>
