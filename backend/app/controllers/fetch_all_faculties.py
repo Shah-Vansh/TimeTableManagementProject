@@ -86,10 +86,10 @@ def create_faculty():
             }), 400
         
         # Clean faculty ID (lowercase, alphanumeric)
-        faculty_id = faculty_id.strip().lower()
+        faculty_id = faculty_id.strip().upper()
         
         # Validate faculty ID format
-        if not re.match(r'^[a-z0-9_-]+$', faculty_id):
+        if not re.match(r'^[A-Z]+$', faculty_id):
             return jsonify({
                 'success': False,
                 'error': 'Faculty ID must contain only lowercase letters, numbers, underscores, or hyphens'
