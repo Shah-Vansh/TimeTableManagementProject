@@ -215,6 +215,16 @@ export default function Faculties() {
     };
   };
 
+  const averageWeeklyHours =
+    faculties.length > 0
+      ? Math.round(
+          faculties.reduce((sum, faculty) => {
+            const { weeklyHours } = calculateFacultyStats(faculty);
+            return sum + weeklyHours;
+          }, 0) / faculties.length
+        )
+      : 0;
+
   /* =======================
      🔹 RENDER
   ======================= */
@@ -514,7 +524,9 @@ export default function Faculties() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Weekly Hours (Avg)</p>
-                <p className="text-2xl font-bold text-gray-900 mt-2">18</p>
+                <p className="text-2xl font-bold text-gray-900 mt-2">
+                  {averageWeeklyHours}
+                </p>
               </div>
               <div className="p-3 bg-purple-50 rounded-lg">
                 <Clock className="w-6 h-6 text-purple-600" />

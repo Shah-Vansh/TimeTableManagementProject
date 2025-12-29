@@ -1,17 +1,15 @@
 from flask import Blueprint, request, jsonify
 from app.database.mongo import db
-from datetime import date
+from datetime import datetime
 
 # Blueprint
 replace_lecture_bp = Blueprint("replace_lecture", __name__)
 
 
-def is_faculty_free(fac_id, day, lec_no):
-    today = date.today().isoformat()
-
+def is_faculty_free(fac_id, day, lec_no, target_date):
     # 1️⃣ Check temp timetable FIRST
     temp = db.temp_faculty_timetable.find_one(
-        {"faculty_id": fac_id, "date": today, "day": day, "lec_no": lec_no}
+        {"faculty_id": fac_id, "date": target_date, "day": day, "lec_no": lec_no}
     )
     if temp:
         return False
@@ -42,9 +40,10 @@ def get_available_faculty():
     sem = data.get("sem")
     branch = data.get("branch")
     lec_no = data.get("lec_no")
+    target_date = data.get("date")  # Get date from frontend
 
-    if not all([day, class_name, sem, branch, lec_no is not None]):
-        return jsonify({"success": False, "message": "Missing fields"}), 400
+    if not all([day, class_name, sem, branch, lec_no is not None, target_date]):
+        return jsonify({"success": False, "message": "Missing fields (including date)"}), 400
 
     lec_no = int(lec_no)
 
@@ -59,7 +58,7 @@ def get_available_faculty():
     # Get all free faculty from allowed list
     available_faculty = []
     for fac_id in class_doc.get("allowed_faculty", []):
-        if is_faculty_free(fac_id, day, lec_no):
+        if is_faculty_free(fac_id, day, lec_no, target_date):
             # Get faculty details (name, department, etc.)
             faculty_doc = db.faculty_timetable.find_one({"_id": fac_id})
 
@@ -106,12 +105,12 @@ def assign_faculty():
     branch = data.get("branch")
     lec_no = data.get("lec_no")
     faculty_id = data.get("faculty_id")
+    target_date = data.get("date")  # Get date from frontend
 
-    if not all([day, class_name, sem, branch, lec_no is not None, faculty_id]):
-        return jsonify({"success": False, "message": "Missing fields"}), 400
+    if not all([day, class_name, sem, branch, lec_no is not None, faculty_id, target_date]):
+        return jsonify({"success": False, "message": "Missing fields (including date)"}), 400
 
     lec_no = int(lec_no)
-    today = date.today().isoformat()
 
     # Verify the class exists
     class_doc = db.classwise_faculty.find_one(
@@ -134,7 +133,7 @@ def assign_faculty():
         )
 
     # Double-check faculty is still free
-    if not is_faculty_free(faculty_id, day, lec_no):
+    if not is_faculty_free(faculty_id, day, lec_no, target_date):
         return (
             jsonify(
                 {
@@ -149,7 +148,7 @@ def assign_faculty():
     db.temp_faculty_timetable.insert_one(
         {
             "faculty_id": faculty_id,
-            "date": today,
+            "date": target_date,
             "day": day,
             "lec_no": lec_no,
             "assigned_to": f"{branch}-{class_name}-Sem{sem}-Time Slot {lec_no+1}",
@@ -160,6 +159,13 @@ def assign_faculty():
     faculty_doc = db.faculty_timetable.find_one({"_id": faculty_id})
     faculty_name = faculty_doc.get("name", faculty_id) if faculty_doc else faculty_id
 
+    # Format the date for display
+    try:
+        date_obj = datetime.fromisoformat(target_date)
+        formatted_date = date_obj.strftime('%d/%m/%Y')
+    except:
+        formatted_date = target_date
+
     return (
         jsonify(
             {
@@ -169,7 +175,7 @@ def assign_faculty():
                 "message": (
                     f"@ {branch}_{class_name}\t"
                     f"Change in Lecture\n\n"
-                    f"Date: {date.today().strftime('%d/%m/%Y')}\n\n"
+                    f"Date: {formatted_date}\n\n"
                     f"Lecture no.: {lec_no+1}\n\n"
                     f"Faculty: {faculty_name}\n\n"
                     f"Location: Same as per timetable"
@@ -193,12 +199,12 @@ def replace_lecture():
     sem = data.get("sem")
     branch = data.get("branch")
     lec_no = data.get("lec_no")
+    target_date = data.get("date")  # Get date from frontend
 
-    if not all([day, class_name, sem, branch, lec_no is not None]):
-        return jsonify({"success": False, "message": "Missing fields"}), 400
+    if not all([day, class_name, sem, branch, lec_no is not None, target_date]):
+        return jsonify({"success": False, "message": "Missing fields (including date)"}), 400
 
     lec_no = int(lec_no)
-    today = date.today().isoformat()
 
     class_doc = db.classwise_faculty.find_one(
         {"class": class_name, "sem": sem, "branch": branch}
@@ -209,19 +215,26 @@ def replace_lecture():
 
     for fac_id in class_doc.get("allowed_faculty", []):
 
-        if not is_faculty_free(fac_id, day, lec_no):
+        if not is_faculty_free(fac_id, day, lec_no, target_date):
             continue
 
         # ✅ STORE IN TEMP TIMETABLE (NOT PERMANENT)
         db.temp_faculty_timetable.insert_one(
             {
                 "faculty_id": fac_id,
-                "date": today,
+                "date": target_date,
                 "day": day,
                 "lec_no": lec_no,
                 "assigned_to": f"{branch}-{class_name}-Sem{sem}-Time Slot {lec_no+1}",
             }
         )
+
+        # Format the date for display
+        try:
+            date_obj = datetime.fromisoformat(target_date)
+            formatted_date = date_obj.strftime('%d/%m/%Y')
+        except:
+            formatted_date = target_date
 
         return (
             jsonify(
@@ -231,7 +244,7 @@ def replace_lecture():
                     "message": (
                         f"@ {branch}_{class_name}\t"
                         f"Change in Lecture\n\n"
-                        f"Date: {date.today().strftime('%d/%m/%Y')}\n\n"
+                        f"Date: {formatted_date}\n\n"
                         f"Lecture no.: {lec_no+1}\n\n"
                         f"Location: Same as per timetable"
                     ),
