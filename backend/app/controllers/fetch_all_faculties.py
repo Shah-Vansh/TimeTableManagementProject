@@ -2,8 +2,37 @@ from flask import Blueprint, request, jsonify
 from app.database.mongo import db
 from bson import ObjectId
 import re
+import secrets
+import string
 
 faculty_bp = Blueprint('faculty', __name__)
+
+def generate_strong_password(length=12):
+    """
+    Generate a strong random password
+    """
+    # Define character sets
+    lowercase = string.ascii_lowercase
+    uppercase = string.ascii_uppercase
+    digits = string.digits
+    special = "!@#$%^&*"
+    
+    # Ensure at least one character from each set
+    password = [
+        secrets.choice(lowercase),
+        secrets.choice(uppercase),
+        secrets.choice(digits),
+        secrets.choice(special)
+    ]
+    
+    # Fill the rest with random characters from all sets
+    all_chars = lowercase + uppercase + digits + special
+    password += [secrets.choice(all_chars) for _ in range(length - 4)]
+    
+    # Shuffle the password
+    secrets.SystemRandom().shuffle(password)
+    
+    return ''.join(password)
 
 @faculty_bp.route('/api/faculties', methods=['GET'])
 def get_all_faculties():
@@ -53,12 +82,13 @@ def get_all_faculties():
 @faculty_bp.route('/api/faculties', methods=['POST'])
 def create_faculty():
     """
-    Create a new faculty member
+    Create a new faculty member with auto-generated credentials
     Expected JSON payload:
     {
         "id": "fac9",
         "name": "Dr. Sunil Verma"
     }
+    Returns: Faculty details including username and password
     """
     try:
         data = request.get_json()
@@ -85,14 +115,14 @@ def create_faculty():
                 'error': 'Faculty name is required'
             }), 400
         
-        # Clean faculty ID (lowercase, alphanumeric)
+        # Clean faculty ID (uppercase, alphanumeric)
         faculty_id = faculty_id.strip().upper()
         
         # Validate faculty ID format
         if not re.match(r'^[A-Z]+$', faculty_id):
             return jsonify({
                 'success': False,
-                'error': 'Faculty ID must contain only lowercase letters, numbers, underscores, or hyphens'
+                'error': 'Faculty ID must contain only uppercase letters'
             }), 400
         
         # Check if faculty ID already exists
@@ -105,10 +135,15 @@ def create_faculty():
                 'error': f'Faculty with ID "{faculty_id}" already exists'
             }), 409
         
+        # Generate strong password
+        generated_password = generate_strong_password()
+        
         # Prepare the new faculty document according to schema
         new_faculty = {
             '_id': faculty_id,
             'name': faculty_name.strip(),
+            'username': faculty_id,  # Username is same as faculty ID
+            'password': generated_password,  # Store plain password (consider hashing in production)
             'timetable': {
                 'mon': ['free'] * 5,
                 'tue': ['free'] * 5,
@@ -131,6 +166,10 @@ def create_faculty():
                     'faculty_id': faculty_id,
                     'name': faculty_name.strip(),
                     'timetable': new_faculty['timetable']
+                },
+                'credentials': {
+                    'username': faculty_id,
+                    'password': generated_password
                 }
             }), 201
         else:

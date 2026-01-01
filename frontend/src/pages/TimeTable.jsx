@@ -23,6 +23,9 @@ import {
   X,
   Search,
   Check,
+  Key,
+  Copy,
+  Download,
   Plus,
   User,
   Hash,
@@ -116,6 +119,11 @@ export default function TimeTable() {
 
   // Alert state
   const [alert, setAlert] = useState(null);
+
+  // Faculty credentials
+  const [generatedCredentials, setGeneratedCredentials] = useState(null);
+  const [showCredentialsModal, setShowCredentialsModal] = useState(false);
+  const [copiedField, setCopiedField] = useState("");
 
   // Faculty color mapping for consistent styling
   const facultyColors = [
@@ -295,12 +303,31 @@ export default function TimeTable() {
 
     try {
       // Create faculty in backend
-      const response = await api.post("/api/faculties", {
-        id: newFacultyId.trim(),
-        name: newFacultyName.trim(),
-      });
-
+      const token = localStorage.getItem("token");
+      const response = await api.post(
+        "/api/faculties",
+        {
+          id: newFacultyId.trim(),
+          name: newFacultyName.trim(),
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       if (response.data.success) {
+        // Store credentials if provided by backend
+        if (response.data.credentials) {
+          setGeneratedCredentials({
+            name: newFacultyName.trim(),
+            ...response.data.credentials,
+          });
+          // Close the create faculty form but keep the main modal open
+          setShowCreateFaculty(false);
+          setShowCredentialsModal(true);
+        }
+
         // Create new faculty object
         const newFaculty = {
           id: newFacultyId.trim(),
@@ -320,7 +347,6 @@ export default function TimeTable() {
         // Reset form
         setNewFacultyId("");
         setNewFacultyName("");
-        setShowCreateFaculty(false);
 
         // Show success message using Alert component
         setCreateFacultyError("");
@@ -342,6 +368,46 @@ export default function TimeTable() {
     } finally {
       setIsCreatingFaculty(false);
     }
+  };
+
+  const copyToClipboard = async (text, field) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedField(field);
+      setTimeout(() => setCopiedField(""), 2000);
+    } catch (err) {
+      console.error("Failed to copy:", err);
+      showAlert("Failed to copy to clipboard", "Please try again", "error");
+    }
+  };
+
+  const downloadCredentials = () => {
+    if (!generatedCredentials) return;
+
+    const content = `Faculty Login Credentials
+========================
+
+Faculty Name: ${generatedCredentials.name}
+Username: ${generatedCredentials.username}
+Password: ${generatedCredentials.password}
+
+⚠️ IMPORTANT:
+- Please save these credentials securely
+- The password will not be shown again
+- Change the password after first login
+
+Generated on: ${new Date().toLocaleString()}
+`;
+
+    const blob = new Blob([content], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${generatedCredentials.username}_credentials.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   /* =======================
@@ -1138,6 +1204,146 @@ export default function TimeTable() {
                       Delete Timetable
                     </>
                   )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add this code after the Delete Confirmation Modal but before the Faculty Management Modal */}
+
+      {/* Credentials Modal */}
+      {/* Credentials Modal */}
+      {showCredentialsModal && generatedCredentials && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 z-[100]">
+          <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
+            <div className="p-6 bg-gradient-to-r from-green-500 to-emerald-600 text-white">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                  <Key className="w-6 h-6" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold">Credentials Generated!</h2>
+                  <p className="text-green-100 text-sm mt-1">
+                    Faculty account created successfully
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6">
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+                <div className="flex gap-3">
+                  <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-medium text-amber-900 text-sm">
+                      Important: Save These Credentials
+                    </p>
+                    <p className="text-amber-700 text-sm mt-1">
+                      This password will not be shown again. Please save it
+                      securely or download the credentials file.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Faculty Name
+                  </label>
+                  <div className="px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <p className="font-medium text-gray-900">
+                      {generatedCredentials.name}
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Username (Login ID)
+                  </label>
+                  <div className="flex gap-2">
+                    <div className="flex-1 px-4 py-3 bg-gray-50 rounded-lg border border-gray-200 font-mono">
+                      {generatedCredentials.username}
+                    </div>
+                    <button
+                      onClick={() =>
+                        copyToClipboard(
+                          generatedCredentials.username,
+                          "username"
+                        )
+                      }
+                      className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors flex items-center gap-2"
+                    >
+                      {copiedField === "username" ? (
+                        <>
+                          <CheckCircle className="w-4 h-4" />
+                          Copied!
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-4 h-4" />
+                          Copy
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Password
+                  </label>
+                  <div className="flex gap-2">
+                    <div className="flex-1 px-4 py-3 bg-gray-50 rounded-lg border border-gray-200 font-mono text-sm break-all">
+                      {generatedCredentials.password}
+                    </div>
+                    <button
+                      onClick={() =>
+                        copyToClipboard(
+                          generatedCredentials.password,
+                          "password"
+                        )
+                      }
+                      className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors flex items-center gap-2"
+                    >
+                      {copiedField === "password" ? (
+                        <>
+                          <CheckCircle className="w-4 h-4" />
+                          Copied!
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-4 h-4" />
+                          Copy
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-gray-200 bg-gray-50">
+              <div className="flex gap-3">
+                <button
+                  onClick={downloadCredentials}
+                  className="flex-1 px-4 py-3 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Download className="w-4 h-4" />
+                  Download as File
+                </button>
+                <button
+                  onClick={() => {
+                    setShowCredentialsModal(false);
+                    setGeneratedCredentials(null);
+                    // Keep the main faculty modal open
+                  }}
+                  className="flex-1 px-4 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
+                >
+                  Done
                 </button>
               </div>
             </div>

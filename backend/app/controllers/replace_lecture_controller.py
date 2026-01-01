@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from app.database.mongo import db
 from datetime import datetime
+from app.utils.telegram_messanger import send_telegram_message
 
 # Blueprint
 replace_lecture_bp = Blueprint("replace_lecture", __name__)
@@ -43,7 +44,10 @@ def get_available_faculty():
     target_date = data.get("date")  # Get date from frontend
 
     if not all([day, class_name, sem, branch, lec_no is not None, target_date]):
-        return jsonify({"success": False, "message": "Missing fields (including date)"}), 400
+        return (
+            jsonify({"success": False, "message": "Missing fields (including date)"}),
+            400,
+        )
 
     lec_no = int(lec_no)
 
@@ -107,8 +111,13 @@ def assign_faculty():
     faculty_id = data.get("faculty_id")
     target_date = data.get("date")  # Get date from frontend
 
-    if not all([day, class_name, sem, branch, lec_no is not None, faculty_id, target_date]):
-        return jsonify({"success": False, "message": "Missing fields (including date)"}), 400
+    if not all(
+        [day, class_name, sem, branch, lec_no is not None, faculty_id, target_date]
+    ):
+        return (
+            jsonify({"success": False, "message": "Missing fields (including date)"}),
+            400,
+        )
 
     lec_no = int(lec_no)
 
@@ -162,9 +171,19 @@ def assign_faculty():
     # Format the date for display
     try:
         date_obj = datetime.fromisoformat(target_date)
-        formatted_date = date_obj.strftime('%d/%m/%Y')
+        formatted_date = date_obj.strftime("%d/%m/%Y")
     except:
         formatted_date = target_date
+
+    message = (
+        f"@ {branch}_{class_name}\t"
+        f"Change in Lecture\n\n"
+        f"Date: {formatted_date}\n\n"
+        f"Lecture no.: {lec_no+1}\n\n"
+        f"Faculty: {faculty_name}\n\n"
+        f"Location: Same as per timetable"
+    )
+    send_telegram_message(message)
 
     return (
         jsonify(
@@ -186,6 +205,7 @@ def assign_faculty():
     )
 
 
+# [Auto Replace]
 @replace_lecture_bp.route("/replace-lecture", methods=["POST", "OPTIONS"])
 def replace_lecture():
     """Legacy endpoint - auto-assigns first available faculty"""
@@ -202,7 +222,10 @@ def replace_lecture():
     target_date = data.get("date")  # Get date from frontend
 
     if not all([day, class_name, sem, branch, lec_no is not None, target_date]):
-        return jsonify({"success": False, "message": "Missing fields (including date)"}), 400
+        return (
+            jsonify({"success": False, "message": "Missing fields (including date)"}),
+            400,
+        )
 
     lec_no = int(lec_no)
 
@@ -229,23 +252,39 @@ def replace_lecture():
             }
         )
 
+        # Get faculty name for confirmation message
+        faculty_doc = db.faculty_timetable.find_one({"_id": fac_id})
+        faculty_name = faculty_doc.get("name", fac_id) if faculty_doc else fac_id
+
         # Format the date for display
         try:
             date_obj = datetime.fromisoformat(target_date)
-            formatted_date = date_obj.strftime('%d/%m/%Y')
+            formatted_date = date_obj.strftime("%d/%m/%Y")
         except:
             formatted_date = target_date
+
+        message = (
+            f"@ {branch}_{class_name}\t"
+            f"Change in Lecture\n\n"
+            f"Date: {formatted_date}\n\n"
+            f"Lecture no.: {lec_no+1}\n\n"
+            f"Faculty: {faculty_name}\n\n"
+            f"Location: Same as per timetable"
+        )
+        send_telegram_message(message)
 
         return (
             jsonify(
                 {
                     "success": True,
                     "assigned_faculty": fac_id,
+                    "faculty_name": faculty_name,
                     "message": (
                         f"@ {branch}_{class_name}\t"
                         f"Change in Lecture\n\n"
                         f"Date: {formatted_date}\n\n"
                         f"Lecture no.: {lec_no+1}\n\n"
+                        f"Faculty: {faculty_name}\n\n"
                         f"Location: Same as per timetable"
                     ),
                 }

@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from app.database.mongo import db
 from datetime import date
+from app.utils.telegram_messanger import send_telegram_message
 
 rearrange_lecture_bp = Blueprint("rearrange_lecture", __name__)
 
@@ -293,6 +294,9 @@ def execute_rearrange():
         f"Location: Same as per timetable"
     )
 
+    send_telegram_message(target_class_message)
+    send_telegram_message(occupied_class_message)
+
     return (
         jsonify(
             {
@@ -328,6 +332,7 @@ def execute_rearrange():
     )
 
 
+# [Auto rearrange]
 @rearrange_lecture_bp.route("/rearrange-lecture", methods=["POST", "OPTIONS"])
 def rearrange_lecture():
     """Original auto-rearrange endpoint (kept for backward compatibility)"""
@@ -353,16 +358,32 @@ def rearrange_lecture():
         return jsonify({"success": False, "message": "lec_no must be an integer"}), 400
 
     # 1️⃣ FIRST TRY — Normal replace
-    first_try = replace_lecture_helper(selected_date, day, class_name, sem, branch, lec_no)
+    first_try = replace_lecture_helper(
+        selected_date, day, class_name, sem, branch, lec_no
+    )
 
     if first_try["success"]:
         # Assign the lecture
         fac_id = first_try["assigned_faculty"]
         assign_temp(
-            fac_id, day, lec_no, f"{branch}-{class_name}-Sem{sem}-Time Slot {lec_no+1}", selected_date
+            fac_id,
+            day,
+            lec_no,
+            f"{branch}-{class_name}-Sem{sem}-Time Slot {lec_no+1}",
+            selected_date,
         )
 
         fac_name = get_faculty_name(fac_id)
+
+        message = (
+            f"@ {branch}_{class_name}\t"
+            f"Change in Lecture\n\n"
+            f"Date: {selected_date}\n\n"
+            f"Lecture no.: {lec_no+1}\n\n"
+            f"Faculty: {fac_name}\n\n"
+            f"Location: Same as per timetable"
+        )
+        send_telegram_message(message)
 
         return (
             jsonify(
@@ -371,16 +392,7 @@ def rearrange_lecture():
                     "assigned_faculty": fac_id,
                     "faculty_name": fac_name,
                     "type": "direct",
-                    "message": (
-                        f"@ {branch}_{class_name}\n"
-                        f"Change in Lecture\n"
-                        f"Date: {selected_date}\n"
-                        f"Subject: subject\n"
-                        f"Lecture no.: {lec_no+1}\n"
-                        f"Faculty: {fac_name}\n"
-                        f"Time: time\n"
-                        f"Location: Same as per timetable"
-                    ),
+                    "message": message,
                 }
             ),
             200,
@@ -429,28 +441,72 @@ def rearrange_lecture():
 
         new_fac = reassign_attempt["assigned_faculty"]
 
+        # Execute the swap
         assign_temp(new_fac, day, lec_no, current_slot, selected_date)
         assign_temp(
-            fac_id, day, lec_no, f"{branch}-{class_name}-Sem{sem}-Time Slot {lec_no+1}", selected_date
+            fac_id,
+            day,
+            lec_no,
+            f"{branch}-{class_name}-Sem{sem}-Time Slot {lec_no+1}",
+            selected_date,
         )
 
-        fac_name = get_faculty_name(fac_id)
+        # Get faculty names
+        primary_fac_name = get_faculty_name(fac_id)
+        secondary_fac_name = get_faculty_name(new_fac)
+
+        # Create separate messages for both affected classes
+        target_class_message = (
+            f"@ {branch}_{class_name}\t"
+            f"Change in Lecture\n\n"
+            f"Date: {selected_date}\n\n"
+            f"Lecture no.: {lec_no+1}\n\n"
+            f"Faculty: {primary_fac_name}\n\n"
+            f"Location: Same as per timetable"
+        )
+
+        occupied_class_message = (
+            f"@ {occupied_branch}_{occupied_class}\t"
+            f"Change in Lecture\n\n"
+            f"Date: {selected_date}\n\n"
+            f"Lecture no.: {lec_no+1}\n\n"
+            f"Faculty: {secondary_fac_name}\n\n"
+            f"Location: Same as per timetable"
+        )
+
+        # Send both Telegram messages
+        send_telegram_message(target_class_message)
+        send_telegram_message(occupied_class_message)
 
         return (
             jsonify(
                 {
                     "success": True,
                     "assigned_faculty": fac_id,
-                    "faculty_name": fac_name,
+                    "faculty_name": primary_fac_name,
+                    "secondary_faculty_id": new_fac,
+                    "secondary_faculty_name": secondary_fac_name,
                     "type": "rearranged",
-                    "message": (
-                        f"@ {branch}_{class_name}\n"
-                        f"Lecture Rearranged\n"
-                        f"Date: {selected_date}\n"
-                        f"Lecture no.: {lec_no+1}\n"
-                        f"Faculty: {fac_name}\n"
-                        f"Location: Same as per timetable"
-                    ),
+                    "affected_classes": [
+                        {
+                            "branch": branch,
+                            "class": class_name,
+                            "sem": sem,
+                            "message": target_class_message,
+                            "new_faculty": primary_fac_name,
+                            "previous_faculty": secondary_fac_name,
+                        },
+                        {
+                            "branch": occupied_branch,
+                            "class": occupied_class,
+                            "sem": occupied_sem,
+                            "message": occupied_class_message,
+                            "new_faculty": secondary_fac_name,
+                            "previous_faculty": primary_fac_name,
+                        },
+                    ],
+                    "message": "Rearrangement successful for both classes",
+                    "detailed_message": target_class_message,  # Keep for backward compatibility
                 }
             ),
             200,

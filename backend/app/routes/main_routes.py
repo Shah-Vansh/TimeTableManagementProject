@@ -12,7 +12,7 @@ from app.controllers.fetch_allowed_faculty import (
     delete_allowed_faculty
 )
 from app.controllers.fetch_all_faculties import get_all_faculties, create_faculty, get_faculty, delete_faculty, update_faculty
-
+from app.controllers.user_controller import login_user
 main_bp = Blueprint("main", __name__)
 
 main_bp.route("/api/timetable", methods=["POST"])(save_timetable)
@@ -37,3 +37,5 @@ main_bp.route("/api/faculties", methods=["POST"])(create_faculty)
 main_bp.route("/api/faculties/<faculty_id>", methods=["GET"])(get_faculty)
 main_bp.route("/api/faculties/<faculty_id>", methods=["DELETE"])(delete_faculty)
 main_bp.route("/api/faculties/<faculty_id>", methods=["PUT"])(update_faculty)
+
+main_bp.route('/api/user/login', methods=['POST'])(login_user)
