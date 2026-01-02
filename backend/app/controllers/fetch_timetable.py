@@ -64,6 +64,15 @@ def fetch_timetable():
             return jsonify({"error": "Class not found"}), 404
 
         allowed_faculty = classwise_doc.get("allowed_faculty", [])
+        
+        # Get Telegram Chat IDs (support both old and new format)
+        telegram_chat_ids = classwise_doc.get('telegram_chat_ids', [])
+        # If it's a single string (old format), convert to array
+        if isinstance(telegram_chat_ids, str):
+            telegram_chat_ids = [telegram_chat_ids] if telegram_chat_ids.strip() else []
+        # If it's None, use empty array
+        elif telegram_chat_ids is None:
+            telegram_chat_ids = []
 
         # -------------------------------
         # Fetch faculty timetables
@@ -86,12 +95,19 @@ def fetch_timetable():
                     if val.startswith(f"{branch}-{class_name}-Sem{sem}"):
                         schedule[day_name][TIME_SLOT_KEYS[i]] = faculty
 
-        return jsonify({
+        # Prepare response data
+        response_data = {
             "sem": sem,
             "branch": branch,
             "class": class_name,
             "schedule": schedule
-        }), 200
+        }
+        
+        # Add Telegram Chat IDs if available
+        if telegram_chat_ids:
+            response_data["telegram_chat_ids"] = telegram_chat_ids
+
+        return jsonify(response_data), 200
 
     except Exception as e:
         print("ERROR:", e)

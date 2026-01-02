@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { X, AlertCircle, CheckCircle } from "lucide-react";
 import api from "../configs/api";
 
@@ -9,6 +9,14 @@ export default function EditFacultyModal({ faculty, isOpen, onClose, onSuccess }
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+
+  useEffect(() => {
+    if (faculty && isOpen) {
+      setFormData({ name: faculty.name });
+      setErrorMsg("");
+      setSuccessMsg("");
+    }
+  }, [faculty, isOpen]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

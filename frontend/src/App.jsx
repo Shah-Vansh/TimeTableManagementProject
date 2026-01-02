@@ -1,6 +1,7 @@
 import React from "react";
-import { Routes, Route, useLocation } from "react-router-dom";
+import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
+import ProtectedRoute from "./pages/ProtectedRoute";
 
 import Dashboard from "./pages/Dashboard";
 import AuthPage from "./pages/AuthPage";
@@ -9,11 +10,11 @@ import ViewChanges from "./pages/ViewChanges";
 import TimeTable from "./pages/TimeTable";
 import FacultyTimetable from "./pages/FacultyTimetable";
 import Faculties from "./pages/Faculties";
+import FacultyProfile from "./pages/FacultyProfile";
+import PreviewTimetable from "./pages/PreviewTimeTable";
 
 function App() {
   const location = useLocation();
-
-  // hide navbar on auth page
   const hideNavbar = location.pathname === "/auth";
 
   return (
@@ -21,15 +22,102 @@ function App() {
       {!hideNavbar && <Navbar />}
 
       <Routes>
+        {/* Public Route */}
         <Route path="/auth" element={<AuthPage />} />
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/edit" element={<TimeTable />} />
-        <Route path="/timetable" element={<TimeTable />} />
-        <Route path="/replace" element={<ReplaceLecture />} />
-        <Route path="/changes" element={<ViewChanges />} />
-        <Route path="/faculties" element={<Faculties />} />
-        <Route path="/faculty/:facultyId" element={<FacultyTimetable />} />
+
+        {/* Protected Routes */}
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/edit"
+          element={
+            <ProtectedRoute>
+              <TimeTable />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/timetable"
+          element={
+            <ProtectedRoute>
+              <TimeTable />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/replace"
+          element={
+            <ProtectedRoute>
+              <ReplaceLecture />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/changes"
+          element={
+            <ProtectedRoute>
+              <ViewChanges />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/faculties"
+          element={
+            <ProtectedRoute>
+              <Faculties />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/faculty/:facultyId"
+          element={
+            <ProtectedRoute>
+              <FacultyTimetable />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <FacultyProfile />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/preview"
+          element={
+            <ProtectedRoute>
+              <PreviewTimetable />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/auth" />} />
       </Routes>
     </>
   );

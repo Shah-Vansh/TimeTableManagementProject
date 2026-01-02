@@ -1,5 +1,6 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, request
 from app.database.mongo import db
+from app.controllers.user_controller import generate_password_hash
 from bson import ObjectId
 import re
 import secrets
@@ -136,13 +137,12 @@ def create_faculty():
             }), 409
         
         # Generate strong password
-        generated_password = generate_strong_password()
+        generated_password = generate_password_hash(faculty_id+"@NLJIET",  method="pbkdf2:sha256")
         
         # Prepare the new faculty document according to schema
         new_faculty = {
             '_id': faculty_id,
             'name': faculty_name.strip(),
-            'username': faculty_id,  # Username is same as faculty ID
             'password': generated_password,  # Store plain password (consider hashing in production)
             'timetable': {
                 'mon': ['free'] * 5,
@@ -151,7 +151,8 @@ def create_faculty():
                 'thu': ['free'] * 5,
                 'fri': ['free'] * 5,
                 'sat': ['free'] * 5
-            }
+            },
+            "isAdmin": False
         }
         
         # Insert into database
@@ -207,7 +208,8 @@ def get_faculty(faculty_id):
                 'id': faculty['_id'],
                 'faculty_id': faculty['_id'],
                 'name': faculty.get('name', ''),
-                'timetable': faculty.get('timetable', {})
+                'timetable': faculty.get('timetable', {}),
+                'isAdmin': faculty.get('isAdmin')
             }
         }), 200
         
@@ -291,10 +293,17 @@ def update_faculty(faculty_id):
 @faculty_bp.route('/api/faculties/<faculty_id>', methods=['DELETE'])
 def delete_faculty(faculty_id):
     """
-    Delete a faculty member
+    Delete a faculty member and remove them from all class allowed_faculty arrays
     """
     try:
         faculty_col = db.faculty_timetable
+        classwise_col = db.classwise_faculty
+
+        if faculty_id==request.user_id:
+            return jsonify({
+                'success': False,
+                'error': f'You cant delete to self.'
+            }), 404
         
         # Check if faculty exists
         existing_faculty = faculty_col.find_one({'_id': faculty_id})
@@ -304,13 +313,36 @@ def delete_faculty(faculty_id):
                 'error': f'Faculty with ID "{faculty_id}" not found'
             }), 404
         
-        # Delete the faculty
+        # 1. Remove faculty ID from all classwise_faculty documents
+        # Find all classes where this faculty is in allowed_faculty array
+        classes_with_faculty = classwise_col.find({
+            'allowed_faculty': faculty_id
+        })
+        
+        # Track how many classes were updated
+        classes_updated = 0
+        
+        # Remove faculty from each class's allowed_faculty array
+        for class_doc in classes_with_faculty:
+            result = classwise_col.update_one(
+                {'_id': class_doc['_id']},
+                {'$pull': {'allowed_faculty': faculty_id}}
+            )
+            if result.modified_count > 0:
+                classes_updated += 1
+        
+        # 2. Delete the faculty document
         result = faculty_col.delete_one({'_id': faculty_id})
         
         if result.deleted_count > 0:
             return jsonify({
                 'success': True,
-                'message': f'Faculty "{faculty_id}" deleted successfully'
+                'message': f'Faculty "{faculty_id}" deleted successfully',
+                'details': {
+                    'faculty_deleted': True,
+                    'classes_updated': classes_updated,
+                    'faculty_name': existing_faculty.get('name', 'Unknown')
+                }
             }), 200
         else:
             return jsonify({
@@ -323,4 +355,63 @@ def delete_faculty(faculty_id):
         return jsonify({
             'success': False,
             'error': 'Failed to delete faculty'
+        }), 500
+    
+@faculty_bp.route('/api/faculties/<faculty_id>/admin', methods=['PATCH'])
+def toggle_faculty_admin(faculty_id):
+    """
+    Toggle the isAdmin status of a faculty member
+    """
+    try:
+        # Get the requesting user's ID from request context (middleware should set it)
+        requester_id = getattr(request, "user_id", None)
+        if requester_id == faculty_id:
+            return jsonify({
+                'success': False,
+                'error': "You can't change your own admin status"
+            }), 403
+        
+        faculty_col = db.faculty_timetable
+        
+        # Check if faculty exists
+        faculty = faculty_col.find_one({'_id': faculty_id})
+        if not faculty:
+            return jsonify({
+                'success': False,
+                'error': f'Faculty with ID "{faculty_id}" not found'
+            }), 404
+        
+        # Toggle the isAdmin field
+        new_status = not faculty.get('isAdmin', False)
+        result = faculty_col.update_one(
+            {'_id': faculty_id},
+            {'$set': {'isAdmin': new_status}}
+        )
+        
+        if result.modified_count > 0:
+            return jsonify({
+                'success': True,
+                'message': f'Faculty "{faculty.get("name", faculty_id)}" admin status updated',
+                'faculty': {
+                    'id': faculty_id,
+                    'name': faculty.get('name', ''),
+                    'isAdmin': new_status
+                }
+            }), 200
+        else:
+            return jsonify({
+                'success': True,
+                'message': 'No changes made',
+                'faculty': {
+                    'id': faculty_id,
+                    'name': faculty.get('name', ''),
+                    'isAdmin': new_status
+                }
+            }), 200
+
+    except Exception as e:
+        print(f"Error toggling admin for faculty {faculty_id}: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to update admin status'
         }), 500

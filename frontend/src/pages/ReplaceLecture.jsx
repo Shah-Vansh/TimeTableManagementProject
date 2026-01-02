@@ -25,6 +25,9 @@ import {
   Bell,
   CalendarDays,
 } from "lucide-react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { format, parse } from "date-fns";
 import api from "../configs/api";
 import Alert from "../components/Alert"; // Import the Alert component
 
@@ -97,6 +100,7 @@ export default function ReplaceLecture() {
   const [currentToastIndex, setCurrentToastIndex] = useState(0);
   const [showAlert, setShowAlert] = useState(false);
   const [alertData, setAlertData] = useState({ main: "", info: "" });
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
   // Function to get day name from date string
   const getDayFromDate = (dateString) => {
@@ -998,13 +1002,31 @@ Status: Successfully Completed`;
                     Auto-sync
                   </span>
                 </label>
-                <input
-                  type="date"
-                  name="date"
-                  value={formData.date}
-                  onChange={handleChange}
+                <DatePicker
+                  selected={selectedDate}
+                  onChange={(date) => {
+                    setSelectedDate(date);
+                    if (date) {
+                      const year = date.getFullYear();
+                      const month = String(date.getMonth() + 1).padStart(
+                        2,
+                        "0"
+                      );
+                      const day = String(date.getDate()).padStart(2, "0");
+                      const dateString = `${year}-${month}-${day}`;
+                      const selectedDay = getDayFromDate(dateString);
+
+                      setFormData((prev) => ({
+                        ...prev,
+                        date: dateString,
+                        day: selectedDay,
+                      }));
+                    }
+                  }}
+                  dateFormat="dd/MM/yyyy"
+                  placeholderText="DD/MM/YYYY"
+                  className="w-135 px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                   required
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 />
                 <p className="text-xs text-gray-500 mt-1">
                   Selecting a date will automatically update the day

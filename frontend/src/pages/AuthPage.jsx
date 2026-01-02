@@ -13,6 +13,7 @@ import {
   Users,
   CalendarDays,
 } from "lucide-react";
+import api from "../configs/api";
 
 // Alert Component
 const Alert = ({ main, info, type, onClose }) => {
@@ -52,10 +53,10 @@ export default function AuthPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
-  const [alertData, setAlertData] = useState({ 
-    main: "", 
-    info: "", 
-    type: "success" 
+  const [alertData, setAlertData] = useState({
+    main: "",
+    info: "",
+    type: "success",
   });
   const [formErrors, setFormErrors] = useState({});
 
@@ -71,31 +72,31 @@ export default function AuthPage() {
 
   const validateForm = () => {
     const errors = {};
-    
+
     if (!formData.username) {
       errors.username = "Username is required";
     } else if (formData.username.length < 3) {
       errors.username = "Username must be at least 3 characters";
     }
-    
+
     if (!formData.password) {
       errors.password = "Password is required";
     } else if (formData.password.length < 6) {
       errors.password = "Password must be at least 6 characters";
     }
-    
+
     if (!isLogin) {
       if (!formData.name) {
         errors.name = "Name is required";
       }
-      
+
       if (!formData.confirmPassword) {
         errors.confirmPassword = "Please confirm your password";
       } else if (formData.password !== formData.confirmPassword) {
         errors.confirmPassword = "Passwords do not match";
       }
     }
-    
+
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -118,58 +119,48 @@ export default function AuthPage() {
     if (!validateForm()) {
       return;
     }
-    
+
     setIsLoading(true);
     setFormErrors({});
-    
+
     try {
       const endpoint = isLogin ? "/api/user/login" : "/api/user/register";
-      const payload = isLogin 
+      const payload = isLogin
         ? { username: formData.username, password: formData.password }
-        : { 
-            username: formData.username, 
-            password: formData.password, 
-            name: formData.name 
+        : {
+            username: formData.username,
+            password: formData.password,
+            name: formData.name,
           };
-      
-      const response = await fetch(`http://localhost:5000${endpoint}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
 
-      const data = await response.json();
-      
-      if (response.ok) {
-        showAlertMessage(
-          isLogin ? "Login Successful!" : "Account Created!",
-          data.message || (isLogin 
+      const response = await api.post(endpoint, payload);
+      const data = response.data; // Axios already gives parsed JSON here
+
+      // Axios throws for non-2xx responses, so if we're here, it's successful
+      showAlertMessage(
+        isLogin ? "Login Successful!" : "Account Created!",
+        data.message ||
+          (isLogin
             ? "Welcome back to Timetable Management System"
             : "Your account has been created successfully"),
-          "success"
-        );
-        
-        // Store token and user data
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        
-        setTimeout(() => {
-          window.location.href = "/dashboard";
-        }, 2000);
-      } else {
-        showAlertMessage(
-          isLogin ? "Login Failed" : "Registration Failed",
-          data.message || "Please try again",
-          "error"
-        );
-      }
+        "success"
+      );
+
+      // Store token and user data
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      setTimeout(() => {
+        window.location.href = "/dashboard";
+      }, 2000);
     } catch (error) {
       console.error("Auth error:", error);
+
+      // Axios error response handling
+      const message = error.response?.data?.message || "Please try again";
       showAlertMessage(
-        "Network Error",
-        "Unable to connect to server. Please check your connection.",
+        isLogin ? "Login Failed" : "Registration Failed",
+        message,
         "error"
       );
     } finally {
@@ -192,20 +183,26 @@ export default function AuthPage() {
 
   const getPasswordStrength = (password) => {
     if (!password) return { strength: 0, label: "", color: "" };
-    
+
     let strength = 0;
     if (password.length >= 6) strength++;
     if (/[A-Z]/.test(password)) strength++;
     if (/[0-9]/.test(password)) strength++;
     if (/[^A-Za-z0-9]/.test(password)) strength++;
-    
+
     const labels = ["Very Weak", "Weak", "Fair", "Good", "Strong"];
-    const colors = ["bg-red-500", "bg-orange-500", "bg-yellow-500", "bg-blue-500", "bg-green-500"];
-    
+    const colors = [
+      "bg-red-500",
+      "bg-orange-500",
+      "bg-yellow-500",
+      "bg-blue-500",
+      "bg-green-500",
+    ];
+
     return {
       strength,
       label: labels[strength],
-      color: colors[strength]
+      color: colors[strength],
     };
   };
 
@@ -251,9 +248,7 @@ export default function AuthPage() {
                   <CalendarDays className="w-8 h-8" />
                 </div>
                 <div>
-                  <h1 className="text-4xl font-bold mb-2">
-                    Faculty Portal
-                  </h1>
+                  <h1 className="text-4xl font-bold mb-2">Faculty Portal</h1>
                   <p className="text-blue-100 text-lg">
                     Manage your schedule and availability
                   </p>
@@ -328,10 +323,9 @@ export default function AuthPage() {
                 {isLogin ? "Welcome Back" : "Create Faculty Account"}
               </h2>
               <p className="text-gray-600">
-                {isLogin 
-                  ? "Sign in to manage your timetable and schedule" 
-                  : "Join your institution's timetable management system"
-                }
+                {isLogin
+                  ? "Sign in to manage your timetable and schedule"
+                  : "Join your institution's timetable management system"}
               </p>
             </div>
 
@@ -350,8 +344,8 @@ export default function AuthPage() {
                       onChange={handleChange}
                       placeholder="Enter your full name"
                       className={`w-full px-4 py-3 pl-11 bg-gray-50 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all ${
-                        formErrors.name 
-                          ? "border-red-300 focus:ring-red-500 focus:border-red-500" 
+                        formErrors.name
+                          ? "border-red-300 focus:ring-red-500 focus:border-red-500"
                           : "border-gray-300"
                       }`}
                     />
@@ -379,8 +373,8 @@ export default function AuthPage() {
                     onChange={handleChange}
                     placeholder="Enter your username"
                     className={`w-full px-4 py-3 pl-11 bg-gray-50 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all ${
-                      formErrors.username 
-                        ? "border-red-300 focus:ring-red-500 focus:border-red-500" 
+                      formErrors.username
+                        ? "border-red-300 focus:ring-red-500 focus:border-red-500"
                         : "border-gray-300"
                     }`}
                   />
@@ -401,7 +395,9 @@ export default function AuthPage() {
                     Password
                   </label>
                   {!isLogin && formData.password && (
-                    <span className={`text-xs font-medium px-2 py-1 rounded ${passwordStrength.color} text-white`}>
+                    <span
+                      className={`text-xs font-medium px-2 py-1 rounded ${passwordStrength.color} text-white`}
+                    >
                       {passwordStrength.label}
                     </span>
                   )}
@@ -412,10 +408,14 @@ export default function AuthPage() {
                     name="password"
                     value={formData.password}
                     onChange={handleChange}
-                    placeholder={isLogin ? "Enter your password" : "Create a strong password"}
+                    placeholder={
+                      isLogin
+                        ? "Enter your password"
+                        : "Create a strong password"
+                    }
                     className={`w-full px-4 py-3 pl-11 pr-11 bg-gray-50 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all ${
-                      formErrors.password 
-                        ? "border-red-300 focus:ring-red-500 focus:border-red-500" 
+                      formErrors.password
+                        ? "border-red-300 focus:ring-red-500 focus:border-red-500"
                         : "border-gray-300"
                     }`}
                   />
@@ -438,7 +438,7 @@ export default function AuthPage() {
                     {formErrors.password}
                   </p>
                 )}
-                
+
                 {!isLogin && formData.password && (
                   <div className="mt-3">
                     <div className="flex gap-1 mb-1">
@@ -446,8 +446,8 @@ export default function AuthPage() {
                         <div
                           key={i}
                           className={`h-1 flex-1 rounded-full ${
-                            i <= passwordStrength.strength 
-                              ? passwordStrength.color 
+                            i <= passwordStrength.strength
+                              ? passwordStrength.color
                               : "bg-gray-200"
                           }`}
                         />
@@ -455,20 +455,48 @@ export default function AuthPage() {
                     </div>
                     <div className="grid grid-cols-2 gap-2 mt-2">
                       <div className="flex items-center gap-1">
-                        <div className={`w-2 h-2 rounded-full ${formData.password.length >= 6 ? 'bg-green-500' : 'bg-gray-300'}`} />
-                        <span className="text-xs text-gray-600">6+ characters</span>
+                        <div
+                          className={`w-2 h-2 rounded-full ${
+                            formData.password.length >= 6
+                              ? "bg-green-500"
+                              : "bg-gray-300"
+                          }`}
+                        />
+                        <span className="text-xs text-gray-600">
+                          6+ characters
+                        </span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <div className={`w-2 h-2 rounded-full ${/[A-Z]/.test(formData.password) ? 'bg-green-500' : 'bg-gray-300'}`} />
+                        <div
+                          className={`w-2 h-2 rounded-full ${
+                            /[A-Z]/.test(formData.password)
+                              ? "bg-green-500"
+                              : "bg-gray-300"
+                          }`}
+                        />
                         <span className="text-xs text-gray-600">Uppercase</span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <div className={`w-2 h-2 rounded-full ${/[0-9]/.test(formData.password) ? 'bg-green-500' : 'bg-gray-300'}`} />
+                        <div
+                          className={`w-2 h-2 rounded-full ${
+                            /[0-9]/.test(formData.password)
+                              ? "bg-green-500"
+                              : "bg-gray-300"
+                          }`}
+                        />
                         <span className="text-xs text-gray-600">Number</span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <div className={`w-2 h-2 rounded-full ${/[^A-Za-z0-9]/.test(formData.password) ? 'bg-green-500' : 'bg-gray-300'}`} />
-                        <span className="text-xs text-gray-600">Special char</span>
+                        <div
+                          className={`w-2 h-2 rounded-full ${
+                            /[^A-Za-z0-9]/.test(formData.password)
+                              ? "bg-green-500"
+                              : "bg-gray-300"
+                          }`}
+                        />
+                        <span className="text-xs text-gray-600">
+                          Special char
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -489,15 +517,17 @@ export default function AuthPage() {
                       onChange={handleChange}
                       placeholder="Confirm your password"
                       className={`w-full px-4 py-3 pl-11 pr-11 bg-gray-50 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all ${
-                        formErrors.confirmPassword 
-                          ? "border-red-300 focus:ring-red-500 focus:border-red-500" 
+                        formErrors.confirmPassword
+                          ? "border-red-300 focus:ring-red-500 focus:border-red-500"
                           : "border-gray-300"
                       }`}
                     />
                     <Lock className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
                     <button
                       type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
                       className="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600"
                     >
                       {showConfirmPassword ? (
@@ -540,7 +570,9 @@ export default function AuthPage() {
 
               <div className="text-center pt-4">
                 <p className="text-gray-600">
-                  {isLogin ? "Don't have an account?" : "Already have an account?"}
+                  {isLogin
+                    ? "Don't have an account?"
+                    : "Already have an account?"}
                   <button
                     type="button"
                     onClick={handleToggleMode}
@@ -553,7 +585,8 @@ export default function AuthPage() {
 
               {!isLogin && (
                 <p className="text-xs text-gray-500 text-center">
-                  By creating an account, you agree to our Terms of Service and Privacy Policy
+                  By creating an account, you agree to our Terms of Service and
+                  Privacy Policy
                 </p>
               )}
             </div>
@@ -568,8 +601,12 @@ export default function AuthPage() {
                 </p>
               </div>
               <div className="space-y-2 text-xs text-gray-600">
-                <p><span className="font-medium">Username:</span> ABC</p>
-                <p><span className="font-medium">Password:</span> ojqR@b7Z3qg4</p>
+                <p>
+                  <span className="font-medium">Username:</span> ABC
+                </p>
+                <p>
+                  <span className="font-medium">Password:</span> ojqR@b7Z3qg4
+                </p>
               </div>
             </div>
           </div>

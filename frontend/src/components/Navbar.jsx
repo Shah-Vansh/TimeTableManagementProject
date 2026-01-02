@@ -10,10 +10,11 @@ import {
   Users2Icon,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import Alert from "./Alert";
 
 const Navbar = () => {
   const navigate = useNavigate();
-
+  const [alert, setAlert] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
 
   // 🔹 Mock frontend-only state
@@ -26,13 +27,29 @@ const Navbar = () => {
     navigate("/replace");
   };
 
+  const showAlert = (main, info, type) => {
+    setAlert({ main, info, type });
+    setTimeout(() => setAlert(null), 5000);
+  };
+
   const logoutUser = () => {
-    setUser(null); // frontend logout
-    navigate("/login");
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    showAlert("Logged out", "You have been successfully logged out", "success");
+    setTimeout(() => navigate("/auth"), 1500);
   };
 
   return (
-    <nav className="sticky top-0 z-50 bg-white shadow-md">
+    <nav className="sticky top-0 z-50 bg-white shadow-md print:hidden">
+      {/* Alert Component */}
+      {alert && (
+        <Alert
+          main={alert.main}
+          info={alert.info}
+          type={alert.type}
+          onClose={() => setAlert(null)}
+        />
+      )}
       <div className="mx-6">
         <div className="flex items-center justify-between max-w-7xl mx-auto py-4">
           {/* Logo */}
@@ -59,7 +76,6 @@ const Navbar = () => {
             >
               <LayoutDashboard size={18} />
               Dashboard
-              
             </Link>
 
             {/* Replace */}
@@ -69,7 +85,6 @@ const Navbar = () => {
             >
               <RefreshCw size={18} />
               Replace
-              
             </button>
 
             <button
@@ -95,13 +110,16 @@ const Navbar = () => {
             {/* User */}
             {user ? (
               <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
+                <div
+                  className="flex items-center gap-2"
+                  onClick={() => {
+                    navigate("/profile");
+                  }}
+                >
                   <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
                     <User size={16} className="text-blue-600" />
                   </div>
-                  <span className="text-sm font-medium">
-                    {user.name.split(" ")[0]}
-                  </span>
+                  <span className="text-sm font-medium">Profile</span>
                 </div>
                 <button
                   onClick={logoutUser}
@@ -135,7 +153,6 @@ const Navbar = () => {
               className="relative p-2 hover:bg-slate-100 rounded-lg"
             >
               <RefreshCw size={20} />
-              
             </button>
 
             {user ? (

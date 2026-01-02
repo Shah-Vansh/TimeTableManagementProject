@@ -1,0 +1,974 @@
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import {
+  User,
+  Clock,
+  Calendar,
+  Mail,
+  Edit2,
+  Save,
+  X,
+  ChevronRight,
+  AlertCircle,
+  CheckCircle,
+  Loader2,
+  LogOut,
+  Download,
+  Printer,
+  Lock,
+  RefreshCw,
+  ArrowLeft,
+  Users,
+  BookOpen,
+  Eye,
+  EyeOff,
+  MessageSquare,
+} from "lucide-react";
+import api from "../configs/api";
+import Alert from "../components/Alert";
+import TimetableTable from "../components/TimetableTable";
+
+export default function FacultyProfile() {
+  const { facultyId } = useParams();
+  const navigate = useNavigate();
+
+  /* =======================
+     🔹 STATE
+  ======================= */
+  const [faculty, setFaculty] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isEditingPassword, setIsEditingPassword] = useState(false);
+  const [isEditingTelegram, setIsEditingTelegram] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [alert, setAlert] = useState(null);
+  const [showEmptySlots, setShowEmptySlots] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
+
+  // Password form state
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+
+  // Telegram form state
+  const [telegramForm, setTelegramForm] = useState({
+    chatId: "",
+  });
+
+  // Statistics state
+  const [stats, setStats] = useState({
+    totalLectures: 0,
+    daysPerWeek: 0,
+    classesAssigned: new Set(),
+    subjectsAssigned: new Set(),
+  });
+
+  /* =======================
+     🔹 UTILITIES
+  ======================= */
+  const showAlert = (main, info, type) => {
+    setAlert({ main, info, type });
+    setTimeout(() => setAlert(null), 5000);
+  };
+
+  /* =======================
+     🔹 FETCH FACULTY DATA
+  ======================= */
+  const fetchFacultyData = async (showLoading = true) => {
+    if (showLoading) setIsLoading(true);
+    else setIsRefreshing(true);
+    const token = localStorage.getItem("token");
+    try {
+      const response = await api.get(`/api/user/profile`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.data.success) {
+        const facultyData = response.data.faculty;
+        setFaculty(facultyData);
+        setTelegramForm({ chatId: facultyData.telegram_chat_id || "" });
+        calculateStatistics(facultyData.timetable || {});
+      } else {
+        showAlert("Faculty not found", response.data.error, "error");
+        navigate("/dashboard");
+      }
+    } catch (error) {
+      console.error("Error fetching faculty data:", error);
+      showAlert(
+        "Failed to load profile",
+        error.response?.data?.error || "Please try again",
+        "error"
+      );
+      navigate("/dashboard");
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  /* =======================
+     🔹 CALCULATE STATISTICS
+  ======================= */
+  const calculateStatistics = (timetable) => {
+    let totalLectures = 0;
+    const classesAssigned = new Set();
+    const subjectsAssigned = new Set();
+    const daysWithLectures = new Set();
+
+    const days = ["mon", "tue", "wed", "thu", "fri", "sat"];
+    days.forEach((day) => {
+      const daySchedule = timetable[day] || [];
+      const hasLectures = daySchedule.some((lecture) => lecture !== "free");
+
+      if (hasLectures) {
+        daysWithLectures.add(day);
+
+        daySchedule.forEach((lecture) => {
+          if (lecture !== "free") {
+            totalLectures++;
+
+            const parts = lecture.split("-");
+            if (parts.length >= 2) {
+              classesAssigned.add(parts[0]);
+              subjectsAssigned.add(parts[1]);
+            }
+          }
+        });
+      }
+    });
+
+    setStats({
+      totalLectures,
+      daysPerWeek: daysWithLectures.size,
+      classesAssigned,
+      subjectsAssigned,
+    });
+  };
+
+  /* =======================
+     🔹 HANDLE PASSWORD CHANGE
+  ======================= */
+  const handleChangePassword = async () => {
+    const { currentPassword, newPassword, confirmPassword } = passwordForm;
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      showAlert(
+        "All fields required",
+        "Please fill in all password fields",
+        "error"
+      );
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      showAlert(
+        "Passwords don't match",
+        "New password and confirm password must match",
+        "error"
+      );
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      showAlert(
+        "Weak password",
+        "Password must be at least 6 characters long",
+        "error"
+      );
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const token = localStorage.getItem("token");
+      const response = await api.put(
+        `/api/user/profile`,
+        {
+          old_password: currentPassword,
+          new_password: newPassword,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        setPasswordForm({
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        });
+        setIsEditingPassword(false);
+        showAlert(
+          "Password updated",
+          "Your password has been changed successfully",
+          "success"
+        );
+      } else {
+        throw new Error(response.data.error || "Failed to update password");
+      }
+    } catch (error) {
+      console.error("Error changing password:", error);
+      showAlert(
+        "Failed to change password",
+        error.response?.data?.error || "Please check your current password",
+        "error"
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  /* =======================
+     🔹 HANDLE TELEGRAM CHAT ID UPDATE
+  ======================= */
+  const handleUpdateTelegram = async () => {
+    const { chatId } = telegramForm;
+
+    if (!chatId.trim()) {
+      showAlert(
+        "Chat ID required",
+        "Please enter your Telegram Chat ID",
+        "error"
+      );
+      return;
+    }
+
+    // Validate chat ID format (numeric)
+    if (!/^-?\d+$/.test(chatId.trim())) {
+      showAlert("Invalid format", "Telegram Chat ID must be a number", "error");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const token = localStorage.getItem("token");
+      const response = await api.put(
+        `/api/user/profile`,
+        {
+          telegram_chat_id: chatId.trim(),
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        setFaculty((prev) => ({
+          ...prev,
+          telegram_chat_id: chatId.trim(),
+        }));
+        showAlert(
+          "Telegram Chat ID updated",
+          "Your chat ID has been saved successfully",
+          "success"
+        );
+        setIsEditingTelegram(false);
+      } else {
+        throw new Error(
+          response.data.error || "Failed to update Telegram Chat ID"
+        );
+      }
+    } catch (error) {
+      console.error("Error updating Telegram Chat ID:", error);
+      showAlert(
+        "Update failed",
+        error.response?.data?.error || "Please try again",
+        "error"
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  /* =======================
+     🔹 HANDLE LOGOUT
+  ======================= */
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    showAlert("Logged out", "You have been successfully logged out", "success");
+    setTimeout(() => navigate("/auth"), 1500);
+  };
+
+  /* =======================
+     🔹 EXPORT FUNCTIONS
+  ======================= */
+  const exportTimetable = () => {
+    if (!faculty) return;
+
+    let content = `FACULTY TIMETABLE\n`;
+    content += `================\n`;
+    content += `Name: ${faculty.name}\n`;
+    content += `Faculty ID: ${faculty._id?.substring(0, 8) || "N/A"}\n`;
+    content += `Telegram Chat ID: ${faculty.telegram_chat_id || "Not set"}\n`;
+    content += `Academic Year: ${new Date().getFullYear()}-${
+      new Date().getFullYear() + 1
+    }\n`;
+    content += `Generated on: ${new Date().toLocaleString()}\n\n`;
+
+    // Header
+    const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    content += `Time        | ${days
+      .map((day) => day.padEnd(15))
+      .join("| ")}\n`;
+    content += `------------|${days
+      .map(() => "-----------------")
+      .join("|")}\n`;
+
+    // Rows
+    const timeSlots = [
+      { time: "9:00 - 10:00" },
+      { time: "10:00 - 11:00" },
+      { time: "11:00 - 12:00" },
+      { time: "12:00 - 1:00" },
+      { time: "1:00 - 2:00" },
+    ];
+
+    timeSlots.forEach((slot, timeIndex) => {
+      content += `${slot.time.padEnd(11)} | `;
+
+      days.forEach((day) => {
+        const lecture =
+          faculty.timetable[day.toLowerCase()]?.[timeIndex] || "free";
+        let displayText = lecture === "free" ? "Free" : lecture;
+        displayText =
+          displayText.length > 15
+            ? displayText.substring(0, 12) + "..."
+            : displayText;
+        content += `${displayText.padEnd(15)} | `;
+      });
+
+      content += "\n";
+    });
+
+    content += `\n\nSUMMARY:\n`;
+    content += `Total Lectures: ${stats.totalLectures}\n`;
+    content += `Teaching Days: ${stats.daysPerWeek}/6\n`;
+    content += `Branches Teaching: ${stats.classesAssigned.size}\n`;
+    content += `Subjects/Semesters: ${stats.subjectsAssigned.size}\n`;
+
+    // Create and download file
+    const blob = new Blob([content], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `timetable_${faculty.name.replace(/\s+/g, "_")}_${
+      new Date().toISOString().split("T")[0]
+    }.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    showAlert("Timetable exported", "Downloaded as text file", "success");
+  };
+
+  const printTimetable = () => {
+    window.print();
+  };
+
+  /* =======================
+     🔹 EFFECTS
+  ======================= */
+  useEffect(() => {
+    fetchFacultyData();
+  }, [facultyId]);
+
+  /* =======================
+     🔹 RENDER LOADING
+  ======================= */
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4" />
+          <p className="text-gray-600">Loading faculty profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!faculty) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 flex items-center justify-center">
+        <div className="text-center max-w-md">
+          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            Faculty Not Found
+          </h1>
+          <p className="text-gray-600 mb-6">
+            The faculty profile you're looking for doesn't exist.
+          </p>
+          <button
+            onClick={() => navigate("/dashboard")}
+            className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center gap-2 mx-auto"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  /* =======================
+     🔹 RENDER PROFILE
+  ======================= */
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 p-4 md:p-6 print:p-0">
+      {/* Alert Component */}
+      {alert && (
+        <Alert
+          main={alert.main}
+          info={alert.info}
+          type={alert.type}
+          onClose={() => setAlert(null)}
+        />
+      )}
+
+      <div className="relative z-10 max-w-7xl mx-auto print:max-w-none">
+        {/* Breadcrumb */}
+        <div className="mb-6 print:hidden">
+          <div className="flex items-center text-sm text-gray-600 mb-4">
+            <button
+              onClick={() => navigate("/dashboard")}
+              className="hover:text-gray-800 cursor-pointer"
+            >
+              Dashboard
+            </button>
+            <ChevronRight className="w-4 h-4 mx-2" />
+            <span className="font-medium text-blue-600">
+              {faculty.name}'s Profile
+            </span>
+          </div>
+        </div>
+
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8 print:mb-4 print:pt-6">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2 print:text-2xl">
+              Faculty Profile
+            </h1>
+            <p className="text-gray-600 print:text-sm">
+              {faculty.isAdmin ? "Administrator" : "Faculty Member"} • ID:{" "}
+              {faculty._id?.substring(0, 8) || "N/A"}
+            </p>
+          </div>
+          <div className="flex items-center gap-3 print:hidden">
+            <div className="p-3 bg-white rounded-xl border border-gray-200 shadow-sm">
+              <User className="w-6 h-6 text-blue-600" />
+            </div>
+          </div>
+        </div>
+
+        {/* Profile Overview Card */}
+        <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm mb-8 print:rounded-none print:border-0 print:shadow-none print:p-0">
+          <div className="flex flex-col md:flex-row gap-6">
+            {/* Profile Info */}
+            <div className="flex-1">
+              <div className="flex items-start justify-between mb-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+                    <span className="text-2xl font-bold text-white">
+                      {faculty.name.charAt(0)}
+                    </span>
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900">
+                      {faculty.name}
+                    </h2>
+                    <div className="flex items-center gap-2 mt-2">
+                      <div
+                        className={`px-3 py-1 rounded-full text-sm font-medium ${
+                          faculty.isAdmin
+                            ? "bg-purple-100 text-purple-700 border border-purple-200"
+                            : "bg-blue-100 text-blue-700 border border-blue-200"
+                        }`}
+                      >
+                        {faculty.isAdmin ? "Administrator" : "Faculty Member"}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        ID: {faculty._id?.substring(0, 8) || "N/A"}
+                      </div>
+                    </div>
+
+                    {/* Telegram Chat ID Display */}
+                    {faculty.telegram_chat_id ? (
+                      <div className="flex items-center gap-2 mt-2">
+                        <MessageSquare className="w-4 h-4 text-green-600" />
+                        <span className="text-sm text-gray-700">
+                          Telegram: {faculty.telegram_chat_id}
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 mt-2">
+                        <MessageSquare className="w-4 h-4 text-gray-400" />
+                        <span className="text-sm text-gray-500">
+                          Telegram Chat ID not set
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex items-center gap-2 print:hidden">
+                  <button
+                    onClick={() => fetchFacultyData(false)}
+                    disabled={isRefreshing}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    title="Refresh"
+                  >
+                    <RefreshCw
+                      className={`w-5 h-5 text-gray-600 ${
+                        isRefreshing ? "animate-spin" : ""
+                      }`}
+                    />
+                  </button>
+                  <button
+                    onClick={() => setIsEditingTelegram(!isEditingTelegram)}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    title={
+                      isEditingTelegram
+                        ? "Cancel Telegram Update"
+                        : "Update Telegram"
+                    }
+                  >
+                    {isEditingTelegram ? (
+                      <X className="w-5 h-5 text-gray-600" />
+                    ) : (
+                      <MessageSquare className="w-5 h-5 text-green-600" />
+                    )}
+                  </button>
+                  <button
+                    onClick={() => setIsEditingPassword(!isEditingPassword)}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    title={
+                      isEditingPassword
+                        ? "Cancel Password Change"
+                        : "Change Password"
+                    }
+                  >
+                    {isEditingPassword ? (
+                      <X className="w-5 h-5 text-gray-600" />
+                    ) : (
+                      <Lock className="w-5 h-5 text-gray-600" />
+                    )}
+                  </button>
+                  <button
+                    onClick={handleLogout}
+                    className="p-2 hover:bg-red-50 rounded-lg transition-colors"
+                    title="Logout"
+                  >
+                    <LogOut className="w-5 h-5 text-red-600" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Telegram Chat ID Update Form */}
+              {isEditingTelegram && (
+                <div className="mb-6 p-4 bg-green-50 rounded-lg border border-green-200 print:hidden">
+                  <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <MessageSquare className="w-5 h-5 text-green-600" />
+                    Update Telegram Chat ID
+                  </h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Telegram Chat ID
+                        <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                          Required for notifications
+                        </span>
+                      </label>
+                      <input
+                        type="text"
+                        value={telegramForm.chatId}
+                        onChange={(e) =>
+                          setTelegramForm((prev) => ({
+                            ...prev,
+                            chatId: e.target.value,
+                          }))
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                        placeholder="Enter your Telegram Chat ID (e.g., 123456789)"
+                      />
+                      <div className="mt-2 space-y-1">
+                        <p className="text-xs text-gray-600">
+                          <span className="font-medium">
+                            How to get your Chat ID:
+                          </span>
+                        </p>
+                        <ol className="text-xs text-gray-600 ml-4 list-decimal space-y-1">
+                          <li>
+                            Click this link:
+                            <a
+                              href="https://t.me/sister_saira_bot?start"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="ml-1 text-blue-600 hover:text-blue-800 hover:underline font-medium"
+                            >
+                              https://t.me/MyTestBot?me
+                            </a>
+                          </li>
+                          <li>
+                            Send{" "}
+                            <code className="bg-gray-100 px-1 rounded">
+                              /start
+                            </code>{" "}
+                            command to the bot
+                          </li>
+                          <li>Copy the Chat ID provided by the bot</li>
+                          <li>Paste it in the field above</li>
+                        </ol>
+                        <p className="text-xs text-gray-500 mt-2">
+                          You'll receive timetable notifications and updates
+                          directly on Telegram
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 pt-2">
+                      <button
+                        onClick={handleUpdateTelegram}
+                        disabled={isSaving}
+                        className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center gap-2"
+                      >
+                        {isSaving ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="w-4 h-4" />
+                            Update Chat ID
+                          </>
+                        )}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setIsEditingTelegram(false);
+                          setTelegramForm({
+                            chatId: faculty.telegram_chat_id || "",
+                          });
+                        }}
+                        className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Password Change Form */}
+              {isEditingPassword && (
+                <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200 print:hidden">
+                  <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <Lock className="w-5 h-5" />
+                    Change Password
+                  </h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Current Password
+                      </label>
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        value={passwordForm.currentPassword}
+                        onChange={(e) =>
+                          setPasswordForm((prev) => ({
+                            ...prev,
+                            currentPassword: e.target.value,
+                          }))
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Enter current password"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        New Password
+                      </label>
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        value={passwordForm.newPassword}
+                        onChange={(e) =>
+                          setPasswordForm((prev) => ({
+                            ...prev,
+                            newPassword: e.target.value,
+                          }))
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Enter new password (min 6 characters)"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Confirm New Password
+                      </label>
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        value={passwordForm.confirmPassword}
+                        onChange={(e) =>
+                          setPasswordForm((prev) => ({
+                            ...prev,
+                            confirmPassword: e.target.value,
+                          }))
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Confirm new password"
+                      />
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800"
+                      >
+                        {showPassword ? (
+                          <EyeOff className="w-4 h-4" />
+                        ) : (
+                          <Eye className="w-4 h-4" />
+                        )}
+                        {showPassword ? "Hide" : "Show"} passwords
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-3 pt-2">
+                      <button
+                        onClick={handleChangePassword}
+                        disabled={isSaving}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center gap-2"
+                      >
+                        {isSaving ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="w-4 h-4" />
+                            Change Password
+                          </>
+                        )}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setIsEditingPassword(false);
+                          setPasswordForm({
+                            currentPassword: "",
+                            newPassword: "",
+                            confirmPassword: "",
+                          });
+                        }}
+                        className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Statistics Sidebar */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 print:hidden">
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm text-blue-800">Total Lectures</p>
+                    <BookOpen className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <p className="text-2xl font-bold text-blue-900">
+                    {stats.totalLectures}
+                  </p>
+                  <p className="text-xs text-blue-700 mt-1">
+                    {stats.totalLectures} teaching hours per week
+                  </p>
+                </div>
+
+                <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-4 border border-emerald-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm text-emerald-800">Teaching Days</p>
+                    <Calendar className="w-5 h-5 text-emerald-600" />
+                  </div>
+                  <p className="text-2xl font-bold text-emerald-900">
+                    {stats.daysPerWeek}/6
+                  </p>
+                  <p className="text-xs text-emerald-700 mt-1">
+                    {stats.daysPerWeek === 6
+                      ? "Full week"
+                      : `${6 - stats.daysPerWeek} free days`}
+                  </p>
+                </div>
+
+                <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 border border-purple-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm text-purple-800">Branches Teaching</p>
+                    <Users className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <p className="text-2xl font-bold text-purple-900">
+                    {stats.classesAssigned.size}
+                  </p>
+                  <p className="text-xs text-purple-700 mt-1">
+                    {stats.subjectsAssigned.size} subjects/semesters
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Timetable Section - Using Reusable Component */}
+          <div className="mt-8 print:mt-0">
+            <div className="flex items-center justify-between mb-6 print:hidden">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 mb-2">
+                  Weekly Timetable
+                </h2>
+                <p className="text-gray-600">
+                  Academic Year: {new Date().getFullYear()}-
+                  {new Date().getFullYear() + 1}
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={printTimetable}
+                  className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-gray-200 transition-colors"
+                >
+                  <Printer className="w-4 h-4" />
+                  Print
+                </button>
+                <button
+                  onClick={exportTimetable}
+                  className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-blue-700 transition-colors"
+                >
+                  <Download className="w-4 h-4" />
+                  Export
+                </button>
+              </div>
+            </div>
+
+            <TimetableTable
+              timetable={faculty.timetable || {}}
+              showEmptySlots={showEmptySlots}
+              facultyName={faculty.name}
+              onToggleEmptySlots={() => setShowEmptySlots(!showEmptySlots)}
+              printMode={false}
+            />
+          </div>
+        </div>
+
+        {/* Quick Actions (Non-Print) */}
+        <div className="print:hidden">
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100 mb-8">
+            <h3 className="font-semibold text-blue-900 mb-4 flex items-center gap-2">
+              Quick Actions
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <button
+                onClick={() => setIsEditingTelegram(true)}
+                className="bg-white border border-green-200 rounded-lg p-4 text-left hover:bg-green-50 transition-colors"
+              >
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 bg-green-100 rounded-lg">
+                    <MessageSquare className="w-5 h-5 text-green-600" />
+                  </div>
+                  <h4 className="font-medium text-gray-900">Update Telegram</h4>
+                </div>
+                <p className="text-sm text-gray-600">
+                  Set your Telegram Chat ID for notifications
+                </p>
+              </button>
+
+              <button
+                onClick={() => setIsEditingPassword(true)}
+                className="bg-white border border-blue-200 rounded-lg p-4 text-left hover:bg-blue-50 transition-colors"
+              >
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 bg-blue-100 rounded-lg">
+                    <Lock className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <h4 className="font-medium text-gray-900">Change Password</h4>
+                </div>
+                <p className="text-sm text-gray-600">
+                  Update your account password
+                </p>
+              </button>
+
+              <button
+                onClick={exportTimetable}
+                className="bg-white border border-emerald-200 rounded-lg p-4 text-left hover:bg-emerald-50 transition-colors"
+              >
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 bg-emerald-100 rounded-lg">
+                    <Download className="w-5 h-5 text-emerald-600" />
+                  </div>
+                  <h4 className="font-medium text-gray-900">
+                    Export Timetable
+                  </h4>
+                </div>
+                <p className="text-sm text-gray-600">
+                  Download your timetable as a text file
+                </p>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Print Styles */}
+      <style jsx global>{`
+        @media print {
+          @page {
+            margin: 0.5in;
+          }
+
+          body {
+            background: white !important;
+            font-size: 12px !important;
+          }
+
+          .print\\:hidden {
+            display: none !important;
+          }
+
+          .print\\:max-w-none {
+            max-width: none !important;
+            margin: 0 !important;
+          }
+
+          .print\\:rounded-none {
+            border-radius: 0 !important;
+          }
+
+          .print\\:border-0 {
+            border: 0 !important;
+          }
+
+          .print\\:shadow-none {
+            box-shadow: none !important;
+          }
+
+          table {
+            page-break-inside: auto !important;
+          }
+
+          tr {
+            page-break-inside: avoid !important;
+            page-break-after: auto !important;
+          }
+
+          td,
+          th {
+            border: 1px solid #d1d5db !important;
+          }
+        }
+      `}</style>
+    </div>
+  );
+}

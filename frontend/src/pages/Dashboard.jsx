@@ -61,10 +61,10 @@ function Dashboard() {
   // Aggregate timetables by branch
   const aggregateByBranch = (timetables) => {
     const branchMap = {};
-    
+
     timetables.forEach((timetable) => {
       const key = `${timetable.sem}-${timetable.branch}`;
-      
+
       if (!branchMap[key]) {
         branchMap[key] = {
           sem: timetable.sem,
@@ -80,19 +80,19 @@ function Dashboard() {
           createdBy: timetable.createdBy,
         };
       }
-      
+
       branchMap[key].classes.push(timetable.class);
       branchMap[key].totalClasses++;
       branchMap[key].facultyCount += timetable.allowed_faculty.length;
       branchMap[key].totalPeriods += timetable.periods_per_day || 0;
       branchMap[key].timetables.push(timetable);
-      
+
       // Use the latest updatedAt
       if (new Date(timetable.updatedAt) > new Date(branchMap[key].updatedAt)) {
         branchMap[key].updatedAt = new Date(timetable.updatedAt);
       }
     });
-    
+
     return Object.values(branchMap);
   };
 
@@ -114,7 +114,11 @@ function Dashboard() {
       setBranchData(aggregateByBranch(enriched));
     } catch (err) {
       console.error("Failed to fetch timetables", err);
-      showAlert("Failed to fetch timetables", "Please try again later", "error");
+      showAlert(
+        "Failed to fetch timetables",
+        "Please try again later",
+        "error"
+      );
     }
   };
 
@@ -147,7 +151,11 @@ function Dashboard() {
 
   // Delete entire branch timetable
   const deleteBranchTimetable = async (branchInfo) => {
-    if (!window.confirm(`Are you sure you want to delete ALL timetables for ${branchInfo.branch} Semester ${branchInfo.sem}? This will remove ${branchInfo.totalClasses} classes.`)) {
+    if (
+      !window.confirm(
+        `Are you sure you want to delete ALL timetables for ${branchInfo.branch} Semester ${branchInfo.sem}? This will remove ${branchInfo.totalClasses} classes.`
+      )
+    ) {
       return;
     }
 
@@ -158,7 +166,7 @@ function Dashboard() {
         formData.append("sem", timetable.sem);
         formData.append("branch", timetable.branch);
         formData.append("class", timetable.className || timetable.class);
-        
+
         return api.delete("/api/timetable", {
           data: formData,
         });
@@ -170,7 +178,7 @@ function Dashboard() {
         `${branchInfo.totalClasses} classes from ${branchInfo.branch} Semester ${branchInfo.sem} have been removed`,
         "success"
       );
-      
+
       // Refresh the list
       fetchTimetables();
     } catch (err) {
@@ -196,11 +204,18 @@ function Dashboard() {
     });
   };
 
-  // View branch details - show all classes in this branch
+  // View branch details - navigate to preview page
   const handleViewBranchDetails = (branchInfo) => {
-    // You could create a view page or show a modal with all classes
-    const classList = branchInfo.classes.join(", ");
-    alert(`Branch: ${branchInfo.branch} - Semester ${branchInfo.sem}\nClasses: ${classList}\nTotal Classes: ${branchInfo.totalClasses}\nTotal Faculty: ${branchInfo.facultyCount}`);
+    navigate("/preview", {
+      state: {
+        sem: branchInfo.sem,
+        branch: branchInfo.branch,
+        // Pass all classes in this branch
+        classes: branchInfo.classes,
+        // Pass the timetables data if needed
+        branchInfo: branchInfo,
+      },
+    });
   };
 
   const resetForm = () => {
@@ -306,7 +321,8 @@ function Dashboard() {
                       Branch Timetable Management
                     </h1>
                     <p className="text-gray-600 mt-1">
-                      Manage timetables by branch - each branch includes multiple classes
+                      Manage timetables by branch - each branch includes
+                      multiple classes
                     </p>
                   </div>
                 </div>
@@ -334,7 +350,7 @@ function Dashboard() {
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Total Branches</p>
                   <p className="text-2xl font-bold text-gray-900 mb-2">
-                    {[...new Set(branchData.map(b => b.branch))].length}
+                    {[...new Set(branchData.map((b) => b.branch))].length}
                   </p>
                   <div className="flex items-center text-xs text-emerald-600">
                     <TrendingUp className="w-3 h-3 mr-1" />
@@ -505,24 +521,32 @@ function Dashboard() {
                             <button
                               onClick={() =>
                                 setActiveDropdown(
-                                  activeDropdown === `${branchInfo.sem}-${branchInfo.branch}` ? null : `${branchInfo.sem}-${branchInfo.branch}`
+                                  activeDropdown ===
+                                    `${branchInfo.sem}-${branchInfo.branch}`
+                                    ? null
+                                    : `${branchInfo.sem}-${branchInfo.branch}`
                                 )
                               }
                               className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
                             >
                               <MoreVertical className="w-5 h-5 text-gray-400" />
                             </button>
-                            {activeDropdown === `${branchInfo.sem}-${branchInfo.branch}` && (
+                            {activeDropdown ===
+                              `${branchInfo.sem}-${branchInfo.branch}` && (
                               <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
                                 <button
-                                  onClick={() => handleViewBranchDetails(branchInfo)}
+                                  onClick={() =>
+                                    handleViewBranchDetails(branchInfo)
+                                  }
                                   className="flex items-center w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                                 >
                                   <Eye className="w-4 h-4 mr-3 text-gray-500" />
-                                  View Details
+                                  Preview
                                 </button>
                                 <button
-                                  onClick={() => handleEditBranchTimetable(branchInfo)}
+                                  onClick={() =>
+                                    handleEditBranchTimetable(branchInfo)
+                                  }
                                   className="flex items-center w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                                 >
                                   <Edit className="w-4 h-4 mr-3 text-gray-500" />
@@ -552,20 +576,29 @@ function Dashboard() {
                                 : "bg-amber-100 text-amber-800"
                             }`}
                           >
-                            {branchInfo.status === "active" ? "● Active" : "○ Draft"}
+                            {branchInfo.status === "active"
+                              ? "● Active"
+                              : "○ Draft"}
                           </span>
                         </div>
 
                         {/* Details */}
                         <div className="space-y-3 mb-5">
                           <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-600">Classes</span>
+                            <span className="text-sm text-gray-600">
+                              Classes
+                            </span>
                             <div className="flex flex-wrap justify-end gap-1 max-w-32">
-                              {branchInfo.classes.slice(0, 3).map((cls, idx) => (
-                                <span key={idx} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
-                                  {cls}
-                                </span>
-                              ))}
+                              {branchInfo.classes
+                                .slice(0, 3)
+                                .map((cls, idx) => (
+                                  <span
+                                    key={idx}
+                                    className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded"
+                                  >
+                                    {cls}
+                                  </span>
+                                ))}
                               {branchInfo.classes.length > 3 && (
                                 <span className="px-2 py-1 bg-gray-100 text-gray-500 text-xs rounded">
                                   +{branchInfo.classes.length - 3}
@@ -672,11 +705,16 @@ function Dashboard() {
                             </td>
                             <td className="py-4 px-6">
                               <div className="flex flex-wrap gap-1">
-                                {branchInfo.classes.slice(0, 3).map((cls, idx) => (
-                                  <span key={idx} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
-                                    {cls}
-                                  </span>
-                                ))}
+                                {branchInfo.classes
+                                  .slice(0, 3)
+                                  .map((cls, idx) => (
+                                    <span
+                                      key={idx}
+                                      className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded"
+                                    >
+                                      {cls}
+                                    </span>
+                                  ))}
                                 {branchInfo.classes.length > 3 && (
                                   <span className="px-2 py-1 bg-gray-100 text-gray-500 text-xs rounded">
                                     +{branchInfo.classes.length - 3}
@@ -707,7 +745,9 @@ function Dashboard() {
                                     : "bg-amber-100 text-amber-800"
                                 }`}
                               >
-                                {branchInfo.status === "active" ? "Active" : "Draft"}
+                                {branchInfo.status === "active"
+                                  ? "Active"
+                                  : "Draft"}
                               </span>
                             </td>
                             <td className="py-4 px-6 text-sm text-gray-600">
@@ -715,20 +755,26 @@ function Dashboard() {
                             </td>
                             <td className="py-4 px-6">
                               <div className="flex items-center gap-2">
-                                <button 
-                                  onClick={() => handleViewBranchDetails(branchInfo)}
+                                <button
+                                  onClick={() =>
+                                    handleViewBranchDetails(branchInfo)
+                                  }
                                   className="p-2 hover:bg-blue-50 rounded-lg text-blue-600 hover:text-blue-700 transition-colors"
                                 >
                                   <Eye className="w-4 h-4" />
                                 </button>
                                 <button
-                                  onClick={() => handleEditBranchTimetable(branchInfo)}
+                                  onClick={() =>
+                                    handleEditBranchTimetable(branchInfo)
+                                  }
                                   className="p-2 hover:bg-gray-100 rounded-lg text-gray-600 hover:text-gray-700 transition-colors"
                                 >
                                   <Edit className="w-4 h-4" />
                                 </button>
                                 <button
-                                  onClick={() => deleteBranchTimetable(branchInfo)}
+                                  onClick={() =>
+                                    deleteBranchTimetable(branchInfo)
+                                  }
                                   className="p-2 hover:bg-red-50 rounded-lg text-red-600 hover:text-red-700 transition-colors"
                                 >
                                   <Trash2 className="w-4 h-4" />
@@ -753,7 +799,8 @@ function Dashboard() {
                 No branch timetables found
               </h3>
               <p className="text-gray-600 mb-8 max-w-md mx-auto">
-                Create your first branch timetable to start organizing academic schedules across multiple classes
+                Create your first branch timetable to start organizing academic
+                schedules across multiple classes
               </p>
               <button
                 onClick={handleCreateNew}
@@ -775,19 +822,23 @@ function Dashboard() {
               <div className="space-y-3">
                 <h4 className="font-medium text-blue-800">Create New</h4>
                 <p className="text-blue-700 text-sm">
-                  Click "Create New Branch Schedule" to open the timetable editor where you can manage multiple classes within a branch simultaneously.
+                  Click "Create New Branch Schedule" to open the timetable
+                  editor where you can manage multiple classes within a branch
+                  simultaneously.
                 </p>
               </div>
               <div className="space-y-3">
                 <h4 className="font-medium text-blue-800">Edit Branch</h4>
                 <p className="text-blue-700 text-sm">
-                  Click the edit button to open the timetable editor with all existing classes for that branch pre-loaded.
+                  Click the edit button to open the timetable editor with all
+                  existing classes for that branch pre-loaded.
                 </p>
               </div>
               <div className="space-y-3">
                 <h4 className="font-medium text-blue-800">Delete Branch</h4>
                 <p className="text-blue-700 text-sm">
-                  Deleting a branch will remove ALL class timetables for that branch and semester. This action cannot be undone.
+                  Deleting a branch will remove ALL class timetables for that
+                  branch and semester. This action cannot be undone.
                 </p>
               </div>
             </div>

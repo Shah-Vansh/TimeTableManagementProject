@@ -29,6 +29,9 @@ import {
   Plus,
   User,
   Hash,
+  MessageSquare,
+  MoreVertical,
+  Edit,
 } from "lucide-react";
 import api from "../configs/api";
 import Alert from "../components/Alert";
@@ -98,6 +101,12 @@ export default function TimeTable() {
   const [facultyOptions, setFacultyOptions] = useState(baseFacultyOptions);
   const [classFacultyMap, setClassFacultyMap] = useState({}); // Map of class -> allowed faculty
 
+  // Telegram Chat IDs state (array)
+  const [telegramChatIds, setTelegramChatIds] = useState([]);
+  const [isEditingTelegram, setIsEditingTelegram] = useState(false);
+  const [isSavingTelegram, setIsSavingTelegram] = useState(false);
+  const [newChatId, setNewChatId] = useState("");
+
   // Faculty management states
   const [showFacultyModal, setShowFacultyModal] = useState(false);
   const [allAvailableFaculties, setAllAvailableFaculties] = useState([]);
@@ -166,6 +175,107 @@ export default function TimeTable() {
   };
 
   const [schedule, setSchedule] = useState(() => initializeSchedule([]));
+
+  /* =======================
+     🔹 FETCH TELEGRAM CHAT IDs FOR BRANCH
+  ======================= */
+  const fetchTelegramChatIds = async () => {
+    try {
+      const response = await api.get("/api/branch-telegram", {
+        params: {
+          branch: branch,
+          sem: sem,
+        },
+      });
+
+      if (response.data.success) {
+        // Ensure we always work with an array
+        const chatIds = response.data.telegram_chat_ids || [];
+        setTelegramChatIds(Array.isArray(chatIds) ? chatIds : [chatIds]);
+      } else {
+        setTelegramChatIds([]);
+      }
+    } catch (error) {
+      console.error("Error fetching Telegram Chat IDs:", error);
+      setTelegramChatIds([]);
+    }
+  };
+
+  /* =======================
+     🔹 UPDATE TELEGRAM CHAT IDs FOR BRANCH
+  ======================= */
+  const handleUpdateTelegramChatIds = async () => {
+    // Validate each chat ID
+    const invalidChatIds = telegramChatIds.filter(
+      (id) => id.trim() && !/^-?\d+$/.test(id.trim())
+    );
+
+    if (invalidChatIds.length > 0) {
+      showAlert("Invalid format", "Telegram Chat IDs must be numbers", "error");
+      return;
+    }
+
+    // Filter out empty strings and trim the rest
+    const cleanedChatIds = telegramChatIds
+      .map((id) => id.trim())
+      .filter((id) => id !== "");
+
+    setIsSavingTelegram(true);
+    try {
+      const response = await api.put("/api/branch-telegram", {
+        branch: branch,
+        sem: sem,
+        telegram_chat_ids: cleanedChatIds,
+      });
+
+      if (response.data.success) {
+        setTelegramChatIds(cleanedChatIds);
+        setIsEditingTelegram(false);
+        setNewChatId("");
+
+        const message =
+          cleanedChatIds.length > 0
+            ? `${cleanedChatIds.length} chat ID${
+                cleanedChatIds.length !== 1 ? "s" : ""
+              } set for ${branch} Semester ${sem}`
+            : "All Telegram Chat IDs cleared";
+
+        showAlert("Telegram Chat IDs updated", message, "success");
+      } else {
+        throw new Error(
+          response.data.error || "Failed to update Telegram Chat IDs"
+        );
+      }
+    } catch (error) {
+      console.error("Error updating Telegram Chat IDs:", error);
+      showAlert(
+        "Update failed",
+        error.response?.data?.error || "Please try again",
+        "error"
+      );
+    } finally {
+      setIsSavingTelegram(false);
+    }
+  };
+
+  // Add a new chat ID field
+  const handleAddChatIdField = () => {
+    setTelegramChatIds([...telegramChatIds, newChatId]);
+    setNewChatId("");
+  };
+
+  // Remove a chat ID
+  const handleRemoveChatId = (index) => {
+    const updatedChatIds = telegramChatIds.filter((_, i) => i !== index);
+    setTelegramChatIds(updatedChatIds);
+  };
+
+  // Update a specific chat ID
+  const handleUpdateChatId = (index, value) => {
+    const updatedChatIds = [...telegramChatIds];
+    updatedChatIds[index] = value;
+    setTelegramChatIds(updatedChatIds);
+  };
 
   /* =======================
      🔹 FETCH ALL FACULTIES FROM DATABASE
@@ -319,10 +429,15 @@ export default function TimeTable() {
       if (response.data.success) {
         // Store credentials if provided by backend
         if (response.data.credentials) {
+          const username = newFacultyId.trim(); // or newFacultyName if you want name-based
+          const password = `${username}@NLJIET`; // auto-generate password
+
           setGeneratedCredentials({
             name: newFacultyName.trim(),
             ...response.data.credentials,
+            password, // add the generated password here
           });
+
           // Close the create faculty form but keep the main modal open
           setShowCreateFaculty(false);
           setShowCredentialsModal(true);
@@ -389,7 +504,7 @@ export default function TimeTable() {
 
 Faculty Name: ${generatedCredentials.name}
 Username: ${generatedCredentials.username}
-Password: ${generatedCredentials.password}
+Password: ${generatedCredentials.username}
 
 ⚠️ IMPORTANT:
 - Please save these credentials securely
@@ -513,6 +628,9 @@ Generated on: ${new Date().toLocaleString()}
     try {
       // Fetch all available faculties first
       await fetchAllFaculties();
+
+      // Fetch Telegram Chat IDs for this branch
+      await fetchTelegramChatIds();
 
       // Then fetch all timetables to see which classes exist for this branch-semester
       const allTimetablesRes = await api.get("/api/timetable");
@@ -894,6 +1012,13 @@ Generated on: ${new Date().toLocaleString()}
     }
   }, [sem, branch, selectedDivisions]);
 
+  // Fetch Telegram Chat IDs when branch or semester changes
+  useEffect(() => {
+    if (branch && sem) {
+      fetchTelegramChatIds();
+    }
+  }, [branch, sem]);
+
   // Fetch all faculties when modal opens
   useEffect(() => {
     if (showFacultyModal && allAvailableFaculties.length === 0) {
@@ -953,8 +1078,8 @@ Generated on: ${new Date().toLocaleString()}
   );
 
   /* =======================
-     🔹 SAVE TIMETABLES FOR ALL DIVISIONS
-  ======================= */
+   🔹 SAVE TIMETABLES FOR ALL DIVISIONS
+======================= */
   const handleSubmit = async () => {
     if (selectedDivisions.length === 0) {
       showAlert(
@@ -992,6 +1117,35 @@ Generated on: ${new Date().toLocaleString()}
     setSaved(false);
 
     try {
+      // First, update Telegram Chat IDs for the branch if they're set
+      if (telegramChatIds.length > 0) {
+        try {
+          // Filter out empty strings and trim
+          const cleanedChatIds = telegramChatIds
+            .map((id) => id.trim())
+            .filter((id) => id !== "");
+
+          if (cleanedChatIds.length > 0) {
+            const response = await api.put("/api/branch-telegram", {
+              branch: branch,
+              sem: sem,
+              telegram_chat_ids: cleanedChatIds,
+            });
+
+            if (!response.data.success) {
+              console.warn(
+                "Failed to update Telegram Chat IDs:",
+                response.data.error
+              );
+              // Continue saving timetables even if Telegram update fails
+            }
+          }
+        } catch (error) {
+          console.warn("Error updating Telegram Chat IDs:", error);
+          // Continue saving timetables even if Telegram update fails
+        }
+      }
+
       // Create save promises for each division
       const savePromises = selectedDivisions.map(async (division) => {
         const divisionSchedule = schedule[division];
@@ -1002,9 +1156,18 @@ Generated on: ${new Date().toLocaleString()}
         formData.append("class", division);
         formData.append("schedule", JSON.stringify(divisionSchedule));
 
-        const endpoint = existingTimetables[division]
-          ? "/api/timetable"
-          : "/api/timetable";
+        // Always include Telegram Chat IDs from state if available
+        const cleanedChatIds = telegramChatIds
+          .map((id) => id.trim())
+          .filter((id) => id !== "");
+
+        if (cleanedChatIds.length > 0) {
+          cleanedChatIds.forEach((chatId, index) => {
+            formData.append(`telegram_chat_ids[${index}]`, chatId);
+          });
+        }
+
+        const endpoint = "/api/timetable"; // Always use POST for create/update
 
         return api.post(endpoint, formData, {
           headers: { "Content-Type": "multipart/form-data" },
@@ -1026,10 +1189,21 @@ Generated on: ${new Date().toLocaleString()}
 
       setErrorMsg("");
 
-      // Show success message using Alert component
+      // Show success message with Telegram info
+      const cleanedChatIds = telegramChatIds
+        .map((id) => id.trim())
+        .filter((id) => id !== "");
+
+      const telegramMessage =
+        cleanedChatIds.length > 0
+          ? `${cleanedChatIds.length} Telegram Chat ID${
+              cleanedChatIds.length !== 1 ? "s" : ""
+            } have been stored for all classes.`
+          : "No Telegram Chat IDs were included.";
+
       showAlert(
         "Timetables saved successfully",
-        `All ${selectedDivisions.length} class timetables have been saved for ${branch} - Semester ${sem}`,
+        `All ${selectedDivisions.length} class timetables have been saved for ${branch} - Semester ${sem}. ${telegramMessage}`,
         "success"
       );
     } catch (error) {
@@ -1211,9 +1385,6 @@ Generated on: ${new Date().toLocaleString()}
         </div>
       )}
 
-      {/* Add this code after the Delete Confirmation Modal but before the Faculty Management Modal */}
-
-      {/* Credentials Modal */}
       {/* Credentials Modal */}
       {showCredentialsModal && generatedCredentials && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 z-[100]">
@@ -1765,6 +1936,324 @@ Generated on: ${new Date().toLocaleString()}
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
             Branch Configuration
           </h2>
+
+          {/* Telegram Chat IDs Section */}
+          {/* Telegram Chat IDs Section */}
+          {/* Telegram Chat IDs Section */}
+{branch && sem && (
+  <div className="mb-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-emerald-200">
+    <div className="flex items-center justify-between mb-3">
+      <h3 className="font-medium text-emerald-900 flex items-center gap-2">
+        <MessageSquare className="w-5 h-5 text-emerald-600" />
+        Telegram Chat IDs
+      </h3>
+      {!isEditingTelegram ? (
+        <button
+          onClick={() => setIsEditingTelegram(true)}
+          className="px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-lg text-xs font-medium hover:bg-emerald-200 transition-colors flex items-center gap-2"
+        >
+          <Edit className="w-3 h-3" />
+          {telegramChatIds.length > 0 ? "Edit" : "Add"}
+        </button>
+      ) : (
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              setIsEditingTelegram(false);
+              fetchTelegramChatIds(); // Reset to saved values
+            }}
+            className="px-3 py-1.5 border border-gray-300 text-gray-700 rounded-lg text-xs font-medium hover:bg-gray-50 transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      )}
+    </div>
+
+    {isEditingTelegram ? (
+      <div className="space-y-3">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Chat IDs for {branch} Semester {sem}
+          </label>
+          <p className="text-xs text-gray-500 mb-3">
+            Add Telegram Chat IDs for notifications. These will be used for all {branch} Semester {sem} classes.
+          </p>
+
+          {/* How to get Chat ID instructions */}
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <h4 className="font-medium text-blue-900 mb-2 flex items-center gap-2">
+              <Info className="w-4 h-4" />
+              How to get your Chat ID:
+            </h4>
+            <ol className="text-sm text-blue-800 space-y-1 ml-6 list-decimal">
+              <li>
+                Click this link:{" "}
+                <a
+                  href="https://t.me/MyTestBot?start"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-800 underline font-medium"
+                >
+                  https://t.me/MyTestBot?start
+                </a>
+              </li>
+              <li>Add bot to group and make admin</li>
+              <li>Send /start command to the bot in your group</li>
+              <li>Copy the Chat ID provided by the bot</li>
+              <li>Paste it in the field above</li>
+              <li>You'll receive timetable notifications and updates directly on Telegram</li>
+            </ol>
+          </div>
+
+          {/* Chat ID Inputs */}
+          <div className="space-y-2 mb-3">
+            {telegramChatIds.length === 0 ? (
+              <div className="text-center py-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
+                <MessageSquare className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                <p className="text-gray-600">No Chat IDs added yet</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Follow the instructions above to get your Chat ID
+                </p>
+              </div>
+            ) : (
+              telegramChatIds.map((chatId, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-2 group"
+                >
+                  <div className="flex-1 flex items-center gap-3 px-3 py-2 border border-emerald-300 rounded-lg bg-white">
+                    <div className="w-6 h-6 flex items-center justify-center rounded-full bg-emerald-100 text-emerald-700 text-xs font-medium">
+                      {index + 1}
+                    </div>
+                    <input
+                      type="text"
+                      value={chatId}
+                      onChange={(e) =>
+                        handleUpdateChatId(index, e.target.value)
+                      }
+                      placeholder="Enter Telegram Chat ID (e.g., 123456789)"
+                      className="flex-1 outline-none bg-transparent"
+                    />
+                    <span
+                      className={`text-xs px-2 py-1 rounded ${
+                        chatId.trim() &&
+                        !/^-?\d+$/.test(chatId.trim())
+                          ? "bg-red-100 text-red-700"
+                          : "bg-emerald-100 text-emerald-700"
+                      }`}
+                    >
+                      {chatId.trim() && !/^-?\d+$/.test(chatId.trim())
+                        ? "Invalid"
+                        : "Valid"}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => handleRemoveChatId(index)}
+                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                    title="Remove"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Add new Chat ID */}
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={newChatId}
+              onChange={(e) => setNewChatId(e.target.value)}
+              placeholder="Enter new Chat ID..."
+              className="flex-1 px-4 py-2 border border-emerald-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              onKeyPress={(e) => {
+                if (e.key === "Enter" && newChatId.trim()) {
+                  handleAddChatIdField();
+                }
+              }}
+            />
+            <button
+              onClick={handleAddChatIdField}
+              disabled={!newChatId.trim()}
+              className="px-4 py-2 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Plus className="w-4 h-4" />
+              Add
+            </button>
+          </div>
+
+          {/* Validation and Help Text */}
+          <div className="mt-2 space-y-1">
+            {telegramChatIds.some(
+              (id) => id.trim() && !/^-?\d+$/.test(id.trim())
+            ) && (
+              <div className="flex items-start gap-2 text-red-600 text-xs">
+                <AlertCircle className="w-3 h-3 mt-0.5 flex-shrink-0" />
+                <p>
+                  Invalid Chat IDs detected. Please enter only numeric values.
+                </p>
+              </div>
+            )}
+            <p className="text-xs text-gray-500">
+              Tip: Use the bot link above to easily get your Chat ID
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleUpdateTelegramChatIds}
+            disabled={
+              isSavingTelegram ||
+              telegramChatIds.some(
+                (id) => id.trim() && !/^-?\d+$/.test(id.trim())
+              )
+            }
+            className="px-4 py-2 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isSavingTelegram ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4" />
+                Save Changes
+              </>
+            )}
+          </button>
+          {telegramChatIds.length > 0 && (
+            <button
+              onClick={() => {
+                if (
+                  window.confirm(
+                    "Are you sure you want to clear all Chat IDs?"
+                  )
+                ) {
+                  setTelegramChatIds([]);
+                }
+              }}
+              className="px-4 py-2 bg-red-100 text-red-700 rounded-lg font-medium hover:bg-red-200 transition-colors flex items-center gap-2"
+            >
+              <Trash2 className="w-4 h-4" />
+              Clear All
+            </button>
+          )}
+        </div>
+      </div>
+    ) : (
+      <div>
+        {telegramChatIds.length > 0 ? (
+          <>
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <p className="text-sm font-semibold text-emerald-900 mb-1">
+                  {telegramChatIds.length} Chat ID
+                  {telegramChatIds.length !== 1 ? "s" : ""} configured
+                </p>
+                <p className="text-sm text-emerald-700">
+                  These IDs will be used for all {branch} Semester {sem} classes
+                </p>
+              </div>
+              <div className="p-3 bg-emerald-100 rounded-lg">
+                <MessageSquare className="w-6 h-6 text-emerald-600" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              {telegramChatIds.map((chatId, index) => (
+                <div
+                  key={index}
+                  className="px-3 py-3 bg-white border border-emerald-200 rounded-lg hover:border-emerald-300 transition-colors group"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 flex items-center justify-center rounded-full bg-emerald-100 text-emerald-700 font-medium">
+                        {index + 1}
+                      </div>
+                      <div>
+                        <div className="font-mono text-emerald-800 text-sm">
+                          {chatId}
+                        </div>
+                        <div className="text-xs text-emerald-600">
+                          {/^-?\d+$/.test(chatId.trim())
+                            ? "Valid format"
+                            : "Invalid format"}
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(chatId);
+                        showAlert(
+                          "Copied!",
+                          `Chat ID ${chatId} copied to clipboard`,
+                          "success"
+                        );
+                      }}
+                      className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                      title="Copy to clipboard"
+                    >
+                      <Copy className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 pt-3 border-t border-emerald-200">
+              <div className="flex items-center justify-between text-xs text-emerald-700">
+                <span>Last updated: Just now</span>
+                <span>Applied to all {branch} classes</span>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="text-center py-6">
+            <MessageSquare className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+            <p className="text-gray-700 font-medium mb-2">
+              No Telegram Chat IDs set
+            </p>
+            <p className="text-gray-600 text-sm mb-4">
+              Add Chat IDs to receive timetable change notifications
+            </p>
+            
+            {/* Instructions in non-edit mode */}
+            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-left">
+              <p className="text-sm text-blue-800 font-medium mb-1">
+                How to get Chat ID:
+              </p>
+              <ol className="text-xs text-blue-700 space-y-1 ml-4 list-decimal">
+                <li>
+                  <a 
+                    href="https://t.me/MyTestBot?start" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-800 underline"
+                  >
+                    Click here to open the bot
+                  </a>
+                </li>
+                <li>Add bot to group & make admin</li>
+                <li>Send /start command</li>
+                <li>Copy the Chat ID provided</li>
+                <li>Paste above to get notifications</li>
+              </ol>
+            </div>
+            
+            <button
+              onClick={() => setIsEditingTelegram(true)}
+              className="px-4 py-2 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition-colors"
+            >
+              Add Chat IDs
+            </button>
+          </div>
+        )}
+      </div>
+    )}
+  </div>
+)}
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             {/* Semester */}
             <div>
@@ -2388,6 +2877,14 @@ Generated on: ${new Date().toLocaleString()}
             How It Works
           </h3>
           <ul className="space-y-2 text-blue-800 text-sm">
+            <li className="flex items-start gap-2">
+              <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5"></div>
+              <span>
+                <strong>Telegram Chat IDs</strong> - Set multiple Telegram Chat
+                IDs for all {branch} Semester {sem} classes. These will be used
+                for notifications.
+              </span>
+            </li>
             <li className="flex items-start gap-2">
               <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5"></div>
               <span>

@@ -22,14 +22,17 @@ import {
   X,
   Plus,
   Loader2,
-  Mail,
   Phone,
   BookOpen,
   RefreshCw,
   Info,
+  User,
+  Hash,
+  Check,
 } from "lucide-react";
 import api from "../configs/api";
 import EditFacultyModal from "../components/EditFacultyModal";
+import Alert from "../components/Alert"; // Import the Alert component
 
 export default function Faculties() {
   const [faculties, setFaculties] = useState([]);
@@ -39,8 +42,6 @@ export default function Faculties() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedFaculty, setSelectedFaculty] = useState(null);
-  const [errorMsg, setErrorMsg] = useState("");
-  const [successMsg, setSuccessMsg] = useState("");
   const [activeFilter, setActiveFilter] = useState("all");
   const navigate = useNavigate();
   const [showEditModal, setShowEditModal] = useState(false);
@@ -51,17 +52,122 @@ export default function Faculties() {
   const [copiedField, setCopiedField] = useState("");
 
   // New faculty form state
-  const [newFaculty, setNewFaculty] = useState({
-    id: "",
-    name: "",
-  });
+  const [newFacultyId, setNewFacultyId] = useState("");
+  const [newFacultyName, setNewFacultyName] = useState("");
+  const [isCreatingFaculty, setIsCreatingFaculty] = useState(false);
+  const [createFacultyError, setCreateFacultyError] = useState("");
 
-  // Filters
-  const filters = [
+  // All faculties state for create modal
+  const [allAvailableFaculties, setAllAvailableFaculties] = useState([]);
+
+  // Filters state
+  const [filters, setFilters] = useState([
     { id: "all", label: "All Faculties", count: 0 },
     { id: "active", label: "Currently Teaching", count: 0 },
     { id: "available", label: "Available", count: 0 },
-  ];
+  ]);
+
+  // Alert state
+  const [alert, setAlert] = useState({
+    show: false,
+    type: "", // 'success' or 'error'
+    main: "",
+    info: "",
+  });
+
+  const showAlert = (type, main, info) => {
+    setAlert({
+      show: true,
+      type,
+      main,
+      info,
+    });
+
+    // Auto-hide after 4 seconds
+    setTimeout(() => {
+      setAlert((prev) => ({ ...prev, show: false }));
+    }, 4000);
+  };
+
+  const closeAlert = () => {
+    setAlert((prev) => ({ ...prev, show: false }));
+  };
+
+  /* =======================
+     🔹 CALCULATE FACULTY STATUS
+  ======================= */
+  const isFacultyActive = (faculty) => {
+    if (!faculty || !faculty.timetable) return false;
+
+    const timetable = faculty.timetable;
+    const days = ["mon", "tue", "wed", "thu", "fri", "sat"];
+
+    for (const day of days) {
+      const daySchedule = timetable[day] || [];
+      if (daySchedule.some((slot) => slot !== "free")) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  /* =======================
+     🔹 UPDATE FILTER COUNTS
+  ======================= */
+  const updateFilterCounts = (facultyList) => {
+    if (!facultyList || facultyList.length === 0) {
+      setFilters([
+        { id: "all", label: "All Faculties", count: 0 },
+        { id: "active", label: "Currently Teaching", count: 0 },
+        { id: "available", label: "Available", count: 0 },
+      ]);
+      return;
+    }
+
+    let activeCount = 0;
+    let availableCount = 0;
+
+    facultyList.forEach((faculty) => {
+      if (isFacultyActive(faculty)) {
+        activeCount++;
+      } else {
+        availableCount++;
+      }
+    });
+
+    setFilters([
+      { id: "all", label: "All Faculties", count: facultyList.length },
+      { id: "active", label: "Currently Teaching", count: activeCount },
+      { id: "available", label: "Available", count: availableCount },
+    ]);
+  };
+
+  /* =======================
+     🔹 APPLY FILTERS
+  ======================= */
+  const applyFilters = () => {
+    let result = [...faculties];
+
+    switch (activeFilter) {
+      case "active":
+        result = result.filter((faculty) => isFacultyActive(faculty));
+        break;
+      case "available":
+        result = result.filter((faculty) => !isFacultyActive(faculty));
+        break;
+    }
+
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(
+        (faculty) =>
+          faculty.name.toLowerCase().includes(query) ||
+          faculty.id.toLowerCase().includes(query)
+      );
+    }
+
+    setFilteredFaculties(result);
+  };
 
   /* =======================
      🔹 FETCH ALL FACULTIES
@@ -73,49 +179,107 @@ export default function Faculties() {
       if (response.data.success) {
         const facultiesList = response.data.faculties || [];
         setFaculties(facultiesList);
-        setFilteredFaculties(facultiesList);
-
-        // Update filter counts (you might want to add logic to determine "active" vs "available")
-        filters[0].count = facultiesList.length;
+        updateFilterCounts(facultiesList);
+        applyFilters();
       }
     } catch (error) {
       console.error("Error fetching faculties:", error);
-      setErrorMsg("Failed to load faculties. Please try again.");
+      showAlert("error", "Failed to load faculties", "Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   /* =======================
+     🔹 FETCH ALL FACULTIES FOR MODAL
+  ======================= */
+  const fetchAllFacultiesForModal = async () => {
+    try {
+      const response = await api.get("/api/faculties");
+      if (response.data.success) {
+        const facultiesList = response.data.faculties || [];
+        setAllAvailableFaculties(facultiesList);
+      }
+    } catch (error) {
+      console.error("Error fetching faculties for modal:", error);
+    }
+  };
+
+  /* =======================
+     🔹 HANDLE FILTER CHANGE
+  ======================= */
+  const handleFilterChange = (filterId) => {
+    setActiveFilter(filterId);
+  };
+
+  /* =======================
      🔹 CREATE NEW FACULTY
   ======================= */
-  const handleCreateFaculty = async () => {
-    if (!newFaculty.id.trim() || !newFaculty.name.trim()) {
-      setErrorMsg("Both Faculty ID and Name are required");
+  const handleCreateNewFaculty = async () => {
+    if (!newFacultyId.trim()) {
+      setCreateFacultyError("Faculty ID is required");
       return;
     }
 
-    try {
-      const response = await api.post("/api/faculties", newFaculty);
-      if (response.data.success) {
-        setSuccessMsg(`Faculty "${newFaculty.name}" created successfully!`);
-        setShowCreateModal(false);
+    if (!newFacultyName.trim()) {
+      setCreateFacultyError("Faculty Name is required");
+      return;
+    }
 
-        // Store and show credentials
+    const facultyExists = allAvailableFaculties.some(
+      (faculty) =>
+        faculty.id.toLowerCase() === newFacultyId.trim().toLowerCase()
+    );
+
+    if (facultyExists) {
+      setCreateFacultyError("A faculty with this ID already exists");
+      return;
+    }
+
+    setIsCreatingFaculty(true);
+    setCreateFacultyError("");
+
+    try {
+      const response = await api.post("/api/faculties", {
+        id: newFacultyId.trim(),
+        name: newFacultyName.trim(),
+      });
+
+      if (response.data.success) {
+        const username = newFacultyId.trim().toUpperCase();
+        const password = `${username}@NLJIET`;
+
         setGeneratedCredentials({
-          name: newFaculty.name,
-          ...response.data.credentials,
+          name: newFacultyName.trim(),
+          username,
+          password,
         });
+
+        setShowCreateModal(false);
         setShowCredentialsModal(true);
 
-        setNewFaculty({ id: "", name: "" });
+        setNewFacultyId("");
+        setNewFacultyName("");
+        setCreateFacultyError("");
+
         fetchFaculties();
+
+        showAlert(
+          "success",
+          "Faculty created successfully",
+          "Credentials have been generated."
+        );
       } else {
-        setErrorMsg(response.data.error || "Failed to create faculty");
+        throw new Error(response.data.error || "Failed to create faculty");
       }
     } catch (error) {
       console.error("Error creating faculty:", error);
-      setErrorMsg(error.response?.data?.error || "Failed to create faculty");
+      setCreateFacultyError(
+        error.response?.data?.error ||
+          "Failed to create faculty. Please try again."
+      );
+    } finally {
+      setIsCreatingFaculty(false);
     }
   };
 
@@ -162,10 +326,85 @@ Generated on: ${new Date().toLocaleString()}
     setEditingFaculty(faculty);
     setShowEditModal(true);
   };
+
+  const handleAdminToggle = async (faculty_id, currentStatus, facultyName) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await api.patch(
+        `/api/faculties/${faculty_id}/toggle-admin`, // Changed endpoint
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        // Update local state immediately for better UX
+        setFaculties((prevFaculties) =>
+          prevFaculties.map((faculty) =>
+            faculty.id === faculty_id
+              ? { ...faculty, isAdmin: !currentStatus }
+              : faculty
+          )
+        );
+
+        // Also update filteredFaculties
+        setFilteredFaculties((prevFiltered) =>
+          prevFiltered.map((faculty) =>
+            faculty.id === faculty_id
+              ? { ...faculty, isAdmin: !currentStatus }
+              : faculty
+          )
+        );
+
+        showAlert(
+          "success",
+          "Admin status updated",
+          `"${facultyName || "Faculty"}" is now ${
+            !currentStatus ? "an admin" : "a regular user"
+          }`
+        );
+      } else if (response.data.error?.includes("can't change your own")) {
+        showAlert(
+          "error",
+          "Cannot change your own status",
+          "You cannot change your own admin status."
+        );
+      } else {
+        showAlert(
+          "error",
+          "Failed to update status",
+          response.data.error || "Please try again."
+        );
+      }
+    } catch (error) {
+      console.error("Error updating admin status:", error);
+
+      if (error.response?.data?.error?.includes("can't change your own")) {
+        showAlert(
+          "error",
+          "Cannot change your own status",
+          "You cannot change your own admin status."
+        );
+      } else {
+        showAlert(
+          "error",
+          "Failed to update status",
+          error.response?.data?.error || "Please try again."
+        );
+      }
+    }
+  };
+
   const handleEditSuccess = () => {
-    fetchFaculties(); // Refresh the list
-    setSuccessMsg(`Faculty "${editingFaculty?.name}" updated successfully!`);
-    setTimeout(() => setSuccessMsg(""), 3000);
+    fetchFaculties();
+    showAlert(
+      "success",
+      "Faculty updated successfully",
+      `"${editingFaculty?.name}" has been updated.`
+    );
   };
 
   /* =======================
@@ -175,36 +414,47 @@ Generated on: ${new Date().toLocaleString()}
     if (!selectedFaculty) return;
 
     try {
-      const response = await api.delete(`/api/faculties/${selectedFaculty.id}`);
+      const token = localStorage.getItem("token");
+      const response = await api.delete(
+        `/api/faculties/${selectedFaculty.id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       if (response.data.success) {
-        setSuccessMsg(
-          `Faculty "${selectedFaculty.name}" deleted successfully!`
+        showAlert(
+          "success",
+          "Faculty deleted successfully",
+          `"${selectedFaculty.name}" has been removed.`
         );
         setShowDeleteModal(false);
         setSelectedFaculty(null);
-        fetchFaculties(); // Refresh the list
-
-        setTimeout(() => setSuccessMsg(""), 3000);
+        fetchFaculties();
       } else {
-        setErrorMsg(response.data.error || "Failed to delete faculty");
+        showAlert(
+          "error",
+          "Failed to delete faculty",
+          response.data.error || "Please try again."
+        );
       }
     } catch (error) {
       console.error("Error deleting faculty:", error);
-      setErrorMsg(error.response?.data?.error || "Failed to delete faculty");
+      showAlert(
+        "error",
+        "Failed to delete faculty",
+        error.response?.data?.error || "Please try again."
+      );
     }
   };
 
   /* =======================
-     🔹 HANDLE SEARCH
+     🔹 HANDLE SEARCH AND FILTER CHANGES
   ======================= */
   useEffect(() => {
-    const filtered = faculties.filter(
-      (faculty) =>
-        faculty.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        faculty.id.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-    setFilteredFaculties(filtered);
-  }, [searchQuery, faculties]);
+    applyFilters();
+  }, [searchQuery, activeFilter, faculties]);
 
   /* =======================
      🔹 INITIAL LOAD
@@ -226,7 +476,7 @@ Generated on: ${new Date().toLocaleString()}
   };
 
   /* =======================
-     🔹 CALCULATE STATS (MOCK - YOU CAN IMPLEMENT REAL LOGIC)
+     🔹 CALCULATE FACULTY STATS
   ======================= */
   const calculateFacultyStats = (faculty) => {
     if (!faculty || !faculty.timetable) {
@@ -241,7 +491,6 @@ Generated on: ${new Date().toLocaleString()}
     const uniqueClasses = new Set();
     let weeklyHours = 0;
 
-    // Parse each day's schedule
     days.forEach((day) => {
       const daySchedule = timetable[day] || [];
 
@@ -249,11 +498,8 @@ Generated on: ${new Date().toLocaleString()}
         if (slot !== "free") {
           weeklyHours++;
 
-          // Extract class information from slot format: "CSE-D2-Sem1-Time Slot 1"
-          // We want to extract the class part (e.g., "CSE-D2-Sem1")
           const parts = slot.split("-");
           if (parts.length >= 3) {
-            // Combine branch, class, and semester to get unique class identifier
             const classIdentifier = `${parts[0]}-${parts[1]}-${parts[2]}`;
             uniqueClasses.add(classIdentifier);
           }
@@ -264,6 +510,7 @@ Generated on: ${new Date().toLocaleString()}
     return {
       classesCount: uniqueClasses.size,
       weeklyHours,
+      isActive: weeklyHours > 0,
     };
   };
 
@@ -277,133 +524,47 @@ Generated on: ${new Date().toLocaleString()}
         )
       : 0;
 
+  const activeFacultiesCount = faculties.filter((f) =>
+    isFacultyActive(f)
+  ).length;
+  const availableFacultiesCount = faculties.length - activeFacultiesCount;
+
+  /* =======================
+     🔹 RESET NEW FACULTY FORM
+  ======================= */
+  const resetNewFacultyForm = () => {
+    setNewFacultyId("");
+    setNewFacultyName("");
+    setCreateFacultyError("");
+  };
+
+  /* =======================
+     🔹 OPEN CREATE MODAL
+  ======================= */
+  const handleOpenCreateModal = () => {
+    setShowCreateModal(true);
+    fetchAllFacultiesForModal();
+    resetNewFacultyForm();
+  };
+
   /* =======================
      🔹 RENDER
   ======================= */
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 p-4 md:p-6">
-      {/* Decorative Background */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-0 w-64 h-64 bg-gradient-to-br from-purple-100 to-transparent rounded-full opacity-20"></div>
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tr from-blue-100 to-transparent rounded-full opacity-10"></div>
-      </div>
-
-      {/* Create Faculty Modal */}
-      {showCreateModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden">
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900">
-                    Add New Faculty
-                  </h2>
-                  <p className="text-gray-600 text-sm mt-1">
-                    Create a new faculty member Login credentials will be
-                    generated automatically
-                  </p>
-                </div>
-                <button
-                  onClick={() => {
-                    setShowCreateModal(false);
-                    setNewFaculty({ id: "", name: "" });
-                    setErrorMsg("");
-                  }}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-
-            <div className="p-6">
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Faculty ID <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={newFaculty.id}
-                    onChange={(e) =>
-                      setNewFaculty({
-                        ...newFaculty,
-                        id: e.target.value.toUpperCase(),
-                      })
-                    }
-                    placeholder="e.g., FAC009"
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Use uppercase letters, numbers, underscores or hyphens
-                  </p>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Faculty Name <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={newFaculty.name}
-                    onChange={(e) =>
-                      setNewFaculty({ ...newFaculty, name: e.target.value })
-                    }
-                    placeholder="e.g., Dr. Sunil Verma"
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                  <div className="flex gap-2">
-                    <Info className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
-                    <p className="text-sm text-blue-700">
-                      A secure password will be automatically generated and
-                      shown after creation.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {errorMsg && (
-                <div className="mt-4 p-3 rounded-lg bg-red-50 border border-red-200 flex items-start gap-2">
-                  <AlertCircle className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
-                  <p className="text-red-700 text-sm">{errorMsg}</p>
-                </div>
-              )}
-            </div>
-
-            <div className="p-6 border-t border-gray-200 bg-gray-50">
-              <div className="flex justify-end gap-3">
-                <button
-                  onClick={() => {
-                    setShowCreateModal(false);
-                    setNewFaculty({ id: "", name: "" });
-                    setErrorMsg("");
-                  }}
-                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleCreateFaculty}
-                  disabled={!newFaculty.id.trim() || !newFaculty.name.trim()}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                    !newFaculty.id.trim() || !newFaculty.name.trim()
-                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                      : "bg-blue-600 text-white hover:bg-blue-700"
-                  }`}
-                >
-                  Create Faculty
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Alert Component */}
+      {alert.show && (
+        <Alert
+          main={alert.main}
+          info={alert.info}
+          onClose={closeAlert}
+          type={alert.type}
+        />
       )}
 
       {/* Credentials Modal */}
       {showCredentialsModal && generatedCredentials && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 z-[100]">
           <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
             <div className="p-6 bg-gradient-to-r from-green-500 to-emerald-600 text-white">
               <div className="flex items-center gap-3">
@@ -537,25 +698,24 @@ Generated on: ${new Date().toLocaleString()}
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
-      {showDeleteModal && selectedFaculty && (
+      {/* Create Faculty Modal */}
+      {showCreateModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden">
+          <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden">
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-xl font-bold text-gray-900">
-                    Delete Faculty
+                    Create New Faculty
                   </h2>
                   <p className="text-gray-600 text-sm mt-1">
-                    This action cannot be undone
+                    Enter faculty details to create a new faculty account
                   </p>
                 </div>
                 <button
                   onClick={() => {
-                    setShowDeleteModal(false);
-                    setSelectedFaculty(null);
-                    setErrorMsg("");
+                    setShowCreateModal(false);
+                    resetNewFacultyForm();
                   }}
                   className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                 >
@@ -565,51 +725,146 @@ Generated on: ${new Date().toLocaleString()}
             </div>
 
             <div className="p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                  <AlertCircle className="w-6 h-6 text-red-600" />
+              {createFacultyError && (
+                <div className="mb-6 p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-red-700 text-sm">{createFacultyError}</p>
                 </div>
+              )}
+
+              <div className="space-y-4">
                 <div>
-                  <p className="font-medium text-gray-900">Are you sure?</p>
-                  <p className="text-gray-600 text-sm mt-1">
-                    You're about to delete{" "}
-                    <span className="font-semibold">
-                      {selectedFaculty.name}
-                    </span>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <div className="flex items-center gap-2">
+                      <Hash className="w-4 h-4" />
+                      Faculty ID
+                    </div>
+                  </label>
+                  <input
+                    type="text"
+                    value={newFacultyId}
+                    onChange={(e) => setNewFacultyId(e.target.value)}
+                    placeholder="e.g., FAC009"
+                    className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <p className="text-xs text-gray-500 mt-2">
+                    Unique identifier for the faculty
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <div className="flex items-center gap-2">
+                      <User className="w-4 h-4" />
+                      Faculty Name
+                    </div>
+                  </label>
+                  <input
+                    type="text"
+                    value={newFacultyName}
+                    onChange={(e) => setNewFacultyName(e.target.value)}
+                    placeholder="e.g., Dr. Sunil Verma"
+                    className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <p className="text-xs text-gray-500 mt-2">
+                    Full name of the faculty member
                   </p>
                 </div>
               </div>
 
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-700">
-                  <span className="font-medium">Faculty ID:</span>{" "}
-                  {selectedFaculty.id}
-                </p>
-                <p className="text-sm text-gray-700 mt-1">
-                  <span className="font-medium">Faculty Name:</span>{" "}
-                  {selectedFaculty.name}
-                </p>
-                <p className="text-xs text-red-600 mt-2">
-                  ⚠️ Warning: All timetable assignments for this faculty will
-                  also be removed.
-                </p>
+              <div className="flex gap-3 mt-8">
+                <button
+                  onClick={() => {
+                    setShowCreateModal(false);
+                    resetNewFacultyForm();
+                  }}
+                  className="px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors flex-1"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCreateNewFaculty}
+                  disabled={
+                    isCreatingFaculty ||
+                    !newFacultyId.trim() ||
+                    !newFacultyName.trim()
+                  }
+                  className={`px-4 py-2.5 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 flex-1 ${
+                    isCreatingFaculty ||
+                    !newFacultyId.trim() ||
+                    !newFacultyName.trim()
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      : "bg-blue-600 text-white hover:bg-blue-700"
+                  }`}
+                >
+                  {isCreatingFaculty ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Creating...
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-4 h-4" />
+                      Create Faculty
+                    </>
+                  )}
+                </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
 
-              {errorMsg && (
-                <div className="mt-4 p-3 rounded-lg bg-red-50 border border-red-200">
-                  <p className="text-red-700 text-sm">{errorMsg}</p>
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && selectedFaculty && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-gray-900">
+                  Delete Faculty
+                </h2>
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6">
+              <div className="flex items-center justify-center mb-6">
+                <div className="p-3 bg-red-50 rounded-full">
+                  <Trash2 className="w-8 h-8 text-red-600" />
                 </div>
-              )}
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 text-center mb-2">
+                Delete {selectedFaculty.name}?
+              </h3>
+              <p className="text-gray-600 text-center mb-6">
+                This will permanently delete faculty "{selectedFaculty.name}"
+                (ID: {selectedFaculty.id}) and remove them from all assigned
+                timetables.
+              </p>
+
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-red-800 font-medium">Warning</p>
+                    <p className="text-red-700 text-sm mt-1">
+                      This action cannot be undone. All timetable assignments
+                      will be removed.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="p-6 border-t border-gray-200 bg-gray-50">
-              <div className="flex justify-end gap-3">
+              <div className="flex items-center justify-end gap-3">
                 <button
-                  onClick={() => {
-                    setShowDeleteModal(false);
-                    setSelectedFaculty(null);
-                    setErrorMsg("");
-                  }}
+                  onClick={() => setShowDeleteModal(false)}
                   className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
                 >
                   Cancel
@@ -656,7 +911,7 @@ Generated on: ${new Date().toLocaleString()}
           </div>
           <div className="flex items-center gap-3">
             <button
-              onClick={() => setShowCreateModal(true)}
+              onClick={handleOpenCreateModal}
               className="px-4 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center gap-2"
             >
               <UserPlus className="w-5 h-5" />
@@ -664,27 +919,6 @@ Generated on: ${new Date().toLocaleString()}
             </button>
           </div>
         </div>
-
-        {/* Status Messages */}
-        {errorMsg && (
-          <div className="mb-6 p-4 rounded-xl border border-red-200 bg-red-50 flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="font-medium text-red-800">Error</p>
-              <p className="text-red-600 text-sm mt-1">{errorMsg}</p>
-            </div>
-          </div>
-        )}
-
-        {successMsg && (
-          <div className="mb-6 p-4 rounded-xl border border-emerald-200 bg-emerald-50 flex items-start gap-3">
-            <CheckCircle className="w-5 h-5 text-emerald-500 mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="font-medium text-emerald-800">Success</p>
-              <p className="text-emerald-600 text-sm mt-1">{successMsg}</p>
-            </div>
-          </div>
-        )}
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
@@ -707,9 +941,7 @@ Generated on: ${new Date().toLocaleString()}
               <div>
                 <p className="text-sm text-gray-600">Currently Teaching</p>
                 <p className="text-2xl font-bold text-gray-900 mt-2">
-                  {faculties.length > 0
-                    ? Math.floor(faculties.length * 0.8)
-                    : 0}
+                  {activeFacultiesCount}
                 </p>
               </div>
               <div className="p-3 bg-green-50 rounded-lg">
@@ -721,7 +953,7 @@ Generated on: ${new Date().toLocaleString()}
           <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Weekly Hours (Avg)</p>
+                <p className="text-sm text-gray-600">Weekly Lectures (Avg)</p>
                 <p className="text-2xl font-bold text-gray-900 mt-2">
                   {averageWeeklyHours}
                 </p>
@@ -737,9 +969,7 @@ Generated on: ${new Date().toLocaleString()}
               <div>
                 <p className="text-sm text-gray-600">Available</p>
                 <p className="text-2xl font-bold text-gray-900 mt-2">
-                  {faculties.length > 0
-                    ? Math.floor(faculties.length * 0.2)
-                    : 0}
+                  {availableFacultiesCount}
                 </p>
               </div>
               <div className="p-3 bg-amber-50 rounded-lg">
@@ -772,7 +1002,7 @@ Generated on: ${new Date().toLocaleString()}
                 {filters.map((filter) => (
                   <button
                     key={filter.id}
-                    onClick={() => setActiveFilter(filter.id)}
+                    onClick={() => handleFilterChange(filter.id)}
                     className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                       activeFilter === filter.id
                         ? "bg-blue-100 text-blue-700 border border-blue-200"
@@ -803,18 +1033,22 @@ Generated on: ${new Date().toLocaleString()}
               </h3>
               <p className="text-gray-600">
                 {searchQuery
-                  ? "Try a different search term"
+                  ? "Try a different search term or filter"
+                  : activeFilter !== "all"
+                  ? `No ${activeFilter} faculties found`
                   : "No faculties have been added yet"}
               </p>
-              {!searchQuery && (
-                <button
-                  onClick={() => setShowCreateModal(true)}
-                  className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors inline-flex items-center gap-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  Add Your First Faculty
-                </button>
-              )}
+              {!searchQuery &&
+                activeFilter === "all" &&
+                faculties.length === 0 && (
+                  <button
+                    onClick={handleOpenCreateModal}
+                    className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors inline-flex items-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Your First Faculty
+                  </button>
+                )}
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -824,14 +1058,31 @@ Generated on: ${new Date().toLocaleString()}
                 return (
                   <div
                     key={faculty.id}
-                    className="bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-300 overflow-hidden group"
+                    className={`bg-white rounded-xl border ${
+                      stats.isActive ? "border-green-200" : "border-gray-200"
+                    } hover:border-blue-300 hover:shadow-md transition-all duration-300 overflow-hidden group`}
                   >
-                    {/* Faculty Card Header */}
-                    <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200">
+                    <div
+                      className={`p-4 border-b ${
+                        stats.isActive
+                          ? "bg-gradient-to-r from-green-50 to-emerald-50 border-green-200"
+                          : "bg-gradient-to-r from-blue-50 to-indigo-50 border-gray-200"
+                      }`}
+                    >
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                            <GraduationCap className="w-5 h-5 text-blue-600" />
+                          <div
+                            className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                              stats.isActive ? "bg-green-100" : "bg-blue-100"
+                            }`}
+                          >
+                            <GraduationCap
+                              className={`w-5 h-5 ${
+                                stats.isActive
+                                  ? "text-green-600"
+                                  : "text-blue-600"
+                              }`}
+                            />
                           </div>
                           <div>
                             <h3 className="font-bold text-gray-900">
@@ -844,13 +1095,18 @@ Generated on: ${new Date().toLocaleString()}
                         </div>
                         <div className="relative">
                           <button
-                            onClick={() => setSelectedFaculty(faculty)}
+                            onClick={() =>
+                              setSelectedFaculty(
+                                selectedFaculty?.id === faculty.id
+                                  ? null
+                                  : faculty
+                              )
+                            }
                             className="p-1.5 hover:bg-white/50 rounded-lg transition-colors"
                           >
                             <MoreVertical className="w-5 h-5 text-gray-500" />
                           </button>
 
-                          {/* Dropdown Menu */}
                           {selectedFaculty?.id === faculty.id && (
                             <div className="absolute right-0 top-10 w-48 bg-white rounded-lg border border-gray-200 shadow-lg z-10">
                               <button
@@ -883,7 +1139,6 @@ Generated on: ${new Date().toLocaleString()}
                       </div>
                     </div>
 
-                    {/* Faculty Stats */}
                     <div className="p-4">
                       <div className="grid grid-cols-3 gap-3 mb-4">
                         <div className="text-center">
@@ -893,16 +1148,32 @@ Generated on: ${new Date().toLocaleString()}
                           <div className="text-xs text-gray-600">Classes</div>
                         </div>
                         <div className="text-center">
-                          <div className="text-lg font-bold text-green-600">
+                          <div
+                            className={`text-lg font-bold ${
+                              stats.weeklyHours > 0
+                                ? "text-green-600"
+                                : "text-gray-400"
+                            }`}
+                          >
                             {stats.weeklyHours}
                           </div>
                           <div className="text-xs text-gray-600">
                             Lectures/Week
                           </div>
                         </div>
+                        <div className="text-center">
+                          <div
+                            className={`text-xs px-2 py-1 rounded-full font-medium ${
+                              stats.isActive
+                                ? "bg-green-100 text-green-700"
+                                : "bg-blue-100 text-blue-700"
+                            }`}
+                          >
+                            {stats.isActive ? "Teaching" : "Available"}
+                          </div>
+                        </div>
                       </div>
 
-                      {/* Action Buttons */}
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleViewTimetable(faculty)}
@@ -912,23 +1183,56 @@ Generated on: ${new Date().toLocaleString()}
                           View Timetable
                         </button>
                         <button
-                          onClick={() => {
-                            // Email functionality (placeholder)
-                            window.location.href = `mailto:${faculty.id.toLowerCase()}@college.edu`;
-                          }}
-                          className="p-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-                          title="Send Email"
+                          onClick={() =>
+                            handleAdminToggle(
+                              faculty.id,
+                              faculty.isAdmin,
+                              faculty.name
+                            )
+                          }
+                          className={`p-2 rounded-lg transition-colors relative group ${
+                            faculty.isAdmin
+                              ? "bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 hover:from-green-200 hover:to-emerald-200 border border-green-200"
+                              : "bg-gradient-to-r from-gray-100 to-blue-50 text-gray-700 hover:from-gray-200 hover:to-blue-100 border border-gray-200"
+                          }`}
+                          title={
+                            faculty.isAdmin
+                              ? "Click to revoke admin privileges"
+                              : "Click to make admin"
+                          }
                         >
-                          <Mail className="w-4 h-4" />
+                          {faculty.isAdmin ? (
+                            <>
+                              <Key className="w-4 h-4" />
+                              {/* Admin badge indicator */}
+                              <span className="absolute -top-1 -right-1">
+                                <span className="flex h-3 w-3">
+                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                  <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                                </span>
+                              </span>
+                            </>
+                          ) : (
+                            <User className="w-4 h-4" />
+                          )}
+
+                          {/* Tooltip text */}
+                          <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs font-medium text-white bg-gray-900 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+                            {faculty.isAdmin ? "Admin" : "Make Admin"}
+                          </span>
                         </button>
                       </div>
                     </div>
 
-                    {/* Quick Info */}
                     <div className="px-4 pb-4">
                       <div className="text-xs text-gray-500 flex items-center gap-2">
                         <Building className="w-3 h-3" />
-                        <span>Department: Computer Science</span>
+                        <span>
+                          Status:{" "}
+                          {stats.isActive
+                            ? "Currently Teaching"
+                            : "Available for Assignment"}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -937,10 +1241,10 @@ Generated on: ${new Date().toLocaleString()}
             </div>
           )}
 
-          {/* Pagination/Info */}
           <div className="mt-6 flex items-center justify-between text-sm text-gray-600">
             <div>
               Showing {filteredFaculties.length} of {faculties.length} faculties
+              {activeFilter !== "all" && ` (${activeFilter} only)`}
             </div>
             <div className="flex items-center gap-4">
               <button
@@ -954,7 +1258,6 @@ Generated on: ${new Date().toLocaleString()}
           </div>
         </div>
 
-        {/* Quick Tips */}
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100">
           <h3 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
             <Info className="w-5 h-5" />
@@ -964,8 +1267,15 @@ Generated on: ${new Date().toLocaleString()}
             <li className="flex items-start gap-2">
               <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5"></div>
               <span>
-                <strong>Click on any faculty card</strong> to view their
-                detailed timetable
+                <strong>Currently Teaching</strong>: Faculty with assigned
+                lectures in their timetable
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5"></div>
+              <span>
+                <strong>Available</strong>: Faculty with no lectures assigned
+                (can be assigned new classes)
               </span>
             </li>
             <li className="flex items-start gap-2">
@@ -985,15 +1295,14 @@ Generated on: ${new Date().toLocaleString()}
             <li className="flex items-start gap-2">
               <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5"></div>
               <span>
-                <strong>Add new faculty</strong> before assigning them to
-                classes in the timetable
+                <strong>Click "Add Faculty"</strong> to create new faculty
+                accounts with auto-generated credentials
               </span>
             </li>
           </ul>
         </div>
       </div>
 
-      {/* Click outside to close dropdown */}
       {selectedFaculty && (
         <div
           className="fixed inset-0 z-0"
@@ -1007,7 +1316,6 @@ Generated on: ${new Date().toLocaleString()}
         onClose={() => {
           setShowEditModal(false);
           setEditingFaculty(null);
-          setErrorMsg("");
         }}
         onSuccess={handleEditSuccess}
       />

@@ -7,6 +7,41 @@ from app.utils.telegram_messanger import send_telegram_message
 replace_lecture_bp = Blueprint("replace_lecture", __name__)
 
 
+def send_telegram_notifications(
+    class_message, faculty_message, class_chat_ids, faculty_chat_id, faculty_name
+):
+    """Send notifications to both class and faculty chat IDs"""
+
+    class_sent = []
+    faculty_sent = False
+
+    # Send to class chat IDs
+    if class_chat_ids:
+        for chat_id in class_chat_ids:
+            if chat_id and str(chat_id).strip():
+                try:
+                    send_telegram_message(class_message, str(chat_id).strip())
+                    class_sent.append(str(chat_id).strip())
+                except Exception as e:
+                    print(f"Failed to send to class chat_id {chat_id}: {e}")
+
+    # Send to faculty chat ID
+    if faculty_chat_id and str(faculty_chat_id).strip():
+        try:
+            send_telegram_message(faculty_message, str(faculty_chat_id).strip())
+            faculty_sent = True
+        except Exception as e:
+            print(
+                f"Failed to send to faculty {faculty_name} (chat_id: {faculty_chat_id}): {e}"
+            )
+
+    return {
+        "class_sent": class_sent,
+        "faculty_sent": faculty_sent,
+        "total_sent": len(class_sent) + (1 if faculty_sent else 0),
+    }
+
+
 def is_faculty_free(fac_id, day, lec_no, target_date):
     # 1️⃣ Check temp timetable FIRST
     temp = db.temp_faculty_timetable.find_one(
@@ -183,7 +218,28 @@ def assign_faculty():
         f"Faculty: {faculty_name}\n\n"
         f"Location: Same as per timetable"
     )
-    send_telegram_message(message)
+
+    # Get faculty's personal Telegram chat ID
+    faculty_chat_id = None
+    if faculty_doc:
+        faculty_chat_id = faculty_doc.get("telegram_chat_id")
+
+    # Get Telegram Chat IDs for this class
+    telegram_chat_ids = class_doc.get("telegram_chat_ids", [])
+
+    # Handle both old and new formats
+    if isinstance(telegram_chat_ids, str):
+        telegram_chat_ids = [telegram_chat_ids] if telegram_chat_ids.strip() else []
+    elif telegram_chat_ids is None:
+        telegram_chat_ids = []
+
+    notification_result = send_telegram_notifications(
+        class_message=message,
+        faculty_message=message,
+        class_chat_ids=telegram_chat_ids,
+        faculty_chat_id=faculty_chat_id,
+        faculty_name=faculty_name,
+    )
 
     return (
         jsonify(
@@ -236,6 +292,9 @@ def replace_lecture():
     if not class_doc:
         return jsonify({"success": False, "message": "Class not found"}), 404
 
+    assigned_faculty = None
+    faculty_name = None
+
     for fac_id in class_doc.get("allowed_faculty", []):
 
         if not is_faculty_free(fac_id, day, lec_no, target_date):
@@ -255,6 +314,7 @@ def replace_lecture():
         # Get faculty name for confirmation message
         faculty_doc = db.faculty_timetable.find_one({"_id": fac_id})
         faculty_name = faculty_doc.get("name", fac_id) if faculty_doc else fac_id
+        assigned_faculty = fac_id
 
         # Format the date for display
         try:
@@ -264,14 +324,47 @@ def replace_lecture():
             formatted_date = target_date
 
         message = (
-            f"@ {branch}_{class_name}\t"
+            f"@ {branch}_{class_name}\t\n"
             f"Change in Lecture\n\n"
             f"Date: {formatted_date}\n\n"
             f"Lecture no.: {lec_no+1}\n\n"
             f"Faculty: {faculty_name}\n\n"
             f"Location: Same as per timetable"
         )
-        send_telegram_message(message)
+
+        # Get faculty's personal Telegram chat ID
+        faculty_chat_id = None
+        if faculty_doc:
+            faculty_chat_id = faculty_doc.get("telegram_chat_id")
+
+        # Get Telegram Chat IDs for this class
+        telegram_chat_ids = class_doc.get("telegram_chat_ids", [])
+
+        # Handle both old and new formats
+        if isinstance(telegram_chat_ids, str):
+            telegram_chat_ids = [telegram_chat_ids] if telegram_chat_ids.strip() else []
+        elif telegram_chat_ids is None:
+            telegram_chat_ids = []
+
+        notification_result = send_telegram_notifications(
+            class_message=message,
+            faculty_message=message,
+            class_chat_ids=telegram_chat_ids,
+            faculty_chat_id=faculty_chat_id,
+            faculty_name=faculty_name,
+        )
+
+        # # Send message to ALL Telegram Chat IDs
+        # if telegram_chat_ids:
+        #     for chat_id in telegram_chat_ids:
+        #         if chat_id.strip():  # Only send if chat_id is not empty
+        #             try:
+        #                 send_telegram_message(message, chat_id.strip())
+        #                 print(f"Message sent to chat_id: {chat_id}")
+        #             except Exception as e:
+        #                 print(f"Failed to send to chat_id {chat_id}: {e}")
+        # else:
+        #     print("No Telegram Chat IDs configured for this class")
 
         return (
             jsonify(
@@ -279,14 +372,9 @@ def replace_lecture():
                     "success": True,
                     "assigned_faculty": fac_id,
                     "faculty_name": faculty_name,
-                    "message": (
-                        f"@ {branch}_{class_name}\t"
-                        f"Change in Lecture\n\n"
-                        f"Date: {formatted_date}\n\n"
-                        f"Lecture no.: {lec_no+1}\n\n"
-                        f"Faculty: {faculty_name}\n\n"
-                        f"Location: Same as per timetable"
-                    ),
+                    "telegram_chat_ids": telegram_chat_ids,
+                    "message": message,
+                    "sent_to": len(telegram_chat_ids) if telegram_chat_ids else 0,
                 }
             ),
             200,

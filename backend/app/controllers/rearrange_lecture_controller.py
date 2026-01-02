@@ -6,6 +6,41 @@ from app.utils.telegram_messanger import send_telegram_message
 rearrange_lecture_bp = Blueprint("rearrange_lecture", __name__)
 
 
+def send_telegram_notifications(
+    class_message, faculty_message, class_chat_ids, faculty_chat_id, faculty_name
+):
+    """Send notifications to both class and faculty chat IDs"""
+
+    class_sent = []
+    faculty_sent = False
+
+    # Send to class chat IDs
+    if class_chat_ids:
+        for chat_id in class_chat_ids:
+            if chat_id and str(chat_id).strip():
+                try:
+                    send_telegram_message(class_message, str(chat_id).strip())
+                    class_sent.append(str(chat_id).strip())
+                except Exception as e:
+                    print(f"Failed to send to class chat_id {chat_id}: {e}")
+
+    # Send to faculty chat ID
+    if faculty_chat_id and str(faculty_chat_id).strip():
+        try:
+            send_telegram_message(faculty_message, str(faculty_chat_id).strip())
+            faculty_sent = True
+        except Exception as e:
+            print(
+                f"Failed to send to faculty {faculty_name} (chat_id: {faculty_chat_id}): {e}"
+            )
+
+    return {
+        "class_sent": class_sent,
+        "faculty_sent": faculty_sent,
+        "total_sent": len(class_sent) + (1 if faculty_sent else 0),
+    }
+
+
 def is_faculty_free(fac_id, day, lec_no, selected_date):
     # 1️⃣ Temp timetable check (highest priority) for specific date
     if db.temp_faculty_timetable.find_one(
@@ -26,10 +61,18 @@ def is_faculty_free(fac_id, day, lec_no, selected_date):
     )
 
 
-def get_faculty_name(fac_id):
-    """Get faculty name from faculty collection"""
-    faculty = db.faculty.find_one({"_id": fac_id})
-    return faculty.get("name", fac_id) if faculty else fac_id
+from bson import ObjectId
+
+
+def get_faculty_info(fac_id):
+    faculty = db.faculty_timetable.find_one({"_id": fac_id})
+
+    if not faculty:
+        return fac_id, None  # faculty not found
+
+    name = faculty.get("name", fac_id)
+    telegram_chat_id = faculty.get("telegram_chat_id")  # could be None
+    return name, telegram_chat_id
 
 
 def assign_temp(fac_id, day, lec_no, assignment, selected_date):
@@ -132,8 +175,8 @@ def get_rearrange_options():
         new_fac = reassign_attempt["assigned_faculty"]
 
         # Get faculty names
-        primary_fac_name = get_faculty_name(fac_id)
-        secondary_fac_name = get_faculty_name(new_fac)
+        primary_fac_name, primary_chat_id = get_faculty_info(fac_id)
+        secondary_fac_name, secondary_chat_id = get_faculty_info(new_fac)
 
         # Create option object
         option = {
@@ -272,8 +315,9 @@ def execute_rearrange():
     target_assignment = f"{branch}-{class_name}-Sem{sem}-{time_slot_str}"
     assign_temp(primary_faculty_id, day, lec_no, target_assignment, selected_date)
 
-    primary_fac_name = get_faculty_name(primary_faculty_id)
-    secondary_fac_name = get_faculty_name(secondary_faculty_id)
+    # Get faculty names and chat IDs
+    primary_fac_name, primary_chat_id = get_faculty_info(primary_faculty_id)
+    secondary_fac_name, secondary_chat_id = get_faculty_info(secondary_faculty_id)
 
     # Create separate messages for both affected classes
     target_class_message = (
@@ -294,8 +338,55 @@ def execute_rearrange():
         f"Location: Same as per timetable"
     )
 
-    send_telegram_message(target_class_message)
-    send_telegram_message(occupied_class_message)
+    # Get Telegram Chat IDs for TARGET class
+    target_class_doc = db.classwise_faculty.find_one(
+        {"class": class_name, "sem": sem, "branch": branch}
+    )
+    target_telegram_chat_ids = []
+    if target_class_doc:
+        target_telegram_chat_ids = target_class_doc.get("telegram_chat_ids", [])
+        # Handle both old and new formats
+        if isinstance(target_telegram_chat_ids, str):
+            target_telegram_chat_ids = (
+                [target_telegram_chat_ids] if target_telegram_chat_ids.strip() else []
+            )
+        elif target_telegram_chat_ids is None:
+            target_telegram_chat_ids = []
+
+    # Get Telegram Chat IDs for OCCUPIED class
+    occupied_class_doc = db.classwise_faculty.find_one(
+        {"class": occupied_class, "sem": occupied_sem, "branch": occupied_branch}
+    )
+    occupied_telegram_chat_ids = []
+    if occupied_class_doc:
+        occupied_telegram_chat_ids = occupied_class_doc.get("telegram_chat_ids", [])
+        # Handle both old and new formats
+        if isinstance(occupied_telegram_chat_ids, str):
+            occupied_telegram_chat_ids = (
+                [occupied_telegram_chat_ids]
+                if occupied_telegram_chat_ids.strip()
+                else []
+            )
+        elif occupied_telegram_chat_ids is None:
+            occupied_telegram_chat_ids = []
+
+    # Send notifications for TARGET class
+    target_notification_result = send_telegram_notifications(
+        class_message=target_class_message,
+        faculty_message=target_class_message,
+        class_chat_ids=target_telegram_chat_ids,
+        faculty_chat_id=primary_chat_id,
+        faculty_name=primary_fac_name,
+    )
+
+    # Send notifications for OCCUPIED class
+    occupied_notification_result = send_telegram_notifications(
+        class_message=occupied_class_message,
+        faculty_message=occupied_class_message,
+        class_chat_ids=occupied_telegram_chat_ids,
+        faculty_chat_id=secondary_chat_id,
+        faculty_name=secondary_fac_name,
+    )
 
     return (
         jsonify(
@@ -314,6 +405,7 @@ def execute_rearrange():
                         "message": target_class_message,
                         "new_faculty": primary_fac_name,
                         "previous_faculty": secondary_fac_name,
+                        "notification_result": target_notification_result,
                     },
                     {
                         "branch": occupied_branch,
@@ -322,15 +414,19 @@ def execute_rearrange():
                         "message": occupied_class_message,
                         "new_faculty": secondary_fac_name,
                         "previous_faculty": primary_fac_name,
+                        "notification_result": occupied_notification_result,
                     },
                 ],
                 "message": "Rearrangement successful for both classes",
                 "detailed_message": target_class_message,  # Keep for backward compatibility
+                "notification_results": {
+                    "target_class": target_notification_result,
+                    "occupied_class": occupied_notification_result,
+                },
             }
         ),
         200,
     )
-
 
 # [Auto rearrange]
 @rearrange_lecture_bp.route("/rearrange-lecture", methods=["POST", "OPTIONS"])
@@ -373,7 +469,7 @@ def rearrange_lecture():
             selected_date,
         )
 
-        fac_name = get_faculty_name(fac_id)
+        fac_name, fac_chat_id = get_faculty_info(fac_id)
 
         message = (
             f"@ {branch}_{class_name}\t"
@@ -383,7 +479,33 @@ def rearrange_lecture():
             f"Faculty: {fac_name}\n\n"
             f"Location: Same as per timetable"
         )
-        send_telegram_message(message)
+
+        # Get Telegram Chat IDs for target class
+        target_class_doc = db.classwise_faculty.find_one(
+            {"class": class_name, "sem": sem, "branch": branch}
+        )
+
+        target_telegram_chat_ids = []
+        if target_class_doc:
+            target_telegram_chat_ids = target_class_doc.get("telegram_chat_ids", [])
+            # Handle both old and new formats
+            if isinstance(target_telegram_chat_ids, str):
+                target_telegram_chat_ids = (
+                    [target_telegram_chat_ids]
+                    if target_telegram_chat_ids.strip()
+                    else []
+                )
+            elif target_telegram_chat_ids is None:
+                target_telegram_chat_ids = []
+
+        # Send notifications for target class only
+        notification_result = send_telegram_notifications(
+            class_message=message,
+            faculty_message=message,
+            class_chat_ids=target_telegram_chat_ids,
+            faculty_chat_id=fac_chat_id,
+            faculty_name=fac_name,
+        )
 
         return (
             jsonify(
@@ -393,6 +515,7 @@ def rearrange_lecture():
                     "faculty_name": fac_name,
                     "type": "direct",
                     "message": message,
+                    "notification_result": notification_result,
                 }
             ),
             200,
@@ -451,10 +574,12 @@ def rearrange_lecture():
             selected_date,
         )
 
-        # Get faculty names
-        primary_fac_name = get_faculty_name(fac_id)
-        secondary_fac_name = get_faculty_name(new_fac)
+        # Get faculty names and chat IDs
+        primary_fac_name, primary_chat_id = get_faculty_info(fac_id)
+        secondary_fac_name, secondary_chat_id = get_faculty_info(new_fac)
 
+        print(primary_chat_id)
+        print(secondary_chat_id)
         # Create separate messages for both affected classes
         target_class_message = (
             f"@ {branch}_{class_name}\t"
@@ -474,9 +599,57 @@ def rearrange_lecture():
             f"Location: Same as per timetable"
         )
 
-        # Send both Telegram messages
-        send_telegram_message(target_class_message)
-        send_telegram_message(occupied_class_message)
+        # Get Telegram Chat IDs for TARGET class
+        target_class_doc = db.classwise_faculty.find_one(
+            {"class": class_name, "sem": sem, "branch": branch}
+        )
+        target_telegram_chat_ids = []
+        if target_class_doc:
+            target_telegram_chat_ids = target_class_doc.get("telegram_chat_ids", [])
+            # Handle both old and new formats
+            if isinstance(target_telegram_chat_ids, str):
+                target_telegram_chat_ids = (
+                    [target_telegram_chat_ids]
+                    if target_telegram_chat_ids.strip()
+                    else []
+                )
+            elif target_telegram_chat_ids is None:
+                target_telegram_chat_ids = []
+
+        # Get Telegram Chat IDs for OCCUPIED class
+        occupied_class_doc = db.classwise_faculty.find_one(
+            {"class": occupied_class, "sem": occupied_sem, "branch": occupied_branch}
+        )
+        occupied_telegram_chat_ids = []
+        if occupied_class_doc:
+            occupied_telegram_chat_ids = occupied_class_doc.get("telegram_chat_ids", [])
+            # Handle both old and new formats
+            if isinstance(occupied_telegram_chat_ids, str):
+                occupied_telegram_chat_ids = (
+                    [occupied_telegram_chat_ids]
+                    if occupied_telegram_chat_ids.strip()
+                    else []
+                )
+            elif occupied_telegram_chat_ids is None:
+                occupied_telegram_chat_ids = []
+
+        # Send notifications for TARGET class
+        target_notification_result = send_telegram_notifications(
+            class_message=target_class_message,
+            faculty_message=target_class_message,
+            class_chat_ids=target_telegram_chat_ids,
+            faculty_chat_id=primary_chat_id,
+            faculty_name=primary_fac_name,
+        )
+
+        # Send notifications for OCCUPIED class
+        occupied_notification_result = send_telegram_notifications(
+            class_message=occupied_class_message,
+            faculty_message=occupied_class_message,
+            class_chat_ids=occupied_telegram_chat_ids,
+            faculty_chat_id=secondary_chat_id,
+            faculty_name=secondary_fac_name,
+        )
 
         return (
             jsonify(
@@ -495,6 +668,7 @@ def rearrange_lecture():
                             "message": target_class_message,
                             "new_faculty": primary_fac_name,
                             "previous_faculty": secondary_fac_name,
+                            "notification_result": target_notification_result,
                         },
                         {
                             "branch": occupied_branch,
@@ -503,10 +677,15 @@ def rearrange_lecture():
                             "message": occupied_class_message,
                             "new_faculty": secondary_fac_name,
                             "previous_faculty": primary_fac_name,
+                            "notification_result": occupied_notification_result,
                         },
                     ],
                     "message": "Rearrangement successful for both classes",
                     "detailed_message": target_class_message,  # Keep for backward compatibility
+                    "notification_results": {
+                        "target_class": target_notification_result,
+                        "occupied_class": occupied_notification_result,
+                    },
                 }
             ),
             200,

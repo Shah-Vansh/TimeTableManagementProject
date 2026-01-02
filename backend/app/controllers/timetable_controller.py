@@ -12,7 +12,7 @@ DAYS_MAP = {
     "Thursday": "thu",
     "Friday": "fri",
     "Saturday": "sat",
-    "Sunday": "sun"
+    "Sunday": "sun",
 }
 
 ALLOWED_BRANCHES = ["CSE", "CSE(AIML)", "DS", "IT"]
@@ -57,29 +57,25 @@ def get_all_faculties():
     """
     try:
         faculty_tt_col = db.faculty_timetable
-        
+
         # Fetch all faculty documents
         faculties = list(faculty_tt_col.find({}, {"_id": 1, "name": 1}))
-        
+
         # Format the response
         faculty_list = []
         for faculty in faculties:
-            faculty_list.append({
-                "id": faculty.get("_id"),
-                "name": faculty.get("name", faculty.get("_id"))
-            })
-        
-        return jsonify({
-            "success": True,
-            "faculties": faculty_list
-        }), 200
-        
+            faculty_list.append(
+                {
+                    "id": faculty.get("_id"),
+                    "name": faculty.get("name", faculty.get("_id")),
+                }
+            )
+
+        return jsonify({"success": True, "faculties": faculty_list}), 200
+
     except Exception as e:
         print("ERROR fetching faculties:", e)
-        return jsonify({
-            "success": False,
-            "error": "Failed to fetch faculties"
-        }), 500
+        return jsonify({"success": False, "error": "Failed to fetch faculties"}), 500
 
 
 # ===============================
@@ -91,6 +87,17 @@ def save_timetable():
         branch = request.form.get("branch")
         class_name = request.form.get("class")
         schedule_raw = request.form.get("schedule")
+
+        # Get Telegram Chat IDs from form data (array)
+        telegram_chat_ids = []
+        i = 0
+        while True:
+            chat_id = request.form.get(f"telegram_chat_ids[{i}]")
+            if chat_id is None:
+                break
+            if str(chat_id).strip():
+                telegram_chat_ids.append(str(chat_id).strip())
+            i += 1
 
         # ===============================
         # 🔹 BASIC VALIDATION
@@ -123,18 +130,22 @@ def save_timetable():
         safe_branch = branch.lower().replace("(", "").replace(")", "")
         class_id = f"sem{sem}_{safe_branch}_{class_name.lower()}"
 
-        classwise_col.update_one(
-            {"_id": class_id},
-            {
-                "$set": {
-                    "sem": sem,
-                    "branch": branch,
-                    "class": class_name,
-                    "allowed_faculty": list(allowed_faculty)
-                }
-            },
-            upsert=True
-        )
+        # Prepare update data
+        update_data = {
+            "sem": sem,
+            "branch": branch,
+            "class": class_name,
+            "allowed_faculty": list(allowed_faculty),
+        }
+
+        # Add Telegram Chat IDs if provided
+        if telegram_chat_ids:
+            update_data["telegram_chat_ids"] = telegram_chat_ids
+        else:
+            # If no chat IDs provided, set empty array
+            update_data["telegram_chat_ids"] = []
+
+        classwise_col.update_one({"_id": class_id}, {"$set": update_data}, upsert=True)
 
         # ===============================
         # 2️⃣ VALIDATE FACULTIES EXIST
@@ -173,15 +184,15 @@ def save_timetable():
                     faculty_updates[faculty_id][day_key] = {}
 
                 # Store the class assignment for this slot
-                faculty_updates[faculty_id][day_key][slot_index] = (
-                    f"{branch}-{class_name}-Sem{sem}-{time_slot}"
-                )
+                faculty_updates[faculty_id][day_key][
+                    slot_index
+                ] = f"{branch}-{class_name}-Sem{sem}-{time_slot}"
 
         # ===============================
         # 4️⃣ MERGE WITH EXISTING TIMETABLES (WITH CONFLICT CHECK)
         # ===============================
         for faculty_id, new_assignments in faculty_updates.items():
-            
+
             # Get existing timetable
             existing = faculty_tt_col.find_one({"_id": faculty_id}) or {}
             existing_tt = existing.get("timetable", {})
@@ -203,14 +214,19 @@ def save_timetable():
 
                     # ❌ Conflict found
                     if old_class != "free" and old_class != new_class:
-                        return jsonify({
-                            "error": "Faculty lecture conflict",
-                            "faculty": faculty_id,
-                            "day": day_key,
-                            "time_slot": f"Time Slot {slot_index + 1}",
-                            "existing_lecture": old_class,
-                            "new_lecture": new_class
-                        }), 409
+                        return (
+                            jsonify(
+                                {
+                                    "error": "Faculty lecture conflict",
+                                    "faculty": faculty_id,
+                                    "day": day_key,
+                                    "time_slot": f"Time Slot {slot_index + 1}",
+                                    "existing_lecture": old_class,
+                                    "new_lecture": new_class,
+                                }
+                            ),
+                            409,
+                        )
 
                     # ✅ Safe to assign
                     normalized_tt[day_key][slot_index] = new_class
@@ -218,19 +234,23 @@ def save_timetable():
             # Update faculty timetable in database
             faculty_tt_col.update_one(
                 {"_id": faculty_id},
-                {
-                    "$set": {
-                        "timetable": normalized_tt
-                    }
-                },
-                upsert=False
+                {"$set": {"timetable": normalized_tt}},
+                upsert=False,
             )
 
-        return jsonify({
-            "message": "Timetable saved successfully",
-            "class_id": class_id,
-            "faculty_updated": list(faculty_updates.keys())
-        }), 200
+            return (
+                jsonify(
+                    {
+                        "message": "Timetable saved successfully",
+                        "class_id": class_id,
+                        "faculty_updated": list(faculty_updates.keys()),
+                        "telegram_chat_ids": (
+                            telegram_chat_ids if telegram_chat_ids else []
+                        ),
+                    }
+                ),
+                200,
+            )
 
     except Exception as e:
         print("ERROR:", e)
