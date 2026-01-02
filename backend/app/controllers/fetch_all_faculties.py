@@ -50,7 +50,8 @@ def get_all_faculties():
             {
                 '_id': 1,
                 'name': 1,
-                'timetable': 1
+                'timetable': 1,
+                'isAdmin': 1
             }
         ))
         
@@ -63,7 +64,8 @@ def get_all_faculties():
                 'id': str(faculty_id),
                 'faculty_id': str(faculty_id),
                 'name': faculty.get('name', 'Unknown Faculty'),
-                'timetable': faculty.get('timetable', {})
+                'timetable': faculty.get('timetable', {}),
+                'isAdmin': faculty.get('isAdmin', False) 
             }
             formatted_faculties.append(formatted_faculty)
         
@@ -364,7 +366,7 @@ def toggle_faculty_admin(faculty_id):
     """
     try:
         # Get the requesting user's ID from request context (middleware should set it)
-        requester_id = getattr(request, "user_id", None)
+        requester_id = request.user_id
         if requester_id == faculty_id:
             return jsonify({
                 'success': False,

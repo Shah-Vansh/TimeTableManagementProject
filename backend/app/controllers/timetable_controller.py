@@ -1,5 +1,6 @@
 import json
 from flask import request, jsonify
+from collections import defaultdict
 from app.database.mongo import db
 
 # ===============================
@@ -12,10 +13,10 @@ DAYS_MAP = {
     "Thursday": "thu",
     "Friday": "fri",
     "Saturday": "sat",
-    "Sunday": "sun",
+    "Sunday": "sun"
 }
 
-ALLOWED_BRANCHES = ["CSE", "CSE(AIML)", "DS", "IT"]
+ALLOWED_BRANCHES = ["CSE", "CSE(AIML)", "DS"]
 
 TIME_SLOT_INDEX = {
     "Time Slot 1": 0,
@@ -49,36 +50,6 @@ def normalize_day_slots(day_list, total_slots=TOTAL_SLOTS):
 
 
 # ===============================
-# 🔹 GET ALL FACULTIES
-# ===============================
-def get_all_faculties():
-    """
-    Fetches all faculties from faculty_timetable collection
-    """
-    try:
-        faculty_tt_col = db.faculty_timetable
-
-        # Fetch all faculty documents
-        faculties = list(faculty_tt_col.find({}, {"_id": 1, "name": 1}))
-
-        # Format the response
-        faculty_list = []
-        for faculty in faculties:
-            faculty_list.append(
-                {
-                    "id": faculty.get("_id"),
-                    "name": faculty.get("name", faculty.get("_id")),
-                }
-            )
-
-        return jsonify({"success": True, "faculties": faculty_list}), 200
-
-    except Exception as e:
-        print("ERROR fetching faculties:", e)
-        return jsonify({"success": False, "error": "Failed to fetch faculties"}), 500
-
-
-# ===============================
 # 🔹 MAIN CONTROLLER
 # ===============================
 def save_timetable():
@@ -87,17 +58,6 @@ def save_timetable():
         branch = request.form.get("branch")
         class_name = request.form.get("class")
         schedule_raw = request.form.get("schedule")
-
-        # Get Telegram Chat IDs from form data (array)
-        telegram_chat_ids = []
-        i = 0
-        while True:
-            chat_id = request.form.get(f"telegram_chat_ids[{i}]")
-            if chat_id is None:
-                break
-            if str(chat_id).strip():
-                telegram_chat_ids.append(str(chat_id).strip())
-            i += 1
 
         # ===============================
         # 🔹 BASIC VALIDATION
@@ -117,87 +77,100 @@ def save_timetable():
         classwise_col = db.classwise_faculty
         faculty_tt_col = db.faculty_timetable
 
-        # ===============================
-        # 1️⃣ EXTRACT ALLOWED FACULTY & UPDATE CLASSWISE
-        # ===============================
-        allowed_faculty = set()
-
-        for day in schedule.values():
-            for faculty in day.values():
-                if faculty != "free":
-                    allowed_faculty.add(faculty)
-
         safe_branch = branch.lower().replace("(", "").replace(")", "")
         class_id = f"sem{sem}_{safe_branch}_{class_name.lower()}"
 
-        # Prepare update data
-        update_data = {
-            "sem": sem,
-            "branch": branch,
-            "class": class_name,
-            "allowed_faculty": list(allowed_faculty),
-        }
-
-        # Add Telegram Chat IDs if provided
-        if telegram_chat_ids:
-            update_data["telegram_chat_ids"] = telegram_chat_ids
-        else:
-            # If no chat IDs provided, set empty array
-            update_data["telegram_chat_ids"] = []
-
-        classwise_col.update_one({"_id": class_id}, {"$set": update_data}, upsert=True)
+        # ===============================
+        # 🔹 CHECK IF TIMETABLE EXISTS
+        # ===============================
+        existing_class = classwise_col.find_one({"_id": class_id})
+        is_new = existing_class is None
 
         # ===============================
-        # 2️⃣ VALIDATE FACULTIES EXIST
+        # 1️⃣ GET OLD AND NEW FACULTY LISTS
         # ===============================
-        # for faculty_id in allowed_faculty:
-        #     existing_faculty = faculty_tt_col.find_one({"_id": faculty_id})
-        #     if not existing_faculty:
-        #         return jsonify({
-        #             "error": f"Faculty {faculty_id} does not exist in database"
-        #         }), 400
+        old_faculty = set(existing_class.get("allowed_faculty", [])) if existing_class else set()
+        
+        new_faculty = set()
+        for day in schedule.values():
+            for faculty in day.values():
+                if faculty != "free":
+                    new_faculty.add(faculty)
+
+        # Faculty who are removed from this class (only relevant for edits)
+        removed_faculty = old_faculty - new_faculty
+        # Faculty who remain or are added
+        active_faculty = new_faculty
 
         # ===============================
-        # 3️⃣ DIRECTLY UPDATE FACULTY TIMETABLES
+        # 2️⃣ BUILD NEW FACULTY TABLES
         # ===============================
-        faculty_updates = {}
+        faculty_tables = defaultdict(lambda: {
+            "mon": ["free"] * TOTAL_SLOTS,
+            "tue": ["free"] * TOTAL_SLOTS,
+            "wed": ["free"] * TOTAL_SLOTS,
+            "thu": ["free"] * TOTAL_SLOTS,
+            "fri": ["free"] * TOTAL_SLOTS,
+            "sat": ["free"] * TOTAL_SLOTS,
+        })
 
-        # Process schedule and prepare updates for each faculty
         for day_name, slots in schedule.items():
             day_key = DAYS_MAP.get(day_name)
             if not day_key or day_key == "sun":
                 continue
 
-            for time_slot, faculty_id in slots.items():
-                if faculty_id == "free":
+            for time_slot, faculty in slots.items():
+                if faculty == "free":
                     continue
 
                 slot_index = TIME_SLOT_INDEX.get(time_slot)
                 if slot_index is None:
                     continue
 
-                # Initialize faculty update structure if needed
-                if faculty_id not in faculty_updates:
-                    faculty_updates[faculty_id] = {}
-
-                if day_key not in faculty_updates[faculty_id]:
-                    faculty_updates[faculty_id][day_key] = {}
-
-                # Store the class assignment for this slot
-                faculty_updates[faculty_id][day_key][
-                    slot_index
-                ] = f"{branch}-{class_name}-Sem{sem}-{time_slot}"
+                faculty_tables[faculty][day_key][slot_index] = (
+                    f"{branch}-{class_name}-Sem{sem}-{time_slot}"
+                )
 
         # ===============================
-        # 4️⃣ MERGE WITH EXISTING TIMETABLES (WITH CONFLICT CHECK)
+        # 3️⃣ REMOVE OLD LECTURES FOR REMOVED FACULTY (only for edits)
         # ===============================
-        for faculty_id, new_assignments in faculty_updates.items():
+        if not is_new:
+            for faculty_id in removed_faculty:
+                existing = faculty_tt_col.find_one({"_id": faculty_id})
+                if not existing:
+                    continue
 
-            # Get existing timetable
+                existing_tt = existing.get("timetable", {})
+                normalized_tt = {
+                    "mon": normalize_day_slots(existing_tt.get("mon")),
+                    "tue": normalize_day_slots(existing_tt.get("tue")),
+                    "wed": normalize_day_slots(existing_tt.get("wed")),
+                    "thu": normalize_day_slots(existing_tt.get("thu")),
+                    "fri": normalize_day_slots(existing_tt.get("fri")),
+                    "sat": normalize_day_slots(existing_tt.get("sat")),
+                }
+
+                # Remove lectures matching this class pattern
+                class_pattern = f"{branch}-{class_name}-Sem{sem}-"
+                
+                for day in normalized_tt:
+                    for i in range(TOTAL_SLOTS):
+                        if normalized_tt[day][i].startswith(class_pattern):
+                            normalized_tt[day][i] = "free"
+
+                faculty_tt_col.update_one(
+                    {"_id": faculty_id},
+                    {"$set": {"timetable": normalized_tt}},
+                    upsert=True
+                )
+
+        # ===============================
+        # 4️⃣ UPDATE ACTIVE FACULTY TIMETABLES
+        # ===============================
+        for faculty_id in active_faculty:
             existing = faculty_tt_col.find_one({"_id": faculty_id}) or {}
             existing_tt = existing.get("timetable", {})
 
-            # Normalize existing timetable
             normalized_tt = {
                 "mon": normalize_day_slots(existing_tt.get("mon")),
                 "tue": normalize_day_slots(existing_tt.get("tue")),
@@ -207,50 +180,75 @@ def save_timetable():
                 "sat": normalize_day_slots(existing_tt.get("sat")),
             }
 
-            # 🔴 CONFLICT DETECTION & MERGE
-            for day_key, slot_assignments in new_assignments.items():
-                for slot_index, new_class in slot_assignments.items():
-                    old_class = normalized_tt[day_key][slot_index]
+            # For edits, remove old lectures for this class first
+            if not is_new:
+                class_pattern = f"{branch}-{class_name}-Sem{sem}-"
+                
+                for day in normalized_tt:
+                    for i in range(TOTAL_SLOTS):
+                        if normalized_tt[day][i].startswith(class_pattern):
+                            normalized_tt[day][i] = "free"
 
-                    # ❌ Conflict found
-                    if old_class != "free" and old_class != new_class:
-                        return (
-                            jsonify(
-                                {
-                                    "error": "Faculty lecture conflict",
-                                    "faculty": faculty_id,
-                                    "day": day_key,
-                                    "time_slot": f"Time Slot {slot_index + 1}",
-                                    "existing_lecture": old_class,
-                                    "new_lecture": new_class,
-                                }
-                            ),
-                            409,
-                        )
+            # Now check for conflicts with new schedule
+            new_tt = faculty_tables[faculty_id]
+            
+            for day in new_tt:
+                for i in range(TOTAL_SLOTS):
+                    new_val = new_tt[day][i]
+                    old_val = normalized_tt[day][i]
 
-                    # ✅ Safe to assign
-                    normalized_tt[day_key][slot_index] = new_class
+                    # ❌ conflict with OTHER classes
+                    if new_val != "free" and old_val != "free":
+                        return jsonify({
+                            "error": "Faculty lecture conflict",
+                            "faculty": faculty_id,
+                            "day": day,
+                            "time_slot": f"Time Slot {i + 1}",
+                            "existing_lecture": old_val
+                        }), 409
 
-            # Update faculty timetable in database
+            # ✅ NO CONFLICT → MERGE NEW SCHEDULE
+            for day in new_tt:
+                for i in range(TOTAL_SLOTS):
+                    if new_tt[day][i] != "free":
+                        normalized_tt[day][i] = new_tt[day][i]
+
             faculty_tt_col.update_one(
                 {"_id": faculty_id},
-                {"$set": {"timetable": normalized_tt}},
-                upsert=False,
+                {
+                    "$set": {
+                        "_id": faculty_id,
+                        "timetable": normalized_tt
+                    }
+                },
+                upsert=True
             )
 
-            return (
-                jsonify(
-                    {
-                        "message": "Timetable saved successfully",
-                        "class_id": class_id,
-                        "faculty_updated": list(faculty_updates.keys()),
-                        "telegram_chat_ids": (
-                            telegram_chat_ids if telegram_chat_ids else []
-                        ),
-                    }
-                ),
-                200,
-            )
+        # ===============================
+        # 5️⃣ UPDATE/INSERT CLASSWISE FACULTY
+        # ===============================
+        classwise_col.update_one(
+            {"_id": class_id},
+            {
+                "$set": {
+                    "sem": sem,
+                    "branch": branch,
+                    "class": class_name,
+                    "allowed_faculty": list(new_faculty)
+                }
+            },
+            upsert=True  # This allows both insert and update
+        )
+
+        action = "created" if is_new else "updated"
+        
+        return jsonify({
+            "message": f"Timetable {action} successfully",
+            "class_id": class_id,
+            "action": action,
+            "faculty_updated": list(active_faculty),
+            "faculty_removed": list(removed_faculty) if not is_new else []
+        }), 200
 
     except Exception as e:
         print("ERROR:", e)

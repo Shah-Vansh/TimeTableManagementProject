@@ -31,14 +31,11 @@ export default function EditTimetable() {
   ];
 
   const timeSlots = [
-    { label: "8:00 - 9:00", value: "Time Slot 1" },
-    { label: "9:00 - 10:00", value: "Time Slot 2" },
-    { label: "10:00 - 11:00", value: "Time Slot 3" },
-    { label: "11:00 - 12:00", value: "Time Slot 4" },
-    { label: "12:00 - 1:00", value: "Time Slot 5" },
-    { label: "1:00 - 2:00", value: "Time Slot 6" },
-    { label: "2:00 - 3:00", value: "Time Slot 7" },
-    { label: "3:00 - 4:00", value: "Time Slot 8" },
+    { label: "9:00 - 10:00", value: "Time Slot 1" },
+    { label: "10:00 - 11:00", value: "Time Slot 2" },
+    { label: "11:45 - 12:45", value: "Time Slot 3" },
+    { label: "12:45 - 1:45", value: "Time Slot 4" },
+    { label: "2:00 - 3:00", value: "Time Slot 5" },
   ];
 
   const branchOptions = ["CSE", "CSE(AIML)", "DS", "ECE", "EEE", "ME", "CE"];

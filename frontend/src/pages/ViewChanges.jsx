@@ -116,12 +116,9 @@ export default function ViewChanges() {
     const TIME_SLOTS = [
       { key: "Time Slot 1", label: "9:00 AM - 10:00 AM" },
       { key: "Time Slot 2", label: "10:00 AM - 11:00 AM" },
-      { key: "Time Slot 3", label: "11:00 AM - 12:00 PM" },
-      { key: "Time Slot 4", label: "12:00 PM - 1:00 PM" },
-      { key: "Time Slot 5", label: "1:00 PM - 2:00 PM" },
-      { key: "Time Slot 6", label: "2:00 PM - 3:00 PM" },
-      { key: "Time Slot 7", label: "3:00 PM - 4:00 PM" },
-      { key: "Time Slot 8", label: "4:00 PM - 5:00 PM" },
+      { key: "Time Slot 3", label: "11:45 AM - 12:45 PM" },
+      { key: "Time Slot 4", label: "12:45 PM - 1:45 PM" },
+      { key: "Time Slot 5", label: "2:00 PM - 3:00 PM" },
     ];
 
     DAYS.forEach((day) => {

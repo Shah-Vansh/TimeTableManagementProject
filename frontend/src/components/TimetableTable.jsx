@@ -22,9 +22,9 @@ const TimetableTable = ({
   const timeSlots = [
     { label: "Lecture 1", time: "9:00 - 10:00" },
     { label: "Lecture 2", time: "10:00 - 11:00" },
-    { label: "Lecture 3", time: "11:00 - 12:00" },
-    { label: "Lecture 4", time: "12:00 - 1:00" },
-    { label: "Lecture 5", time: "1:00 - 2:00" },
+    { label: "Lecture 3", time: "11:45 - 12:45" },
+    { label: "Lecture 4", time: "12:45 - 1:45" },
+    { label: "Lecture 5", time: "2:00 - 3:00" },
   ];
 
   const getCellColor = (lecture) => {

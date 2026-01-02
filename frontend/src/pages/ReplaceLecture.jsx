@@ -44,12 +44,9 @@ export default function ReplaceLecture() {
   const timeSlots = [
     { value: 0, label: "9:00 AM - 10:00 AM" },
     { value: 1, label: "10:00 AM - 11:00 AM" },
-    { value: 2, label: "11:00 AM - 12:00 PM" },
-    { value: 3, label: "12:00 PM - 1:00 PM" },
-    { value: 4, label: "1:00 PM - 2:00 PM" },
-    { value: 5, label: "2:00 PM - 3:00 PM" },
-    { value: 6, label: "3:00 PM - 4:00 PM" },
-    { value: 7, label: "4:00 PM - 5:00 PM" },
+    { value: 2, label: "11:45 AM - 12:45 PM" },
+    { value: 3, label: "12:45 PM - 1:45 PM" },
+    { value: 4, label: "2:00 PM - 3:00 PM" },
   ];
 
   // Get today's date and day
