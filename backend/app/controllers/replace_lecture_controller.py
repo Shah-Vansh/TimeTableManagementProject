@@ -215,7 +215,7 @@ def assign_faculty():
         f"Change in Lecture\n\n"
         f"Date: {formatted_date}\n\n"
         f"Lecture no.: {lec_no+1}\n\n"
-        f"Faculty: {faculty_name}\n\n"
+        f"Faculty: {faculty_id}\n\n"
         f"Location: Same as per timetable"
     )
 
@@ -252,7 +252,7 @@ def assign_faculty():
                     f"Change in Lecture\n\n"
                     f"Date: {formatted_date}\n\n"
                     f"Lecture no.: {lec_no+1}\n\n"
-                    f"Faculty: {faculty_name}\n\n"
+                    f"Faculty: {faculty_id}\n\n"
                     f"Location: Same as per timetable"
                 ),
             }
@@ -328,7 +328,7 @@ def replace_lecture():
             f"Change in Lecture\n\n"
             f"Date: {formatted_date}\n\n"
             f"Lecture no.: {lec_no+1}\n\n"
-            f"Faculty: {faculty_name}\n\n"
+            f"Faculty: {assign_faculty}\n\n"
             f"Location: Same as per timetable"
         )
 

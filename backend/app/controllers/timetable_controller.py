@@ -104,7 +104,7 @@ def save_timetable():
 
         # ===============================
         # 2️⃣ BUILD NEW FACULTY TABLES
-        # ===============================
+        # ========================                                                      =======
         faculty_tables = defaultdict(lambda: {
             "mon": ["free"] * TOTAL_SLOTS,
             "tue": ["free"] * TOTAL_SLOTS,

@@ -611,12 +611,12 @@ export default function FacultyProfile() {
                           <li>
                             Click this link:
                             <a
-                              href="https://t.me/sister_saira_bot?start"
+                              href="https://t.me/sister_saira_bot?start=123"
                               target="_blank"
                               rel="noopener noreferrer"
                               className="ml-1 text-blue-600 hover:text-blue-800 hover:underline font-medium"
                             >
-                              https://t.me/MyTestBot?me
+                              https://t.me/sister_saira_bot?start
                             </a>
                           </li>
                           <li>
