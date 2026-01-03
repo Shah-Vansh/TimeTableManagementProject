@@ -218,12 +218,10 @@ function Dashboard() {
         formData.append("branch", timetable.branch);
         formData.append("class", timetable.className || timetable.class);
 
-        return api.delete("/api/timetable",{
+        return api.delete("/api/timetable", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        },
-        {
           data: formData,
         });
       });

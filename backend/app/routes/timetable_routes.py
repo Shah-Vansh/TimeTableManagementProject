@@ -10,7 +10,7 @@ from app.middlewares.admin_middleware import is_admin_required
 
 timetable_bp = Blueprint("timetable", __name__)
 
-@timetable_bp.route("/", methods=["POST"])
+@timetable_bp.route("/", methods=["POST"], strict_slashes=False)
 @token_required
 @is_admin_required
 def save():
@@ -21,12 +21,12 @@ def save():
 def fetch():
     return fetch_timetable()
 
-@timetable_bp.route("", methods=["GET"])
+@timetable_bp.route("/", methods=["GET"], strict_slashes=False)
 @token_required
 def read():
     return get_all_timetables()
 
-@timetable_bp.route("", methods=["DELETE"])
+@timetable_bp.route("/", methods=["DELETE"], strict_slashes=False)
 @token_required
 @is_admin_required
 def delete():
