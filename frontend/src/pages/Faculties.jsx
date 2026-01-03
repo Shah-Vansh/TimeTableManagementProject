@@ -29,10 +29,20 @@ import {
   User,
   Hash,
   Check,
+  Notebook,
+  PenTool,
+  Clipboard,
+  FileText,
+  Bookmark,
+  StickyNote,
+  Highlighter,
+  Compass,
+  Archive,
+  Layers
 } from "lucide-react";
 import api from "../configs/api";
 import EditFacultyModal from "../components/EditFacultyModal";
-import Alert from "../components/Alert"; // Import the Alert component
+import Alert from "../components/Alert";
 
 export default function Faculties() {
   const [faculties, setFaculties] = useState([]);
@@ -62,7 +72,7 @@ export default function Faculties() {
 
   // Filters state
   const [filters, setFilters] = useState([
-    { id: "all", label: "All Faculties", count: 0 },
+    { id: "all", label: "All Tutors", count: 0 },
     { id: "active", label: "Currently Teaching", count: 0 },
     { id: "available", label: "Available", count: 0 },
   ]);
@@ -117,7 +127,7 @@ export default function Faculties() {
   const updateFilterCounts = (facultyList) => {
     if (!facultyList || facultyList.length === 0) {
       setFilters([
-        { id: "all", label: "All Faculties", count: 0 },
+        { id: "all", label: "All Tutors", count: 0 },
         { id: "active", label: "Currently Teaching", count: 0 },
         { id: "available", label: "Available", count: 0 },
       ]);
@@ -136,7 +146,7 @@ export default function Faculties() {
     });
 
     setFilters([
-      { id: "all", label: "All Faculties", count: facultyList.length },
+      { id: "all", label: "All Tutors", count: facultyList.length },
       { id: "active", label: "Currently Teaching", count: activeCount },
       { id: "available", label: "Available", count: availableCount },
     ]);
@@ -184,7 +194,7 @@ export default function Faculties() {
       }
     } catch (error) {
       console.error("Error fetching faculties:", error);
-      showAlert("error", "Failed to load faculties", "Please try again.");
+      showAlert("error", "Failed to load tutors", "Please try again.");
     } finally {
       setLoading(false);
     }
@@ -217,12 +227,12 @@ export default function Faculties() {
   ======================= */
   const handleCreateNewFaculty = async () => {
     if (!newFacultyId.trim()) {
-      setCreateFacultyError("Faculty ID is required");
+      setCreateFacultyError("Tutor ID is required");
       return;
     }
 
     if (!newFacultyName.trim()) {
-      setCreateFacultyError("Faculty Name is required");
+      setCreateFacultyError("Tutor Name is required");
       return;
     }
 
@@ -232,7 +242,7 @@ export default function Faculties() {
     );
 
     if (facultyExists) {
-      setCreateFacultyError("A faculty with this ID already exists");
+      setCreateFacultyError("A tutor with this ID already exists");
       return;
     }
 
@@ -266,17 +276,17 @@ export default function Faculties() {
 
         showAlert(
           "success",
-          "Faculty created successfully",
+          "Tutor created successfully",
           "Credentials have been generated."
         );
       } else {
-        throw new Error(response.data.error || "Failed to create faculty");
+        throw new Error(response.data.error || "Failed to create tutor");
       }
     } catch (error) {
       console.error("Error creating faculty:", error);
       setCreateFacultyError(
         error.response?.data?.error ||
-          "Failed to create faculty. Please try again."
+          "Failed to create tutor. Please try again."
       );
     } finally {
       setIsCreatingFaculty(false);
@@ -296,10 +306,10 @@ export default function Faculties() {
   const downloadCredentials = () => {
     if (!generatedCredentials) return;
 
-    const content = `Faculty Login Credentials
+    const content = `Tutor Login Credentials
 ========================
 
-Faculty Name: ${generatedCredentials.name}
+Tutor Name: ${generatedCredentials.name}
 Username: ${generatedCredentials.username}
 Password: ${generatedCredentials.password}
 
@@ -331,7 +341,7 @@ Generated on: ${new Date().toLocaleString()}
     try {
       const token = localStorage.getItem("token");
       const response = await api.patch(
-        `/api/faculties/${faculty_id}/toggle-admin`, // Changed endpoint
+        `/api/faculties/${faculty_id}/toggle-admin`,
         {},
         {
           headers: {
@@ -362,7 +372,7 @@ Generated on: ${new Date().toLocaleString()}
         showAlert(
           "success",
           "Admin status updated",
-          `"${facultyName || "Faculty"}" is now ${
+          `"${facultyName || "Tutor"}" is now ${
             !currentStatus ? "an admin" : "a regular user"
           }`
         );
@@ -402,7 +412,7 @@ Generated on: ${new Date().toLocaleString()}
     fetchFaculties();
     showAlert(
       "success",
-      "Faculty updated successfully",
+      "Tutor updated successfully",
       `"${editingFaculty?.name}" has been updated.`
     );
   };
@@ -426,7 +436,7 @@ Generated on: ${new Date().toLocaleString()}
       if (response.data.success) {
         showAlert(
           "success",
-          "Faculty deleted successfully",
+          "Tutor deleted successfully",
           `"${selectedFaculty.name}" has been removed.`
         );
         setShowDeleteModal(false);
@@ -435,7 +445,7 @@ Generated on: ${new Date().toLocaleString()}
       } else {
         showAlert(
           "error",
-          "Failed to delete faculty",
+          "Failed to delete tutor",
           response.data.error || "Please try again."
         );
       }
@@ -443,7 +453,7 @@ Generated on: ${new Date().toLocaleString()}
       console.error("Error deleting faculty:", error);
       showAlert(
         "error",
-        "Failed to delete faculty",
+        "Failed to delete tutor",
         error.response?.data?.error || "Please try again."
       );
     }
@@ -551,7 +561,7 @@ Generated on: ${new Date().toLocaleString()}
      🔹 RENDER
   ======================= */
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 p-4 md:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-blue-50 p-4 md:p-6">
       {/* Alert Component */}
       {alert.show && (
         <Alert
@@ -565,16 +575,16 @@ Generated on: ${new Date().toLocaleString()}
       {/* Credentials Modal */}
       {showCredentialsModal && generatedCredentials && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 z-[100]">
-          <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
-            <div className="p-6 bg-gradient-to-r from-green-500 to-emerald-600 text-white">
+          <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl border border-amber-200">
+            <div className="p-6 bg-gradient-to-r from-green-400 to-green-600 text-white">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
                   <Key className="w-6 h-6" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold">Credentials Generated!</h2>
-                  <p className="text-green-100 text-sm mt-1">
-                    Faculty account created successfully
+                  <h2 className="text-xl font-bold">Study Access Created!</h2>
+                  <p className="text-orange-100 text-sm mt-1">
+                    Tutor account created successfully
                   </p>
                 </div>
               </div>
@@ -585,7 +595,7 @@ Generated on: ${new Date().toLocaleString()}
                 <div className="flex gap-3">
                   <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="font-medium text-amber-900 text-sm">
+                    <p className="font-bold text-amber-900 text-sm">
                       Important: Save These Credentials
                     </p>
                     <p className="text-amber-700 text-sm mt-1">
@@ -598,8 +608,9 @@ Generated on: ${new Date().toLocaleString()}
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Faculty Name
+                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <User className="w-4 h-4" />
+                    Tutor Name
                   </label>
                   <div className="px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
                     <p className="font-medium text-gray-900">
@@ -609,7 +620,8 @@ Generated on: ${new Date().toLocaleString()}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <Bookmark className="w-4 h-4" />
                     Username (Login ID)
                   </label>
                   <div className="flex gap-2">
@@ -623,7 +635,7 @@ Generated on: ${new Date().toLocaleString()}
                           "username"
                         )
                       }
-                      className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors flex items-center gap-2"
+                      className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors flex items-center gap-2 border border-blue-200"
                     >
                       {copiedField === "username" ? (
                         <>
@@ -641,7 +653,8 @@ Generated on: ${new Date().toLocaleString()}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <Key className="w-4 h-4" />
                     Password
                   </label>
                   <div className="flex gap-2">
@@ -655,7 +668,7 @@ Generated on: ${new Date().toLocaleString()}
                           "password"
                         )
                       }
-                      className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors flex items-center gap-2"
+                      className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors flex items-center gap-2 border border-blue-200"
                     >
                       {copiedField === "password" ? (
                         <>
@@ -674,11 +687,11 @@ Generated on: ${new Date().toLocaleString()}
               </div>
             </div>
 
-            <div className="p-6 border-t border-gray-200 bg-gray-50">
+            <div className="p-6 border-t border-gray-200 bg-amber-50">
               <div className="flex gap-3">
                 <button
                   onClick={downloadCredentials}
-                  className="flex-1 px-4 py-3 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-3 bg-white border border-amber-300 text-amber-700 rounded-lg font-medium hover:bg-amber-50 transition-colors flex items-center justify-center gap-2"
                 >
                   <Download className="w-4 h-4" />
                   Download as File
@@ -688,7 +701,7 @@ Generated on: ${new Date().toLocaleString()}
                     setShowCredentialsModal(false);
                     setGeneratedCredentials(null);
                   }}
-                  className="flex-1 px-4 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
+                  className="flex-1 px-4 py-3 bg-gradient-to-r from-orange-600 to-orange-700 text-white rounded-lg font-medium hover:from-orange-700 hover:to-orange-800 transition-colors"
                 >
                   Done
                 </button>
@@ -701,25 +714,30 @@ Generated on: ${new Date().toLocaleString()}
       {/* Create Faculty Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden">
-            <div className="p-6 border-b border-gray-200">
+          <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden border border-amber-200">
+            <div className="p-6 border-b border-amber-100 bg-gradient-to-r from-amber-50 to-amber-100">
               <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900">
-                    Create New Faculty
-                  </h2>
-                  <p className="text-gray-600 text-sm mt-1">
-                    Enter faculty details to create a new faculty account
-                  </p>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-white rounded-lg border border-amber-200">
+                    <UserPlus className="w-5 h-5 text-amber-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-amber-900">
+                      Add New Tutor
+                    </h2>
+                    <p className="text-amber-700 text-sm mt-1">
+                      Enter tutor details to create a new study account
+                    </p>
+                  </div>
                 </div>
                 <button
                   onClick={() => {
                     setShowCreateModal(false);
                     resetNewFacultyForm();
                   }}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-2 hover:bg-white/50 rounded-lg transition-colors border border-amber-200"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-5 h-5 text-amber-600" />
                 </button>
               </div>
             </div>
@@ -733,40 +751,36 @@ Generated on: ${new Date().toLocaleString()}
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <div className="flex items-center gap-2">
-                      <Hash className="w-4 h-4" />
-                      Faculty ID
-                    </div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                    <Hash className="w-4 h-4" />
+                    Tutor ID
                   </label>
                   <input
                     type="text"
                     value={newFacultyId}
                     onChange={(e) => setNewFacultyId(e.target.value)}
-                    placeholder="e.g., FAC009"
-                    className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="e.g., TUT009"
+                    className="w-full px-4 py-2.5 bg-white border border-amber-200 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                   />
                   <p className="text-xs text-gray-500 mt-2">
-                    Unique identifier for the faculty
+                    Unique identifier for the tutor
                   </p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <div className="flex items-center gap-2">
-                      <User className="w-4 h-4" />
-                      Faculty Name
-                    </div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                    <User className="w-4 h-4" />
+                    Tutor Name
                   </label>
                   <input
                     type="text"
                     value={newFacultyName}
                     onChange={(e) => setNewFacultyName(e.target.value)}
                     placeholder="e.g., Dr. Sunil Verma"
-                    className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-2.5 bg-white border border-amber-200 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                   />
                   <p className="text-xs text-gray-500 mt-2">
-                    Full name of the faculty member
+                    Full name of the tutor
                   </p>
                 </div>
               </div>
@@ -777,7 +791,7 @@ Generated on: ${new Date().toLocaleString()}
                     setShowCreateModal(false);
                     resetNewFacultyForm();
                   }}
-                  className="px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors flex-1"
+                  className="px-4 py-2.5 border border-amber-300 text-amber-700 rounded-lg font-bold hover:bg-amber-50 transition-colors flex-1"
                 >
                   Cancel
                 </button>
@@ -788,12 +802,12 @@ Generated on: ${new Date().toLocaleString()}
                     !newFacultyId.trim() ||
                     !newFacultyName.trim()
                   }
-                  className={`px-4 py-2.5 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 flex-1 ${
+                  className={`px-4 py-2.5 rounded-lg font-bold transition-colors flex items-center justify-center gap-2 flex-1 ${
                     isCreatingFaculty ||
                     !newFacultyId.trim() ||
                     !newFacultyName.trim()
                       ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                      : "bg-blue-600 text-white hover:bg-blue-700"
+                      : "bg-gradient-to-r from-amber-600 to-amber-700 text-white hover:from-amber-700 hover:to-amber-800"
                   }`}
                 >
                   {isCreatingFaculty ? (
@@ -804,7 +818,7 @@ Generated on: ${new Date().toLocaleString()}
                   ) : (
                     <>
                       <Check className="w-4 h-4" />
-                      Create Faculty
+                      Create Tutor
                     </>
                   )}
                 </button>
@@ -817,43 +831,47 @@ Generated on: ${new Date().toLocaleString()}
       {/* Delete Confirmation Modal */}
       {showDeleteModal && selectedFaculty && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden">
-            <div className="p-6 border-b border-gray-200">
+          <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden border border-amber-200">
+            <div className="p-6 border-b border-amber-100 bg-gradient-to-r from-amber-50 to-amber-100">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-gray-900">
-                  Delete Faculty
-                </h2>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-white rounded-lg border border-amber-200">
+                    <Archive className="w-5 h-5 text-amber-600" />
+                  </div>
+                  <h2 className="text-xl font-bold text-amber-900">
+                    Remove Tutor
+                  </h2>
+                </div>
                 <button
                   onClick={() => setShowDeleteModal(false)}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-2 hover:bg-white/50 rounded-lg transition-colors border border-amber-200"
                 >
-                  <X className="w-5 h-5 text-gray-500" />
+                  <X className="w-5 h-5 text-amber-600" />
                 </button>
               </div>
             </div>
 
             <div className="p-6">
               <div className="flex items-center justify-center mb-6">
-                <div className="p-3 bg-red-50 rounded-full">
+                <div className="p-3 bg-gradient-to-br from-red-100 to-red-50 rounded-full border border-red-200">
                   <Trash2 className="w-8 h-8 text-red-600" />
                 </div>
               </div>
-              <h3 className="text-lg font-medium text-gray-900 text-center mb-2">
-                Delete {selectedFaculty.name}?
+              <h3 className="text-lg font-bold text-gray-900 text-center mb-2">
+                Remove {selectedFaculty.name}?
               </h3>
               <p className="text-gray-600 text-center mb-6">
-                This will permanently delete faculty "{selectedFaculty.name}"
-                (ID: {selectedFaculty.id}) and remove them from all assigned
-                timetables.
+                This will permanently remove tutor "{selectedFaculty.name}"
+                (ID: {selectedFaculty.id}) from all assigned study schedules.
               </p>
 
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+              <div className="bg-gradient-to-r from-red-50 to-rose-50 border border-red-200 rounded-lg p-4 mb-6">
                 <div className="flex items-start gap-3">
                   <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="text-red-800 font-medium">Warning</p>
+                    <p className="text-red-800 font-bold">Important Notice</p>
                     <p className="text-red-700 text-sm mt-1">
-                      This action cannot be undone. All timetable assignments
+                      This action cannot be undone. All study schedule assignments
                       will be removed.
                     </p>
                   </div>
@@ -861,20 +879,20 @@ Generated on: ${new Date().toLocaleString()}
               </div>
             </div>
 
-            <div className="p-6 border-t border-gray-200 bg-gray-50">
+            <div className="p-6 border-t border-gray-200 bg-amber-50">
               <div className="flex items-center justify-end gap-3">
                 <button
                   onClick={() => setShowDeleteModal(false)}
-                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                  className="px-4 py-2 border border-amber-300 text-amber-700 rounded-lg font-bold hover:bg-amber-50 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleDeleteFaculty}
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors flex items-center gap-2"
+                  className="px-4 py-2 bg-gradient-to-r from-red-600 to-rose-600 text-white rounded-lg font-bold hover:from-red-700 hover:to-rose-700 transition-colors flex items-center gap-2"
                 >
                   <Trash2 className="w-4 h-4" />
-                  Delete Faculty
+                  Remove Tutor
                 </button>
               </div>
             </div>
@@ -888,13 +906,15 @@ Generated on: ${new Date().toLocaleString()}
           <div className="flex items-center text-sm text-gray-600 mb-4">
             <Link
               to="/dashboard"
-              className="hover:text-gray-800 cursor-pointer"
+              className="hover:text-gray-800 cursor-pointer flex items-center gap-1"
             >
+              <Bookmark className="w-3 h-3" />
               Dashboard
             </Link>
             <ChevronRight className="w-4 h-4 mx-2" />
-            <span className="font-medium text-blue-600">
-              Faculty Management
+            <span className="font-bold text-amber-600 flex items-center gap-1">
+              <PenTool className="w-4 h-4" />
+              Study Tutors
             </span>
           </div>
         </div>
@@ -902,41 +922,48 @@ Generated on: ${new Date().toLocaleString()}
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Faculty Management
-            </h1>
-            <p className="text-gray-600">
-              Manage all faculty members and their timetables
-            </p>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2.5 bg-white rounded-xl shadow-sm border border-gray-100">
+                <PenTool className="w-6 h-6 text-amber-600" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">
+                  Study Tutors
+                </h1>
+                <p className="text-gray-600">
+                  Manage all tutors and their study schedules
+                </p>
+              </div>
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <button
               onClick={handleOpenCreateModal}
-              className="px-4 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center gap-2"
+              className="px-4 py-3 bg-gradient-to-r from-amber-600 to-amber-700 text-white rounded-lg font-bold hover:from-amber-700 hover:to-amber-800 transition-colors flex items-center gap-2 border border-amber-700"
             >
               <UserPlus className="w-5 h-5" />
-              Add Faculty
+              Add Tutor
             </button>
           </div>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+          <div className="bg-white rounded-xl p-6 border border-amber-200 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Faculties</p>
+                <p className="text-sm text-gray-600">Total Tutors</p>
                 <p className="text-2xl font-bold text-gray-900 mt-2">
                   {faculties.length}
                 </p>
               </div>
-              <div className="p-3 bg-blue-50 rounded-lg">
-                <Users className="w-6 h-6 text-blue-600" />
+              <div className="p-3 bg-gradient-to-br from-amber-50 to-amber-100 rounded-lg border border-amber-200">
+                <Users className="w-6 h-6 text-amber-600" />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+          <div className="bg-white rounded-xl p-6 border border-amber-200 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Currently Teaching</p>
@@ -944,27 +971,27 @@ Generated on: ${new Date().toLocaleString()}
                   {activeFacultiesCount}
                 </p>
               </div>
-              <div className="p-3 bg-green-50 rounded-lg">
-                <BookOpen className="w-6 h-6 text-green-600" />
+              <div className="p-3 bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg border border-orange-200">
+                <BookOpen className="w-6 h-6 text-orange-600" />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+          <div className="bg-white rounded-xl p-6 border border-amber-200 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Weekly Lectures (Avg)</p>
+                <p className="text-sm text-gray-600">Weekly Sessions (Avg)</p>
                 <p className="text-2xl font-bold text-gray-900 mt-2">
                   {averageWeeklyHours}
                 </p>
               </div>
-              <div className="p-3 bg-purple-50 rounded-lg">
-                <Clock className="w-6 h-6 text-purple-600" />
+              <div className="p-3 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200">
+                <Clock className="w-6 h-6 text-blue-600" />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+          <div className="bg-white rounded-xl p-6 border border-amber-200 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Available</p>
@@ -972,41 +999,43 @@ Generated on: ${new Date().toLocaleString()}
                   {availableFacultiesCount}
                 </p>
               </div>
-              <div className="p-3 bg-amber-50 rounded-lg">
-                <GraduationCap className="w-6 h-6 text-amber-600" />
+              <div className="p-3 bg-gradient-to-br from-violet-50 to-violet-100 rounded-lg border border-violet-200">
+                <GraduationCap className="w-6 h-6 text-violet-600" />
               </div>
             </div>
           </div>
         </div>
 
         {/* Search and Filters */}
-        <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm mb-8">
+        <div className="bg-white rounded-2xl p-6 border border-amber-200 shadow-sm mb-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-amber-400" />
                 <input
                   type="text"
-                  placeholder="Search faculties by name or ID..."
+                  placeholder="Search tutors by name or ID..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full pl-10 pr-4 py-3 bg-white border border-amber-200 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                 />
               </div>
             </div>
 
             <div className="flex items-center gap-2">
-              <Filter className="w-5 h-5 text-gray-500" />
-              <span className="text-sm text-gray-700 font-medium">Filter:</span>
+              <div className="p-2 bg-gradient-to-br from-amber-100 to-amber-50 rounded-lg border border-amber-200">
+                <Filter className="w-4 h-4 text-amber-600" />
+              </div>
+              <span className="text-sm text-gray-700 font-bold">Filter:</span>
               <div className="flex flex-wrap gap-2">
                 {filters.map((filter) => (
                   <button
                     key={filter.id}
                     onClick={() => handleFilterChange(filter.id)}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                    className={`px-3 py-1.5 rounded-lg text-sm font-bold transition-colors border ${
                       activeFilter === filter.id
-                        ? "bg-blue-100 text-blue-700 border border-blue-200"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        ? "bg-gradient-to-r from-amber-100 to-amber-50 text-amber-700 border-amber-300"
+                        : "bg-gradient-to-r from-gray-100 to-gray-50 text-gray-700 hover:from-gray-200 hover:to-gray-100 border-gray-200"
                     }`}
                   >
                     {filter.label}
@@ -1022,31 +1051,31 @@ Generated on: ${new Date().toLocaleString()}
           {/* Faculty List */}
           {loading ? (
             <div className="flex flex-col items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-blue-600 mb-4" />
-              <p className="text-gray-600">Loading faculties...</p>
+              <Loader2 className="w-8 h-8 animate-spin text-amber-600 mb-4" />
+              <p className="text-gray-600">Loading tutors...</p>
             </div>
           ) : filteredFaculties.length === 0 ? (
             <div className="text-center py-12">
-              <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                No faculties found
+              <PenTool className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-bold text-gray-900 mb-2">
+                No tutors found
               </h3>
               <p className="text-gray-600">
                 {searchQuery
                   ? "Try a different search term or filter"
                   : activeFilter !== "all"
-                  ? `No ${activeFilter} faculties found`
-                  : "No faculties have been added yet"}
+                  ? `No ${activeFilter} tutors found`
+                  : "No tutors have been added yet"}
               </p>
               {!searchQuery &&
                 activeFilter === "all" &&
                 faculties.length === 0 && (
                   <button
                     onClick={handleOpenCreateModal}
-                    className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors inline-flex items-center gap-2"
+                    className="mt-4 px-4 py-2 bg-gradient-to-r from-amber-600 to-amber-700 text-white rounded-lg font-bold hover:from-amber-700 hover:to-amber-800 transition-colors inline-flex items-center gap-2 border border-amber-700"
                   >
                     <Plus className="w-4 h-4" />
-                    Add Your First Faculty
+                    Add Your First Tutor
                   </button>
                 )}
             </div>
@@ -1059,28 +1088,33 @@ Generated on: ${new Date().toLocaleString()}
                   <div
                     key={faculty.id}
                     className={`bg-white rounded-xl border ${
-                      stats.isActive ? "border-green-200" : "border-gray-200"
-                    } hover:border-blue-300 hover:shadow-md transition-all duration-300 overflow-hidden group`}
+                      stats.isActive ? "border-orange-200" : "border-amber-200"
+                    } hover:border-amber-300 hover:shadow-md transition-all duration-300 overflow-hidden group relative`}
                   >
+                    {/* Notebook Spine Effect */}
+                    <div className="absolute left-0 top-0 bottom-0 w-2 bg-gradient-to-b from-amber-400 to-amber-300 rounded-l-lg"></div>
+                    
                     <div
-                      className={`p-4 border-b ${
+                      className={`p-4 border-b ml-2 ${
                         stats.isActive
-                          ? "bg-gradient-to-r from-green-50 to-emerald-50 border-green-200"
-                          : "bg-gradient-to-r from-blue-50 to-indigo-50 border-gray-200"
+                          ? "bg-gradient-to-r from-orange-50 to-orange-100 border-orange-200"
+                          : "bg-gradient-to-r from-amber-50 to-amber-100 border-amber-200"
                       }`}
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-3">
                           <div
-                            className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                              stats.isActive ? "bg-green-100" : "bg-blue-100"
+                            className={`w-10 h-10 rounded-full flex items-center justify-center border ${
+                              stats.isActive
+                                ? "border-orange-200 bg-gradient-to-br from-orange-100 to-orange-50"
+                                : "border-amber-200 bg-gradient-to-br from-amber-100 to-amber-50"
                             }`}
                           >
-                            <GraduationCap
+                            <PenTool
                               className={`w-5 h-5 ${
                                 stats.isActive
-                                  ? "text-green-600"
-                                  : "text-blue-600"
+                                  ? "text-orange-600"
+                                  : "text-amber-600"
                               }`}
                             />
                           </div>
@@ -1088,7 +1122,8 @@ Generated on: ${new Date().toLocaleString()}
                             <h3 className="font-bold text-gray-900">
                               {faculty.name}
                             </h3>
-                            <p className="text-sm text-gray-600 mt-1">
+                            <p className="text-sm text-gray-600 mt-1 flex items-center gap-1">
+                              <Hash className="w-3 h-3" />
                               ID: {faculty.id}
                             </p>
                           </div>
@@ -1102,25 +1137,25 @@ Generated on: ${new Date().toLocaleString()}
                                   : faculty
                               )
                             }
-                            className="p-1.5 hover:bg-white/50 rounded-lg transition-colors"
+                            className="p-1.5 hover:bg-white/50 rounded-lg transition-colors border border-amber-200"
                           >
-                            <MoreVertical className="w-5 h-5 text-gray-500" />
+                            <MoreVertical className="w-5 h-5 text-amber-500" />
                           </button>
 
                           {selectedFaculty?.id === faculty.id && (
-                            <div className="absolute right-0 top-10 w-48 bg-white rounded-lg border border-gray-200 shadow-lg z-10">
+                            <div className="absolute right-0 top-10 w-48 bg-white rounded-lg border border-amber-200 shadow-lg z-10">
                               <button
                                 onClick={() => handleViewTimetable(faculty)}
-                                className="w-full px-4 py-3 text-left hover:bg-gray-50 flex items-center gap-2 rounded-t-lg"
+                                className="w-full px-4 py-3 text-left hover:bg-amber-50 flex items-center gap-2 rounded-t-lg border-b border-amber-100"
                               >
-                                <Eye className="w-4 h-4" />
-                                View Timetable
+                                <Calendar className="w-4 h-4 text-amber-600" />
+                                View Schedule
                               </button>
                               <button
                                 onClick={() => handleEditFaculty(faculty)}
-                                className="w-full px-4 py-3 text-left hover:bg-gray-50 flex items-center gap-2"
+                                className="w-full px-4 py-3 text-left hover:bg-amber-50 flex items-center gap-2 border-b border-amber-100"
                               >
-                                <Edit className="w-4 h-4" />
+                                <Edit className="w-4 h-4 text-amber-600" />
                                 Edit Details
                               </button>
                               <button
@@ -1131,7 +1166,7 @@ Generated on: ${new Date().toLocaleString()}
                                 className="w-full px-4 py-3 text-left hover:bg-red-50 text-red-600 flex items-center gap-2 rounded-b-lg"
                               >
                                 <Trash2 className="w-4 h-4" />
-                                Delete Faculty
+                                Remove Tutor
                               </button>
                             </div>
                           )}
@@ -1139,34 +1174,38 @@ Generated on: ${new Date().toLocaleString()}
                       </div>
                     </div>
 
-                    <div className="p-4">
+                    <div className="p-4 ml-2">
                       <div className="grid grid-cols-3 gap-3 mb-4">
                         <div className="text-center">
                           <div className="text-lg font-bold text-blue-600">
                             {stats.classesCount}
                           </div>
-                          <div className="text-xs text-gray-600">Classes</div>
+                          <div className="text-xs text-gray-600 flex items-center justify-center gap-1">
+                            <Layers className="w-3 h-3" />
+                            Groups
+                          </div>
                         </div>
                         <div className="text-center">
                           <div
                             className={`text-lg font-bold ${
                               stats.weeklyHours > 0
-                                ? "text-green-600"
+                                ? "text-orange-600"
                                 : "text-gray-400"
                             }`}
                           >
                             {stats.weeklyHours}
                           </div>
-                          <div className="text-xs text-gray-600">
-                            Lectures/Week
+                          <div className="text-xs text-gray-600 flex items-center justify-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            Sessions/Week
                           </div>
                         </div>
                         <div className="text-center">
                           <div
-                            className={`text-xs px-2 py-1 rounded-full font-medium ${
+                            className={`text-xs px-2 py-1 rounded-full font-bold border ${
                               stats.isActive
-                                ? "bg-green-100 text-green-700"
-                                : "bg-blue-100 text-blue-700"
+                                ? "bg-gradient-to-r from-orange-100 to-orange-50 text-orange-700 border-orange-200"
+                                : "bg-gradient-to-r from-blue-100 to-blue-50 text-blue-700 border-blue-200"
                             }`}
                           >
                             {stats.isActive ? "Teaching" : "Available"}
@@ -1177,10 +1216,10 @@ Generated on: ${new Date().toLocaleString()}
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleViewTimetable(faculty)}
-                          className="flex-1 px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                          className="flex-1 px-3 py-2 bg-gradient-to-r from-amber-600 to-amber-600 text-white text-sm font-bold rounded-lg hover:from-amber-700 hover:to-amber-800 transition-colors flex items-center justify-center gap-2 border border-amber-700"
                         >
                           <Calendar className="w-4 h-4" />
-                          View Timetable
+                          View Schedule
                         </button>
                         <button
                           onClick={() =>
@@ -1190,10 +1229,10 @@ Generated on: ${new Date().toLocaleString()}
                               faculty.name
                             )
                           }
-                          className={`p-2 rounded-lg transition-colors relative group ${
+                          className={`p-2 rounded-lg transition-colors relative group border ${
                             faculty.isAdmin
-                              ? "bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 hover:from-green-200 hover:to-emerald-200 border border-green-200"
-                              : "bg-gradient-to-r from-gray-100 to-blue-50 text-gray-700 hover:from-gray-200 hover:to-blue-100 border border-gray-200"
+                              ? "bg-gradient-to-r from-orange-100 to-orange-50 text-orange-700 hover:from-orange-200 hover:to-orange-100 border-orange-200"
+                              : "bg-gradient-to-r from-amber-100 to-amber-50 text-amber-700 hover:from-amber-200 hover:to-amber-100 border-amber-200"
                           }`}
                           title={
                             faculty.isAdmin
@@ -1207,8 +1246,8 @@ Generated on: ${new Date().toLocaleString()}
                               {/* Admin badge indicator */}
                               <span className="absolute -top-1 -right-1">
                                 <span className="flex h-3 w-3">
-                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                                  <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                                  <span className="relative inline-flex rounded-full h-3 w-3 bg-orange-500"></span>
                                 </span>
                               </span>
                             </>
@@ -1218,20 +1257,20 @@ Generated on: ${new Date().toLocaleString()}
 
                           {/* Tooltip text */}
                           <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs font-medium text-white bg-gray-900 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
-                            {faculty.isAdmin ? "Admin" : "Make Admin"}
+                            {faculty.isAdmin ? "Study Admin" : "Make Admin"}
                           </span>
                         </button>
                       </div>
                     </div>
 
-                    <div className="px-4 pb-4">
+                    <div className="px-4 pb-4 ml-2">
                       <div className="text-xs text-gray-500 flex items-center gap-2">
                         <Building className="w-3 h-3" />
                         <span>
                           Status:{" "}
                           {stats.isActive
                             ? "Currently Teaching"
-                            : "Available for Assignment"}
+                            : "Available for Study Groups"}
                         </span>
                       </div>
                     </div>
@@ -1242,14 +1281,15 @@ Generated on: ${new Date().toLocaleString()}
           )}
 
           <div className="mt-6 flex items-center justify-between text-sm text-gray-600">
-            <div>
-              Showing {filteredFaculties.length} of {faculties.length} faculties
+            <div className="flex items-center gap-2">
+              <StickyNote className="w-4 h-4" />
+              Showing {filteredFaculties.length} of {faculties.length} tutors
               {activeFilter !== "all" && ` (${activeFilter} only)`}
             </div>
             <div className="flex items-center gap-4">
               <button
                 onClick={fetchFaculties}
-                className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-amber-100 to-amber-50 rounded-lg transition-colors border border-amber-200 hover:from-amber-200 hover:to-amber-100"
               >
                 <RefreshCw className="w-4 h-4" />
                 Refresh
@@ -1258,45 +1298,56 @@ Generated on: ${new Date().toLocaleString()}
           </div>
         </div>
 
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100">
-          <h3 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
-            <Info className="w-5 h-5" />
-            Faculty Management Tips
-          </h3>
-          <ul className="space-y-2 text-blue-800 text-sm">
+        <div className="bg-gradient-to-r from-amber-50 to-blue-50 rounded-2xl p-6 border-2 border-amber-200">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 bg-gradient-to-br from-amber-100 to-amber-50 rounded-lg border border-amber-200">
+              <Compass className="w-5 h-5 text-amber-600" />
+            </div>
+            <h3 className="font-bold text-amber-900">
+              Tutor Management Guide
+            </h3>
+          </div>
+          <ul className="space-y-2 text-amber-800 text-sm">
             <li className="flex items-start gap-2">
-              <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5"></div>
+              <div className="w-2 h-2 bg-amber-400 rounded-full mt-1.5"></div>
               <span>
-                <strong>Currently Teaching</strong>: Faculty with assigned
-                lectures in their timetable
+                <strong>Currently Teaching</strong>: Tutors with assigned
+                sessions in their schedule
               </span>
             </li>
             <li className="flex items-start gap-2">
-              <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5"></div>
+              <div className="w-2 h-2 bg-amber-400 rounded-full mt-1.5"></div>
               <span>
-                <strong>Available</strong>: Faculty with no lectures assigned
-                (can be assigned new classes)
+                <strong>Available</strong>: Tutors with no sessions assigned
+                (can be assigned to new study groups)
               </span>
             </li>
             <li className="flex items-start gap-2">
-              <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5"></div>
+              <div className="w-2 h-2 bg-amber-400 rounded-full mt-1.5"></div>
               <span>
-                <strong>Use the search bar</strong> to quickly find faculty by
+                <strong>Use the search bar</strong> to quickly find tutors by
                 name or ID
               </span>
             </li>
             <li className="flex items-start gap-2">
-              <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5"></div>
+              <div className="w-2 h-2 bg-amber-400 rounded-full mt-1.5"></div>
               <span>
                 <strong>Filter options</strong> help you view only active or
-                available faculty
+                available tutors
               </span>
             </li>
             <li className="flex items-start gap-2">
-              <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5"></div>
+              <div className="w-2 h-2 bg-amber-400 rounded-full mt-1.5"></div>
               <span>
-                <strong>Click "Add Faculty"</strong> to create new faculty
-                accounts with auto-generated credentials
+                <strong>Click "Add Tutor"</strong> to create new tutor
+                accounts with auto-generated study access
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <div className="w-2 h-2 bg-amber-400 rounded-full mt-1.5"></div>
+              <span>
+                <strong>Key Icon</strong>: Click to grant/revoke admin
+                privileges for study management
               </span>
             </li>
           </ul>

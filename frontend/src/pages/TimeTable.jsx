@@ -32,6 +32,23 @@ import {
   MessageSquare,
   MoreVertical,
   Edit,
+  Notebook,
+  BookOpen,
+  PenTool,
+  Compass,
+  StickyNote,
+  Highlighter,
+  Bookmark,
+  Scissors,
+  Ruler,
+  Palette,
+  Clipboard,
+  FolderPlus,
+  FileText,
+  Layers,
+  BookmarkCheck,
+  FileCheck,
+  Archive
 } from "lucide-react";
 import api from "../configs/api";
 import Alert from "../components/Alert";
@@ -76,10 +93,10 @@ export default function TimeTable() {
   const baseFacultyOptions = [
     {
       value: "free",
-      label: "Free",
-      color: "border-emerald-200 bg-emerald-50 text-emerald-700",
-      bgColor: "bg-emerald-50",
-      textColor: "text-emerald-700",
+      label: "Free Period",
+      color: "border-orange-200 bg-orange-50 text-orange-700",
+      bgColor: "bg-orange-50",
+      textColor: "text-orange-700",
     },
   ];
 
@@ -136,21 +153,19 @@ export default function TimeTable() {
 
   // Faculty color mapping for consistent styling
   const facultyColors = [
-    "border-blue-200 bg-blue-50 text-blue-700",
-    "border-purple-200 bg-purple-50 text-purple-700",
     "border-amber-200 bg-amber-50 text-amber-700",
-    "border-red-200 bg-red-50 text-red-700",
-    "border-indigo-200 bg-indigo-50 text-indigo-700",
-    "border-pink-200 bg-pink-50 text-pink-700",
+    "border-rose-200 bg-rose-50 text-rose-700",
+    "border-orange-200 bg-orange-50 text-orange-700",
+    "border-violet-200 bg-violet-50 text-violet-700",
+    "border-rose-200 bg-rose-50 text-rose-700",
     "border-cyan-200 bg-cyan-50 text-cyan-700",
-    "border-green-200 bg-green-50 text-green-700",
-    "border-yellow-200 bg-yellow-50 text-yellow-700",
+    "border-pink-200 bg-pink-50 text-pink-700",
+    "border-indigo-200 bg-indigo-50 text-indigo-700",
+    "border-lime-200 bg-lime-50 text-lime-700",
     "border-orange-200 bg-orange-50 text-orange-700",
     "border-teal-200 bg-teal-50 text-teal-700",
-    "border-rose-200 bg-rose-50 text-rose-700",
-    "border-violet-200 bg-violet-50 text-violet-700",
-    "border-fuchsia-200 bg-fuchsia-50 text-fuchsia-700",
     "border-sky-200 bg-sky-50 text-sky-700",
+    "border-fuchsia-200 bg-fuchsia-50 text-fuchsia-700",
   ];
 
   // Show alert message
@@ -705,8 +720,8 @@ Generated on: ${new Date().toLocaleString()}
         // Show success message using Alert component
         if (existingClasses.length > 0) {
           showAlert(
-            "Branch classes loaded",
-            `${existingClasses.length} existing classes loaded for ${branch} - Semester ${sem}`,
+            "Study sections loaded",
+            `${existingClasses.length} existing study groups loaded for ${branch} - Semester ${sem}`,
             "success"
           );
         }
@@ -719,7 +734,7 @@ Generated on: ${new Date().toLocaleString()}
     } catch (error) {
       console.error("Error fetching branch classes:", error);
       showAlert(
-        "Failed to fetch branch timetable data",
+        "Failed to fetch study planner data",
         "Please try again later",
         "error"
       );
@@ -799,7 +814,7 @@ Generated on: ${new Date().toLocaleString()}
       setErrorMsg("");
     } catch (error) {
       console.error("Error fetching timetables:", error);
-      showAlert("Failed to fetch timetables", "Please try again", "error");
+      showAlert("Failed to fetch study schedules", "Please try again", "error");
     } finally {
       setFetching(false);
     }
@@ -866,8 +881,8 @@ Generated on: ${new Date().toLocaleString()}
 
     // Show success message using Alert component
     showAlert(
-      "Faculty added successfully",
-      `${selectedFacultiesToAdd.length} faculty added to legend and all class dropdowns`,
+      "Tutor added successfully",
+      `${selectedFacultiesToAdd.length} tutor(s) added to legend and all study group dropdowns`,
       "success"
     );
   };
@@ -952,15 +967,15 @@ Generated on: ${new Date().toLocaleString()}
 
         // Show success message
         showAlert(
-          "Timetable deleted successfully",
-          `Class ${divisionToDelete} timetable has been deleted`,
+          "Study schedule deleted",
+          `Study group ${divisionToDelete} schedule has been removed`,
           "success"
         );
       }
     } catch (error) {
       console.error("Error deleting timetable:", error);
       showAlert(
-        "Failed to delete timetable",
+        "Failed to delete study schedule",
         error.response?.data?.error || "Please try again",
         "error"
       );
@@ -1083,8 +1098,8 @@ Generated on: ${new Date().toLocaleString()}
   const handleSubmit = async () => {
     if (selectedDivisions.length === 0) {
       showAlert(
-        "No classes selected",
-        "Please select at least one division",
+        "No study groups selected",
+        "Please select at least one study group",
         "error"
       );
       return;
@@ -1100,13 +1115,13 @@ Generated on: ${new Date().toLocaleString()}
 
     if (emptyClasses.length > 0) {
       showAlert(
-        "Empty timetables detected",
-        `Class${emptyClasses.length > 1 ? "es" : ""} ${emptyClasses.join(
+        "Empty study schedules detected",
+        `Study group${emptyClasses.length > 1 ? "s" : ""} ${emptyClasses.join(
           ", "
         )} ${
           emptyClasses.length > 1 ? "have" : "has"
-        } no faculty assigned. Please assign at least one faculty or delete/deselect the class${
-          emptyClasses.length > 1 ? "es" : ""
+        } no tutor assigned. Please assign at least one tutor or delete/deselect the study group${
+          emptyClasses.length > 1 ? "s" : ""
         }.`,
         "error"
       );
@@ -1177,7 +1192,7 @@ Generated on: ${new Date().toLocaleString()}
       // Execute all save operations in parallel
       const results = await Promise.all(savePromises);
 
-      console.log("Saved all timetables:", results);
+      console.log("Saved all study schedules:", results);
       setSaved(true);
 
       // Update existing timetables state
@@ -1198,16 +1213,16 @@ Generated on: ${new Date().toLocaleString()}
         cleanedChatIds.length > 0
           ? `${cleanedChatIds.length} Telegram Chat ID${
               cleanedChatIds.length !== 1 ? "s" : ""
-            } have been stored for all classes.`
+            } have been stored for all study groups.`
           : "No Telegram Chat IDs were included.";
 
       showAlert(
-        "Timetables saved successfully",
-        `All ${selectedDivisions.length} class timetables have been saved for ${branch} - Semester ${sem}. ${telegramMessage}`,
+        "Study schedules saved successfully",
+        `All ${selectedDivisions.length} study group schedules have been saved for ${branch} - Semester ${sem}. ${telegramMessage}`,
         "success"
       );
     } catch (error) {
-      console.error("Error saving timetables:", error);
+      console.error("Error saving study schedules:", error);
 
       if (error.response && error.response.status === 409) {
         const data = error.response.data;
@@ -1222,13 +1237,13 @@ Generated on: ${new Date().toLocaleString()}
 
         showAlert(
           "Schedule conflict",
-          `Faculty ${data.faculty} is already assigned on ${
+          `Tutor ${data.faculty} is already assigned on ${
             dayMap[data.day]
-          } (${data.time_slot}). Please choose a different faculty member.`,
+          } (${data.time_slot}). Please choose a different tutor.`,
           "error"
         );
       } else {
-        showAlert("Failed to save timetables", "Please try again", "error");
+        showAlert("Failed to save study schedules", "Please try again", "error");
       }
     } finally {
       setIsLoading(false);
@@ -1243,7 +1258,7 @@ Generated on: ${new Date().toLocaleString()}
   const handleClear = () => {
     if (
       window.confirm(
-        "Clear all faculty assignments for all selected divisions?"
+        "Clear all tutor assignments for all selected study groups?"
       )
     ) {
       setSchedule(initializeSchedule(selectedDivisions));
@@ -1286,7 +1301,7 @@ Generated on: ${new Date().toLocaleString()}
      🔹 RENDER
   ======================= */
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 p-4 md:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-rose-50 p-4 md:p-6">
       {/* Alert Component */}
       {alert && (
         <Alert
@@ -1300,61 +1315,67 @@ Generated on: ${new Date().toLocaleString()}
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden">
-            <div className="p-6 border-b border-gray-200">
+          <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden border border-amber-200">
+            <div className="p-6 border-b border-amber-100 bg-gradient-to-r from-amber-50 to-amber-100">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-gray-900">
-                  Delete Timetable
-                </h2>
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 bg-white rounded-lg border border-amber-200">
+                    <Archive className="w-5 h-5 text-amber-600" />
+                  </div>
+                  <h2 className="text-xl font-bold text-amber-900">
+                    Delete Study Schedule
+                  </h2>
+                </div>
                 <button
                   onClick={() => {
                     setShowDeleteModal(false);
                     setDivisionToDelete(null);
                   }}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-2 hover:bg-white/50 rounded-lg transition-colors border border-amber-200"
                 >
-                  <X className="w-5 h-5 text-gray-500" />
+                  <X className="w-5 h-5 text-amber-600" />
                 </button>
               </div>
             </div>
 
             <div className="p-6">
               <div className="flex items-center justify-center mb-6">
-                <div className="p-3 bg-red-50 rounded-full">
+                <div className="p-3 bg-gradient-to-br from-red-100 to-red-50 rounded-full border border-red-200">
                   <Trash2 className="w-8 h-8 text-red-600" />
                 </div>
               </div>
-              <h3 className="text-lg font-medium text-gray-900 text-center mb-2">
-                Delete {divisionToDelete} Timetable?
+              <h3 className="text-lg font-bold text-gray-900 text-center mb-2">
+                Delete {divisionToDelete} Study Schedule?
               </h3>
               <p className="text-gray-600 text-center mb-6">
-                This will permanently delete the timetable for {branch} -
-                Semester {sem}, Class {divisionToDelete}. All faculty
-                assignments will be removed from faculty timetables.
+                This will permanently remove the study schedule for{" "}
+                <span className="font-semibold text-amber-700">{branch}</span> -
+                Semester <span className="font-semibold text-amber-700">{sem}</span>, Study Group{" "}
+                <span className="font-semibold text-amber-700">{divisionToDelete}</span>.
               </p>
 
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+              <div className="bg-gradient-to-r from-red-50 to-rose-50 border border-red-200 rounded-lg p-4 mb-6">
                 <div className="flex items-start gap-3">
                   <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="text-red-800 font-medium">Warning</p>
+                    <p className="text-red-800 font-bold">Important Notice</p>
                     <p className="text-red-700 text-sm mt-1">
-                      This action cannot be undone. Please make sure you want to
-                      proceed.
+                      All tutor assignments for this study group will be removed
+                      from tutor schedules. This action cannot be undone.
                     </p>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="p-6 border-t border-gray-200 bg-gray-50">
+            <div className="p-6 border-t border-gray-200 bg-amber-50">
               <div className="flex items-center justify-end gap-3">
                 <button
                   onClick={() => {
                     setShowDeleteModal(false);
                     setDivisionToDelete(null);
                   }}
-                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                  className="px-4 py-2 border border-amber-300 text-amber-700 rounded-lg font-medium hover:bg-white transition-colors"
                 >
                   Cancel
                 </button>
@@ -1364,7 +1385,7 @@ Generated on: ${new Date().toLocaleString()}
                   className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
                     isDeleting
                       ? "bg-red-400 text-white cursor-not-allowed"
-                      : "bg-red-600 text-white hover:bg-red-700"
+                      : "bg-gradient-to-r from-red-600 to-rose-600 text-white hover:from-red-700 hover:to-rose-700"
                   }`}
                 >
                   {isDeleting ? (
@@ -1375,7 +1396,7 @@ Generated on: ${new Date().toLocaleString()}
                   ) : (
                     <>
                       <Trash2 className="w-4 h-4" />
-                      Delete Timetable
+                      Delete Schedule
                     </>
                   )}
                 </button>
@@ -1388,16 +1409,16 @@ Generated on: ${new Date().toLocaleString()}
       {/* Credentials Modal */}
       {showCredentialsModal && generatedCredentials && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 z-[100]">
-          <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
-            <div className="p-6 bg-gradient-to-r from-green-500 to-emerald-600 text-white">
+          <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl border border-amber-200">
+            <div className="p-6 bg-gradient-to-r from-orange-500 to-orange-600 text-white">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
                   <Key className="w-6 h-6" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold">Credentials Generated!</h2>
-                  <p className="text-green-100 text-sm mt-1">
-                    Faculty account created successfully
+                  <h2 className="text-xl font-bold">Study Access Created!</h2>
+                  <p className="text-orange-100 text-sm mt-1">
+                    Tutor account created successfully
                   </p>
                 </div>
               </div>
@@ -1406,10 +1427,10 @@ Generated on: ${new Date().toLocaleString()}
             <div className="p-6">
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
                 <div className="flex gap-3">
-                  <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <StickyNote className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="font-medium text-amber-900 text-sm">
-                      Important: Save These Credentials
+                    <p className="font-bold text-amber-900 text-sm">
+                      Save These Credentials!
                     </p>
                     <p className="text-amber-700 text-sm mt-1">
                       This password will not be shown again. Please save it
@@ -1421,8 +1442,9 @@ Generated on: ${new Date().toLocaleString()}
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Faculty Name
+                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <User className="w-4 h-4" />
+                    Tutor Name
                   </label>
                   <div className="px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
                     <p className="font-medium text-gray-900">
@@ -1432,7 +1454,8 @@ Generated on: ${new Date().toLocaleString()}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <Bookmark className="w-4 h-4" />
                     Username (Login ID)
                   </label>
                   <div className="flex gap-2">
@@ -1446,7 +1469,7 @@ Generated on: ${new Date().toLocaleString()}
                           "username"
                         )
                       }
-                      className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors flex items-center gap-2"
+                      className="px-4 py-2 bg-rose-100 text-rose-700 rounded-lg hover:bg-rose-200 transition-colors flex items-center gap-2 border border-rose-200"
                     >
                       {copiedField === "username" ? (
                         <>
@@ -1464,7 +1487,8 @@ Generated on: ${new Date().toLocaleString()}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <Key className="w-4 h-4" />
                     Password
                   </label>
                   <div className="flex gap-2">
@@ -1478,7 +1502,7 @@ Generated on: ${new Date().toLocaleString()}
                           "password"
                         )
                       }
-                      className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors flex items-center gap-2"
+                      className="px-4 py-2 bg-rose-100 text-rose-700 rounded-lg hover:bg-rose-200 transition-colors flex items-center gap-2 border border-rose-200"
                     >
                       {copiedField === "password" ? (
                         <>
@@ -1497,11 +1521,11 @@ Generated on: ${new Date().toLocaleString()}
               </div>
             </div>
 
-            <div className="p-6 border-t border-gray-200 bg-gray-50">
+            <div className="p-6 border-t border-gray-200 bg-amber-50">
               <div className="flex gap-3">
                 <button
                   onClick={downloadCredentials}
-                  className="flex-1 px-4 py-3 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-3 bg-white border border-amber-300 text-amber-700 rounded-lg font-medium hover:bg-amber-50 transition-colors flex items-center justify-center gap-2"
                 >
                   <Download className="w-4 h-4" />
                   Download as File
@@ -1510,9 +1534,8 @@ Generated on: ${new Date().toLocaleString()}
                   onClick={() => {
                     setShowCredentialsModal(false);
                     setGeneratedCredentials(null);
-                    // Keep the main faculty modal open
                   }}
-                  className="flex-1 px-4 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
+                  className="flex-1 px-4 py-3 bg-gradient-to-r from-orange-600 to-orange-700 text-white rounded-lg font-medium hover:from-orange-700 hover:to-orange-800 transition-colors"
                 >
                   Done
                 </button>
@@ -1525,18 +1548,22 @@ Generated on: ${new Date().toLocaleString()}
       {/* Faculty Management Modal */}
       {showFacultyModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+          <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[80vh] overflow-hidden flex flex-col border border-amber-200">
             {/* Modal Header */}
-            <div className="p-6 border-b border-gray-200">
+            <div className="p-6 border-b border-amber-100 bg-gradient-to-r from-amber-50 to-amber-100">
               <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900">
-                    Add Faculty Members
-                  </h2>
-                  <p className="text-gray-600 text-sm mt-1">
-                    Select faculties to add to your timetable dropdowns or
-                    create new faculty
-                  </p>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-white rounded-lg border border-amber-200">
+                    <PenTool className="w-5 h-5 text-amber-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-amber-900">
+                      Add Study Tutors
+                    </h2>
+                    <p className="text-amber-700 text-sm mt-1">
+                      Select tutors to add to your schedule dropdowns or create new tutor
+                    </p>
+                  </div>
                 </div>
                 <button
                   onClick={() => {
@@ -1545,30 +1572,30 @@ Generated on: ${new Date().toLocaleString()}
                     setSearchQuery("");
                     resetNewFacultyForm();
                   }}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-2 hover:bg-white/50 rounded-lg transition-colors border border-amber-200"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-5 h-5 text-amber-600" />
                 </button>
               </div>
 
               {/* Search Bar */}
               <div className="mt-4 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-amber-400" />
                 <input
                   type="text"
-                  placeholder="Search faculties by name or ID..."
+                  placeholder="Search tutors by name or ID..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full pl-10 pr-4 py-2.5 bg-white border border-amber-200 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                 />
               </div>
 
               {/* Selected Count */}
               <div className="mt-3 flex items-center justify-between">
-                <span className="text-sm text-gray-600">
-                  {selectedFacultiesToAdd.length} faculty selected
+                <span className="text-sm text-amber-700">
+                  {selectedFacultiesToAdd.length} tutor(s) selected
                 </span>
-                <span className="text-sm text-gray-600">
+                <span className="text-sm text-amber-700">
                   {filteredFaculties.length} available
                 </span>
               </div>
@@ -1576,14 +1603,19 @@ Generated on: ${new Date().toLocaleString()}
 
             {/* Create New Faculty Form */}
             {showCreateFaculty ? (
-              <div className="p-6 border-b border-gray-200 bg-blue-50">
+              <div className="p-6 border-b border-amber-100 bg-rose-50">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-bold text-gray-900">
-                    Create New Faculty
-                  </h3>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-white rounded-lg border border-rose-200">
+                      <UserPlus className="w-5 h-5 text-rose-600" />
+                    </div>
+                    <h3 className="font-bold text-gray-900">
+                      Create New Tutor
+                    </h3>
+                  </div>
                   <button
                     onClick={resetNewFacultyForm}
-                    className="p-1 hover:bg-blue-100 rounded-lg transition-colors"
+                    className="p-1 hover:bg-rose-100 rounded-lg transition-colors"
                   >
                     <X className="w-5 h-5 text-gray-600" />
                   </button>
@@ -1597,40 +1629,36 @@ Generated on: ${new Date().toLocaleString()}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      <div className="flex items-center gap-2">
-                        <Hash className="w-4 h-4" />
-                        Faculty ID
-                      </div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                      <Hash className="w-4 h-4" />
+                      Tutor ID
                     </label>
                     <input
                       type="text"
                       value={newFacultyId}
                       onChange={(e) => setNewFacultyId(e.target.value)}
-                      placeholder="e.g., FAC009"
-                      className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="e.g., TUT009"
+                      className="w-full px-4 py-2.5 bg-white border border-amber-200 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                     />
                     <p className="text-xs text-gray-500 mt-2">
-                      Unique identifier for the faculty
+                      Unique identifier for the tutor
                     </p>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      <div className="flex items-center gap-2">
-                        <User className="w-4 h-4" />
-                        Faculty Name
-                      </div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                      <User className="w-4 h-4" />
+                      Tutor Name
                     </label>
                     <input
                       type="text"
                       value={newFacultyName}
                       onChange={(e) => setNewFacultyName(e.target.value)}
                       placeholder="e.g., Dr. Sunil Verma"
-                      className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-4 py-2.5 bg-white border border-amber-200 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                     />
                     <p className="text-xs text-gray-500 mt-2">
-                      Full name of the faculty member
+                      Full name of the tutor
                     </p>
                   </div>
                 </div>
@@ -1638,7 +1666,7 @@ Generated on: ${new Date().toLocaleString()}
                 <div className="flex gap-3 mt-6">
                   <button
                     onClick={resetNewFacultyForm}
-                    className="px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                    className="px-4 py-2.5 border border-amber-300 text-amber-700 rounded-lg font-medium hover:bg-amber-50 transition-colors"
                   >
                     Cancel
                   </button>
@@ -1654,7 +1682,7 @@ Generated on: ${new Date().toLocaleString()}
                       !newFacultyId.trim() ||
                       !newFacultyName.trim()
                         ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                        : "bg-blue-600 text-white hover:bg-blue-700"
+                        : "bg-gradient-to-r from-amber-600 to-amber-700 text-white hover:from-amber-700 hover:to-amber-800"
                     }`}
                   >
                     {isCreatingFaculty ? (
@@ -1665,20 +1693,20 @@ Generated on: ${new Date().toLocaleString()}
                     ) : (
                       <>
                         <Check className="w-4 h-4" />
-                        Create Faculty
+                        Create Tutor
                       </>
                     )}
                   </button>
                 </div>
               </div>
             ) : (
-              <div className="p-4 border-b border-gray-200">
+              <div className="p-4 border-b border-amber-100">
                 <button
                   onClick={() => setShowCreateFaculty(true)}
-                  className="w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-600 hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50 transition-all flex items-center justify-center gap-2"
+                  className="w-full px-4 py-3 border-2 border-dashed border-amber-300 rounded-xl text-amber-600 hover:border-amber-500 hover:text-amber-700 hover:bg-amber-50 transition-all flex items-center justify-center gap-2"
                 >
                   <Plus className="w-5 h-5" />
-                  Create New Faculty
+                  Create New Tutor
                 </button>
               </div>
             )}
@@ -1687,13 +1715,13 @@ Generated on: ${new Date().toLocaleString()}
             <div className="flex-1 overflow-y-auto p-6">
               {isLoadingAllFaculties ? (
                 <div className="flex flex-col items-center justify-center py-12">
-                  <Loader2 className="w-8 h-8 animate-spin text-blue-600 mb-4" />
-                  <p className="text-gray-600">Loading all faculties...</p>
+                  <Loader2 className="w-8 h-8 animate-spin text-amber-600 mb-4" />
+                  <p className="text-gray-600">Loading all tutors...</p>
                 </div>
               ) : filteredFaculties.length === 0 ? (
                 <div className="text-center py-12">
-                  <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600">No faculties found</p>
+                  <PenTool className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-600">No tutors found</p>
                   {searchQuery && (
                     <p className="text-gray-500 text-sm mt-1">
                       Try a different search term
@@ -1722,18 +1750,18 @@ Generated on: ${new Date().toLocaleString()}
                           isAlreadyInOptions
                             ? "border-gray-200 bg-gray-50 opacity-75 cursor-not-allowed"
                             : isSelected
-                            ? "border-blue-500 bg-blue-50"
-                            : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                            ? "border-amber-500 bg-amber-50"
+                            : "border-amber-200 hover:border-amber-300 hover:bg-amber-50"
                         }`}
                       >
                         <div className="flex items-start gap-3">
                           <div
-                            className={`w-5 h-5 rounded-full border flex items-center justify-center mt-0.5 flex-shrink-0 ${
+                            className={`w-6 h-6 rounded-full border-2 flex items-center justify-center mt-0.5 flex-shrink-0 ${
                               isAlreadyInOptions
                                 ? "border-gray-300 bg-gray-200"
                                 : isSelected
-                                ? "border-blue-500 bg-blue-500"
-                                : "border-gray-300"
+                                ? "border-amber-500 bg-amber-500"
+                                : "border-amber-300"
                             }`}
                           >
                             {isAlreadyInOptions ? (
@@ -1760,7 +1788,7 @@ Generated on: ${new Date().toLocaleString()}
                             </div>
                             {isAlreadyInOptions && (
                               <p className="text-xs text-gray-500 mt-2">
-                                This faculty is already available in dropdowns
+                                This tutor is already available in dropdowns
                               </p>
                             )}
                           </div>
@@ -1773,15 +1801,15 @@ Generated on: ${new Date().toLocaleString()}
             </div>
 
             {/* Modal Footer */}
-            <div className="p-6 border-t border-gray-200 bg-gray-50">
+            <div className="p-6 border-t border-amber-100 bg-amber-50">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600">
-                    Selected: {selectedFacultiesToAdd.length} faculty
+                    Selected: {selectedFacultiesToAdd.length} tutor(s)
                   </p>
                   {selectedFacultiesToAdd.length > 0 && (
                     <p className="text-xs text-gray-500 mt-1">
-                      Selected faculty will be added to all class dropdowns
+                      Selected tutor(s) will be added to all study group dropdowns
                     </p>
                   )}
                 </div>
@@ -1793,7 +1821,7 @@ Generated on: ${new Date().toLocaleString()}
                       setSearchQuery("");
                       resetNewFacultyForm();
                     }}
-                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                    className="px-4 py-2 border border-amber-300 text-amber-700 rounded-lg font-medium hover:bg-amber-50 transition-colors"
                   >
                     Cancel
                   </button>
@@ -1803,10 +1831,10 @@ Generated on: ${new Date().toLocaleString()}
                     className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                       selectedFacultiesToAdd.length === 0
                         ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                        : "bg-blue-600 text-white hover:bg-blue-700"
+                        : "bg-gradient-to-r from-amber-600 to-amber-700 text-white hover:from-amber-700 hover:to-amber-800"
                     }`}
                   >
-                    Add Selected Faculty
+                    Add Selected Tutor(s)
                   </button>
                 </div>
               </div>
@@ -1819,18 +1847,21 @@ Generated on: ${new Date().toLocaleString()}
         {/* Breadcrumb */}
         <div className="mb-6">
           <div className="flex items-center text-sm text-gray-600 mb-4">
-            <span className="hover:text-gray-800 cursor-pointer">
+            <span className="hover:text-gray-800 cursor-pointer flex items-center gap-1">
+              <Bookmark className="w-3 h-3" />
               Dashboard
             </span>
             <ChevronRight className="w-4 h-4 mx-2" />
-            <span className="hover:text-gray-800 cursor-pointer">
-              Timetable Management
+            <span className="hover:text-gray-800 cursor-pointer flex items-center gap-1">
+              <Notebook className="w-3 h-3" />
+              Study Planner
             </span>
             <ChevronRight className="w-4 h-4 mx-2" />
-            <span className="font-medium text-blue-600">
+            <span className="font-medium text-amber-600 flex items-center gap-1">
+              <Clipboard className="w-4 h-4" />
               {selectedDivisions.length > 0
                 ? `Edit ${branch} - Sem ${sem}`
-                : "Create Timetables"}
+                : "Create Study Schedules"}
             </span>
           </div>
         </div>
@@ -1840,21 +1871,19 @@ Generated on: ${new Date().toLocaleString()}
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
               {selectedDivisions.length > 0
-                ? `${branch} - Semester ${sem} Timetable`
-                : "Branch Timetable Management"}
+                ? `${branch} - Semester ${sem} Study Planner`
+                : "Study Schedule Management"}
             </h1>
             <p className="text-gray-600">
               {selectedDivisions.length > 0
-                ? `Managing ${selectedDivisions.length} class${
-                    selectedDivisions.length !== 1 ? "es" : ""
+                ? `Organizing ${selectedDivisions.length} study group${
+                    selectedDivisions.length !== 1 ? "s" : ""
                   } for ${branch}`
-                : "Manage timetables for multiple classes within a branch"}
+                : "Manage study schedules for multiple groups within a subject"}
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-white rounded-xl border border-gray-200 shadow-sm">
-              <Grid className="w-6 h-6 text-blue-600" />
-            </div>
+          <div className="p-3 bg-white rounded-xl border border-amber-200 shadow-sm">
+            <Clipboard className="w-6 h-6 text-amber-600" />
           </div>
         </div>
 
@@ -1866,7 +1895,7 @@ Generated on: ${new Date().toLocaleString()}
               errorMsg.includes("Added") ||
               errorMsg.includes("created successfully") ||
               errorMsg.includes("Failed to fetch")
-                ? "border-blue-200 bg-blue-50"
+                ? "border-amber-200 bg-amber-50"
                 : errorMsg.includes("already assigned")
                 ? "border-red-200 bg-red-50"
                 : "border-red-200 bg-red-50"
@@ -1878,18 +1907,18 @@ Generated on: ${new Date().toLocaleString()}
                 errorMsg.includes("Added") ||
                 errorMsg.includes("created successfully") ||
                 errorMsg.includes("Failed to fetch")
-                  ? "text-blue-500"
+                  ? "text-amber-500"
                   : "text-red-500"
               }`}
             />
             <div>
               <p
-                className={`font-medium ${
+                className={`font-bold ${
                   errorMsg.includes("Loaded") ||
                   errorMsg.includes("Added") ||
                   errorMsg.includes("created successfully") ||
                   errorMsg.includes("Failed to fetch")
-                    ? "text-blue-800"
+                    ? "text-amber-800"
                     : "text-red-800"
                 }`}
               >
@@ -1906,8 +1935,8 @@ Generated on: ${new Date().toLocaleString()}
                   errorMsg.includes("Added") ||
                   errorMsg.includes("created successfully") ||
                   errorMsg.includes("Failed to fetch")
-                    ? "text-blue-600"
-                    : "text-red-600"
+                    ? "text-amber-700"
+                    : "text-red-700"
                 }`}
               >
                 {errorMsg}
@@ -1917,14 +1946,16 @@ Generated on: ${new Date().toLocaleString()}
         )}
 
         {saved && (
-          <div className="mb-6 p-4 rounded-xl border border-emerald-200 bg-emerald-50 flex items-center gap-3">
-            <CheckCircle className="w-5 h-5 text-emerald-500" />
+          <div className="mb-6 p-4 rounded-xl border border-orange-200 bg-gradient-to-r from-orange-50 to-orange-100 flex items-center gap-3">
+            <div className="p-2 bg-white rounded-lg border border-orange-200">
+              <FileCheck className="w-5 h-5 text-orange-500" />
+            </div>
             <div>
-              <p className="font-medium text-emerald-800">
-                Timetables Saved Successfully
+              <p className="font-bold text-orange-800">
+                Study Schedules Saved Successfully
               </p>
-              <p className="text-emerald-600 text-sm mt-1">
-                All {selectedDivisions.length} class timetables have been saved
+              <p className="text-orange-700 text-sm mt-1">
+                All {selectedDivisions.length} study group schedules have been saved
                 for {branch} - Semester {sem}.
               </p>
             </div>
@@ -1932,343 +1963,356 @@ Generated on: ${new Date().toLocaleString()}
         )}
 
         {/* Configuration Panel */}
-        <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm mb-8">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            Branch Configuration
-          </h2>
-
-          {/* Telegram Chat IDs Section */}
-          {/* Telegram Chat IDs Section */}
-          {/* Telegram Chat IDs Section */}
-{branch && sem && (
-  <div className="mb-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-emerald-200">
-    <div className="flex items-center justify-between mb-3">
-      <h3 className="font-medium text-emerald-900 flex items-center gap-2">
-        <MessageSquare className="w-5 h-5 text-emerald-600" />
-        Telegram Chat IDs
-      </h3>
-      {!isEditingTelegram ? (
-        <button
-          onClick={() => setIsEditingTelegram(true)}
-          className="px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-lg text-xs font-medium hover:bg-emerald-200 transition-colors flex items-center gap-2"
-        >
-          <Edit className="w-3 h-3" />
-          {telegramChatIds.length > 0 ? "Edit" : "Add"}
-        </button>
-      ) : (
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => {
-              setIsEditingTelegram(false);
-              fetchTelegramChatIds(); // Reset to saved values
-            }}
-            className="px-3 py-1.5 border border-gray-300 text-gray-700 rounded-lg text-xs font-medium hover:bg-gray-50 transition-colors"
-          >
-            Cancel
-          </button>
-        </div>
-      )}
-    </div>
-
-    {isEditingTelegram ? (
-      <div className="space-y-3">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Chat IDs for {branch} Semester {sem}
-          </label>
-          <p className="text-xs text-gray-500 mb-3">
-            Add Telegram Chat IDs for notifications. These will be used for all {branch} Semester {sem} classes.
-          </p>
-
-          {/* How to get Chat ID instructions */}
-          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <h4 className="font-medium text-blue-900 mb-2 flex items-center gap-2">
-              <Info className="w-4 h-4" />
-              How to get your Chat ID:
-            </h4>
-            <ol className="text-sm text-blue-800 space-y-1 ml-6 list-decimal">
-              <li>
-                Click this link:{" "}
-                <a
-                  href="https://t.me/MyTestBot?start"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:text-blue-800 underline font-medium"
-                >
-                  https://t.me/MyTestBot?start
-                </a>
-              </li>
-              <li>Add bot to group and make admin</li>
-              <li>Send /start command to the bot in your group</li>
-              <li>Copy the Chat ID provided by the bot</li>
-              <li>Paste it in the field above</li>
-              <li>You'll receive timetable notifications and updates directly on Telegram</li>
-            </ol>
-          </div>
-
-          {/* Chat ID Inputs */}
-          <div className="space-y-2 mb-3">
-            {telegramChatIds.length === 0 ? (
-              <div className="text-center py-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
-                <MessageSquare className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                <p className="text-gray-600">No Chat IDs added yet</p>
-                <p className="text-xs text-gray-500 mt-1">
-                  Follow the instructions above to get your Chat ID
-                </p>
-              </div>
-            ) : (
-              telegramChatIds.map((chatId, index) => (
-                <div
-                  key={index}
-                  className="flex items-center gap-2 group"
-                >
-                  <div className="flex-1 flex items-center gap-3 px-3 py-2 border border-emerald-300 rounded-lg bg-white">
-                    <div className="w-6 h-6 flex items-center justify-center rounded-full bg-emerald-100 text-emerald-700 text-xs font-medium">
-                      {index + 1}
-                    </div>
-                    <input
-                      type="text"
-                      value={chatId}
-                      onChange={(e) =>
-                        handleUpdateChatId(index, e.target.value)
-                      }
-                      placeholder="Enter Telegram Chat ID (e.g., 123456789)"
-                      className="flex-1 outline-none bg-transparent"
-                    />
-                    <span
-                      className={`text-xs px-2 py-1 rounded ${
-                        chatId.trim() &&
-                        !/^-?\d+$/.test(chatId.trim())
-                          ? "bg-red-100 text-red-700"
-                          : "bg-emerald-100 text-emerald-700"
-                      }`}
-                    >
-                      {chatId.trim() && !/^-?\d+$/.test(chatId.trim())
-                        ? "Invalid"
-                        : "Valid"}
-                    </span>
-                  </div>
-                  <button
-                    onClick={() => handleRemoveChatId(index)}
-                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
-                    title="Remove"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              ))
-            )}
-          </div>
-
-          {/* Add new Chat ID */}
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
-              value={newChatId}
-              onChange={(e) => setNewChatId(e.target.value)}
-              placeholder="Enter new Chat ID..."
-              className="flex-1 px-4 py-2 border border-emerald-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-              onKeyPress={(e) => {
-                if (e.key === "Enter" && newChatId.trim()) {
-                  handleAddChatIdField();
-                }
-              }}
-            />
-            <button
-              onClick={handleAddChatIdField}
-              disabled={!newChatId.trim()}
-              className="px-4 py-2 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <Plus className="w-4 h-4" />
-              Add
-            </button>
-          </div>
-
-          {/* Validation and Help Text */}
-          <div className="mt-2 space-y-1">
-            {telegramChatIds.some(
-              (id) => id.trim() && !/^-?\d+$/.test(id.trim())
-            ) && (
-              <div className="flex items-start gap-2 text-red-600 text-xs">
-                <AlertCircle className="w-3 h-3 mt-0.5 flex-shrink-0" />
-                <p>
-                  Invalid Chat IDs detected. Please enter only numeric values.
-                </p>
-              </div>
-            )}
-            <p className="text-xs text-gray-500">
-              Tip: Use the bot link above to easily get your Chat ID
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handleUpdateTelegramChatIds}
-            disabled={
-              isSavingTelegram ||
-              telegramChatIds.some(
-                (id) => id.trim() && !/^-?\d+$/.test(id.trim())
-              )
-            }
-            className="px-4 py-2 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isSavingTelegram ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className="w-4 h-4" />
-                Save Changes
-              </>
-            )}
-          </button>
-          {telegramChatIds.length > 0 && (
-            <button
-              onClick={() => {
-                if (
-                  window.confirm(
-                    "Are you sure you want to clear all Chat IDs?"
-                  )
-                ) {
-                  setTelegramChatIds([]);
-                }
-              }}
-              className="px-4 py-2 bg-red-100 text-red-700 rounded-lg font-medium hover:bg-red-200 transition-colors flex items-center gap-2"
-            >
-              <Trash2 className="w-4 h-4" />
-              Clear All
-            </button>
-          )}
-        </div>
-      </div>
-    ) : (
-      <div>
-        {telegramChatIds.length > 0 ? (
-          <>
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <p className="text-sm font-semibold text-emerald-900 mb-1">
-                  {telegramChatIds.length} Chat ID
-                  {telegramChatIds.length !== 1 ? "s" : ""} configured
-                </p>
-                <p className="text-sm text-emerald-700">
-                  These IDs will be used for all {branch} Semester {sem} classes
-                </p>
-              </div>
-              <div className="p-3 bg-emerald-100 rounded-lg">
-                <MessageSquare className="w-6 h-6 text-emerald-600" />
-              </div>
+        <div className="bg-white rounded-2xl p-6 border border-amber-200 shadow-sm mb-8">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 bg-gradient-to-br from-amber-100 to-amber-50 rounded-lg border border-amber-200">
+              <Compass className="w-5 h-5 text-amber-600" />
             </div>
-            <div className="space-y-2">
-              {telegramChatIds.map((chatId, index) => (
-                <div
-                  key={index}
-                  className="px-3 py-3 bg-white border border-emerald-200 rounded-lg hover:border-emerald-300 transition-colors group"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 flex items-center justify-center rounded-full bg-emerald-100 text-emerald-700 font-medium">
-                        {index + 1}
-                      </div>
-                      <div>
-                        <div className="font-mono text-emerald-800 text-sm">
-                          {chatId}
-                        </div>
-                        <div className="text-xs text-emerald-600">
-                          {/^-?\d+$/.test(chatId.trim())
-                            ? "Valid format"
-                            : "Invalid format"}
-                        </div>
-                      </div>
-                    </div>
+            <h2 className="text-lg font-bold text-amber-900">
+              Study Section Configuration
+            </h2>
+          </div>
+
+          {/* Telegram Chat IDs Section */}
+          {branch && sem && (
+            <div className="mb-6 p-4 bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl border border-orange-200">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-white rounded-lg border border-orange-200">
+                    <MessageSquare className="w-5 h-5 text-orange-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-orange-900">
+                      Study Notifications
+                    </h3>
+                    <p className="text-orange-700 text-sm">
+                      Set up Telegram for schedule updates
+                    </p>
+                  </div>
+                </div>
+                {!isEditingTelegram ? (
+                  <button
+                    onClick={() => setIsEditingTelegram(true)}
+                    className="px-3 py-1.5 bg-orange-100 text-orange-700 rounded-lg text-xs font-bold hover:bg-orange-200 transition-colors flex items-center gap-2 border border-orange-200"
+                  >
+                    <Edit className="w-3 h-3" />
+                    {telegramChatIds.length > 0 ? "Edit" : "Add"}
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-2">
                     <button
                       onClick={() => {
-                        navigator.clipboard.writeText(chatId);
-                        showAlert(
-                          "Copied!",
-                          `Chat ID ${chatId} copied to clipboard`,
-                          "success"
-                        );
+                        setIsEditingTelegram(false);
+                        fetchTelegramChatIds(); // Reset to saved values
                       }}
-                      className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
-                      title="Copy to clipboard"
+                      className="px-3 py-1.5 border border-amber-300 text-amber-700 rounded-lg text-xs font-bold hover:bg-amber-50 transition-colors"
                     >
-                      <Copy className="w-4 h-4" />
+                      Cancel
                     </button>
                   </div>
-                </div>
-              ))}
-            </div>
-            <div className="mt-3 pt-3 border-t border-emerald-200">
-              <div className="flex items-center justify-between text-xs text-emerald-700">
-                <span>Last updated: Just now</span>
-                <span>Applied to all {branch} classes</span>
+                )}
               </div>
+
+              {isEditingTelegram ? (
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Chat IDs for {branch} Semester {sem}
+                    </label>
+                    <p className="text-xs text-gray-500 mb-3">
+                      Add Telegram Chat IDs for notifications. These will be used for all {branch} Semester {sem} study groups.
+                    </p>
+
+                    {/* How to get Chat ID instructions */}
+                    <div className="mb-4 p-3 bg-rose-50 border border-rose-200 rounded-lg">
+                      <h4 className="font-bold text-rose-900 mb-2 flex items-center gap-2">
+                        <Info className="w-4 h-4" />
+                        How to get your Chat ID:
+                      </h4>
+                      <ol className="text-sm text-rose-800 space-y-1 ml-6 list-decimal">
+                        <li>
+                          Click this link:{" "}
+                          <a
+                            href="https://t.me/MyTestBot?start"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-rose-600 hover:text-rose-800 underline font-bold"
+                          >
+                            https://t.me/MyTestBot?start
+                          </a>
+                        </li>
+                        <li>Add bot to study group and make admin</li>
+                        <li>Send /start command to the bot in your group</li>
+                        <li>Copy the Chat ID provided by the bot</li>
+                        <li>Paste it in the field above</li>
+                        <li>You'll receive study schedule updates directly on Telegram</li>
+                      </ol>
+                    </div>
+
+                    {/* Chat ID Inputs */}
+                    <div className="space-y-2 mb-3">
+                      {telegramChatIds.length === 0 ? (
+                        <div className="text-center py-4 border-2 border-dashed border-orange-300 rounded-lg bg-white">
+                          <MessageSquare className="w-8 h-8 text-orange-400 mx-auto mb-2" />
+                          <p className="text-gray-600">No Chat IDs added yet</p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Follow the instructions above to get your Chat ID
+                          </p>
+                        </div>
+                      ) : (
+                        telegramChatIds.map((chatId, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center gap-2 group"
+                          >
+                            <div className="flex-1 flex items-center gap-3 px-3 py-2 border border-orange-300 rounded-lg bg-white">
+                              <div className="w-6 h-6 flex items-center justify-center rounded-full bg-orange-100 text-orange-700 text-xs font-bold">
+                                {index + 1}
+                              </div>
+                              <input
+                                type="text"
+                                value={chatId}
+                                onChange={(e) =>
+                                  handleUpdateChatId(index, e.target.value)
+                                }
+                                placeholder="Enter Telegram Chat ID (e.g., 123456789)"
+                                className="flex-1 outline-none bg-transparent"
+                              />
+                              <span
+                                className={`text-xs px-2 py-1 rounded ${
+                                  chatId.trim() &&
+                                  !/^-?\d+$/.test(chatId.trim())
+                                    ? "bg-red-100 text-red-700"
+                                    : "bg-orange-100 text-orange-700"
+                                }`}
+                              >
+                                {chatId.trim() && !/^-?\d+$/.test(chatId.trim())
+                                  ? "Invalid"
+                                  : "Valid"}
+                              </span>
+                            </div>
+                            <button
+                              onClick={() => handleRemoveChatId(index)}
+                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100 border border-red-200"
+                              title="Remove"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))
+                      )}
+                    </div>
+
+                    {/* Add new Chat ID */}
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={newChatId}
+                        onChange={(e) => setNewChatId(e.target.value)}
+                        placeholder="Enter new Chat ID..."
+                        className="flex-1 px-4 py-2 border border-orange-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                        onKeyPress={(e) => {
+                          if (e.key === "Enter" && newChatId.trim()) {
+                            handleAddChatIdField();
+                          }
+                        }}
+                      />
+                      <button
+                        onClick={handleAddChatIdField}
+                        disabled={!newChatId.trim()}
+                        className="px-4 py-2 bg-orange-600 text-white rounded-lg font-bold hover:bg-orange-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed border border-orange-700"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Add
+                      </button>
+                    </div>
+
+                    {/* Validation and Help Text */}
+                    <div className="mt-2 space-y-1">
+                      {telegramChatIds.some(
+                        (id) => id.trim() && !/^-?\d+$/.test(id.trim())
+                      ) && (
+                        <div className="flex items-start gap-2 text-red-600 text-xs">
+                          <AlertCircle className="w-3 h-3 mt-0.5 flex-shrink-0" />
+                          <p>
+                            Invalid Chat IDs detected. Please enter only numeric values.
+                          </p>
+                        </div>
+                      )}
+                      <p className="text-xs text-gray-500">
+                        Tip: Use the bot link above to easily get your Chat ID
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={handleUpdateTelegramChatIds}
+                      disabled={
+                        isSavingTelegram ||
+                        telegramChatIds.some(
+                          (id) => id.trim() && !/^-?\d+$/.test(id.trim())
+                        )
+                      }
+                      className="px-4 py-2 bg-orange-600 text-white rounded-lg font-bold hover:bg-orange-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed border border-orange-700"
+                    >
+                      {isSavingTelegram ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="w-4 h-4" />
+                          Save Changes
+                        </>
+                      )}
+                    </button>
+                    {telegramChatIds.length > 0 && (
+                      <button
+                        onClick={() => {
+                          if (
+                            window.confirm(
+                              "Are you sure you want to clear all Chat IDs?"
+                            )
+                          ) {
+                            setTelegramChatIds([]);
+                          }
+                        }}
+                        className="px-4 py-2 bg-red-100 text-red-700 rounded-lg font-bold hover:bg-red-200 transition-colors flex items-center gap-2 border border-red-200"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Clear All
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  {telegramChatIds.length > 0 ? (
+                    <>
+                      <div className="flex items-center justify-between mb-3">
+                        <div>
+                          <p className="text-sm font-bold text-orange-900 mb-1">
+                            {telegramChatIds.length} Chat ID
+                            {telegramChatIds.length !== 1 ? "s" : ""} configured
+                          </p>
+                          <p className="text-sm text-orange-700">
+                            These IDs will be used for all {branch} Semester {sem} study groups
+                          </p>
+                        </div>
+                        <div className="p-3 bg-white rounded-lg border border-orange-200">
+                          <MessageSquare className="w-6 h-6 text-orange-600" />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        {telegramChatIds.map((chatId, index) => (
+                          <div
+                            key={index}
+                            className="px-3 py-3 bg-white border border-orange-200 rounded-lg hover:border-orange-300 transition-colors group"
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 flex items-center justify-center rounded-full bg-orange-100 text-orange-700 font-bold">
+                                  {index + 1}
+                                </div>
+                                <div>
+                                  <div className="font-mono text-orange-800 text-sm">
+                                    {chatId}
+                                  </div>
+                                  <div className="text-xs text-orange-600">
+                                    {/^-?\d+$/.test(chatId.trim())
+                                      ? "Valid format"
+                                      : "Invalid format"}
+                                  </div>
+                                </div>
+                              </div>
+                              <button
+                                onClick={() => {
+                                  navigator.clipboard.writeText(chatId);
+                                  showAlert(
+                                    "Copied!",
+                                    `Chat ID ${chatId} copied to clipboard`,
+                                    "success"
+                                  );
+                                }}
+                                className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100 border border-orange-200"
+                                title="Copy to clipboard"
+                              >
+                                <Copy className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="mt-3 pt-3 border-t border-orange-200">
+                        <div className="flex items-center justify-between text-xs text-orange-700">
+                          <span>Last updated: Just now</span>
+                          <span>Applied to all {branch} study groups</span>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-center py-6">
+                      <MessageSquare className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                      <p className="text-gray-700 font-bold mb-2">
+                        No Telegram Chat IDs set
+                      </p>
+                      <p className="text-gray-600 text-sm mb-4">
+                        Add Chat IDs to receive study schedule notifications
+                      </p>
+                      
+                      {/* Instructions in non-edit mode */}
+                      <div className="mb-4 p-3 bg-rose-50 border border-rose-200 rounded-lg text-left">
+                        <p className="text-sm text-rose-800 font-bold mb-1">
+                          How to get Chat ID:
+                        </p>
+                        <ol className="text-xs text-rose-700 space-y-1 ml-4 list-decimal">
+                          <li>
+                            <a 
+                              href="https://t.me/MyTestBot?start" 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-rose-600 hover:text-rose-800 underline"
+                            >
+                              Click here to open the bot
+                            </a>
+                          </li>
+                          <li>Add bot to study group & make admin</li>
+                          <li>Send /start command</li>
+                          <li>Copy the Chat ID provided</li>
+                          <li>Paste above to get notifications</li>
+                        </ol>
+                      </div>
+                      
+                      <button
+                        onClick={() => setIsEditingTelegram(true)}
+                        className="px-4 py-2 bg-orange-600 text-white rounded-lg font-bold hover:bg-orange-700 transition-colors border border-orange-700"
+                      >
+                        Add Chat IDs
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
-          </>
-        ) : (
-          <div className="text-center py-6">
-            <MessageSquare className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-            <p className="text-gray-700 font-medium mb-2">
-              No Telegram Chat IDs set
-            </p>
-            <p className="text-gray-600 text-sm mb-4">
-              Add Chat IDs to receive timetable change notifications
-            </p>
-            
-            {/* Instructions in non-edit mode */}
-            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-left">
-              <p className="text-sm text-blue-800 font-medium mb-1">
-                How to get Chat ID:
-              </p>
-              <ol className="text-xs text-blue-700 space-y-1 ml-4 list-decimal">
-                <li>
-                  <a 
-                    href="https://t.me/MyTestBot?start" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:text-blue-800 underline"
-                  >
-                    Click here to open the bot
-                  </a>
-                </li>
-                <li>Add bot to group & make admin</li>
-                <li>Send /start command</li>
-                <li>Copy the Chat ID provided</li>
-                <li>Paste above to get notifications</li>
-              </ol>
-            </div>
-            
-            <button
-              onClick={() => setIsEditingTelegram(true)}
-              className="px-4 py-2 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition-colors"
-            >
-              Add Chat IDs
-            </button>
-          </div>
-        )}
-      </div>
-    )}
-  </div>
-)}
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             {/* Semester */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-amber-600" />
                 Semester
               </label>
               <div className="relative">
-                <GraduationCap className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-blue-500" />
+                <GraduationCap className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-amber-500" />
                 <select
                   value={sem}
                   onChange={(e) => {
                     setSem(Number(e.target.value));
                     setIsInitialLoad(false);
                   }}
-                  className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  className="w-full pl-10 pr-4 py-3 bg-white border border-amber-200 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
                 >
                   {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
                     <option key={s} value={s}>
@@ -2281,18 +2325,19 @@ Generated on: ${new Date().toLocaleString()}
 
             {/* Branch */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Branch
+              <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                <Notebook className="w-4 h-4 text-rose-600" />
+                Subject
               </label>
               <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-emerald-500" />
+                <Notebook className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-rose-500" />
                 <select
                   value={branch}
                   onChange={(e) => {
                     setBranch(e.target.value);
                     setIsInitialLoad(false);
                   }}
-                  className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                  className="w-full pl-10 pr-4 py-3 bg-white border border-rose-200 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-rose-500 transition-all"
                 >
                   {branchOptions.map((b) => (
                     <option key={b} value={b}>
@@ -2305,16 +2350,17 @@ Generated on: ${new Date().toLocaleString()}
 
             {/* Load Branch Button */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Branch Actions
+              <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                <FolderPlus className="w-4 h-4 text-orange-600" />
+                Section Actions
               </label>
               <button
                 onClick={handleLoadBranchClasses}
                 disabled={fetching || !branch || !sem}
-                className={`w-full px-4 py-3 rounded-lg font-medium flex items-center justify-center gap-2 transition-all ${
+                className={`w-full px-4 py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-all border ${
                   fetching || !branch || !sem
-                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                    : "bg-blue-600 text-white hover:bg-blue-700"
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300"
+                    : "bg-gradient-to-r from-amber-600 to-amber-700 text-white hover:from-amber-700 hover:to-amber-800 border-amber-700"
                 }`}
               >
                 {fetching ? (
@@ -2324,8 +2370,8 @@ Generated on: ${new Date().toLocaleString()}
                   </>
                 ) : (
                   <>
-                    <Building className="w-5 h-5" />
-                    Load Branch Classes
+                    <FolderPlus className="w-5 h-5" />
+                    Load Study Groups
                   </>
                 )}
               </button>
@@ -2335,13 +2381,14 @@ Generated on: ${new Date().toLocaleString()}
           {/* Division Selection */}
           <div>
             <div className="flex items-center justify-between mb-3">
-              <label className="block text-sm font-medium text-gray-700">
-                Select Classes for {branch}
+              <label className="block text-sm font-bold text-gray-700 flex items-center gap-2">
+                <Users className="w-4 h-4 text-violet-600" />
+                Select Study Groups for {branch}
               </label>
               <div className="text-sm text-gray-500">
                 {selectedDivisions.length} selected
                 {fetching && (
-                  <Loader2 className="inline-block ml-2 w-4 h-4 animate-spin text-blue-600" />
+                  <Loader2 className="inline-block ml-2 w-4 h-4 animate-spin text-amber-600" />
                 )}
               </div>
             </div>
@@ -2358,11 +2405,11 @@ Generated on: ${new Date().toLocaleString()}
                     className={`px-4 py-2 rounded-lg border transition-all duration-200 flex items-center gap-2 ${
                       isSelected
                         ? exists
-                          ? "bg-green-100 border-green-300 text-green-800 hover:bg-green-200"
-                          : "bg-blue-100 border-blue-300 text-blue-800 hover:bg-blue-200"
-                        : "bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200"
+                          ? "bg-gradient-to-r from-orange-100 to-orange-50 border-orange-300 text-orange-800 hover:from-orange-200 hover:to-orange-100"
+                          : "bg-gradient-to-r from-amber-100 to-amber-50 border-amber-300 text-amber-800 hover:from-amber-200 hover:to-amber-100"
+                        : "bg-gradient-to-r from-gray-100 to-gray-50 border-gray-300 text-gray-700 hover:from-gray-200 hover:to-gray-100"
                     }`}
-                    title={`Allowed faculty: ${
+                    title={`Allowed tutors: ${
                       allowedFaculty.length > 0
                         ? allowedFaculty.join(", ")
                         : "None assigned"
@@ -2370,10 +2417,10 @@ Generated on: ${new Date().toLocaleString()}
                   >
                     {division}
                     {isSelected && exists && (
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
                     )}
                     {allowedFaculty.length > 0 && (
-                      <span className="text-xs bg-gray-200 px-1.5 py-0.5 rounded">
+                      <span className="text-xs bg-violet-100 px-1.5 py-0.5 rounded border border-violet-200 text-violet-700">
                         {allowedFaculty.length}
                       </span>
                     )}
@@ -2383,23 +2430,23 @@ Generated on: ${new Date().toLocaleString()}
             </div>
             <div className="flex flex-wrap items-center gap-4 mt-4">
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-blue-100 border border-blue-300 rounded"></div>
+                <div className="w-3 h-3 bg-gradient-to-r from-amber-100 to-amber-50 border border-amber-300 rounded"></div>
                 <span className="text-sm text-gray-600">Selected (New)</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-green-100 border border-green-300 rounded"></div>
+                <div className="w-3 h-3 bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-300 rounded"></div>
                 <span className="text-sm text-gray-600">
                   Selected (Existing)
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-gray-100 border border-gray-300 rounded"></div>
+                <div className="w-3 h-3 bg-gradient-to-r from-gray-100 to-gray-50 border border-gray-300 rounded"></div>
                 <span className="text-sm text-gray-600">Not Selected</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-purple-100 border border-purple-300 rounded"></div>
+                <div className="w-3 h-3 bg-gradient-to-r from-violet-100 to-violet-50 border border-violet-300 rounded"></div>
                 <span className="text-sm text-gray-600">
-                  Has Allowed Faculty
+                  Has Assigned Tutors
                 </span>
               </div>
             </div>
@@ -2408,17 +2455,22 @@ Generated on: ${new Date().toLocaleString()}
 
         {/* Legend & Controls */}
         <div className="flex flex-col md:flex-row gap-4 mb-6">
-          <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm flex-1">
+          <div className="bg-white rounded-xl p-4 border border-amber-200 shadow-sm flex-1">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold text-gray-700">
-                Faculty Legend
-              </h3>
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-gradient-to-br from-amber-100 to-amber-50 rounded-lg border border-amber-200">
+                  <Highlighter className="w-4 h-4 text-amber-600" />
+                </div>
+                <h3 className="text-sm font-bold text-gray-700">
+                  Tutor Legend
+                </h3>
+              </div>
               <button
                 onClick={() => setShowFacultyModal(true)}
-                className="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-xs font-medium flex items-center gap-2 hover:bg-blue-100 transition-colors"
+                className="px-3 py-1.5 bg-gradient-to-r from-amber-50 to-amber-100 text-amber-700 rounded-lg text-xs font-bold flex items-center gap-2 hover:from-amber-100 hover:to-amber-200 transition-colors border border-amber-200"
               >
                 <UserPlus className="w-3 h-3" />
-                Add Faculty
+                Add Tutor
               </button>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -2428,7 +2480,7 @@ Generated on: ${new Date().toLocaleString()}
                   return (
                     <div
                       key={faculty.value}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium ${faculty.color} border`}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold ${faculty.color} border`}
                     >
                       {faculty.label}
                       {faculty.name !== "" && ` (${faculty.name})`}
@@ -2443,7 +2495,7 @@ Generated on: ${new Date().toLocaleString()}
                 return (
                   <div
                     key={faculty.value}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium ${faculty.color} border`}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold ${faculty.color} border`}
                     title={`${facultyId}${
                       facultyName ? ` (${facultyName})` : ""
                     }`}
@@ -2453,23 +2505,28 @@ Generated on: ${new Date().toLocaleString()}
                 );
               })}
             </div>
-            <div className="text-xs text-gray-500 mt-3">
-              Note: Each class only shows faculty assigned to it from the
-              classwise_faculty collection.
+            <div className="text-xs text-gray-500 mt-3 flex items-center gap-1">
+              <Info className="w-3 h-3" />
+              Note: Each study group only shows tutors assigned to it from the study groups database.
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
-            <h3 className="text-sm font-semibold text-gray-700 mb-3">
-              View Options
-            </h3>
+          <div className="bg-white rounded-xl p-4 border border-amber-200 shadow-sm">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="p-2 bg-gradient-to-br from-rose-100 to-rose-50 rounded-lg border border-rose-200">
+                <Eye className="w-4 h-4 text-rose-600" />
+              </div>
+              <h3 className="text-sm font-bold text-gray-700">
+                View Options
+              </h3>
+            </div>
             <div className="flex flex-col gap-2">
               <button
                 onClick={() => setShowFreeSlots(!showFreeSlots)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 border ${
                   showFreeSlots
-                    ? "bg-blue-100 text-blue-700 border border-blue-200"
-                    : "bg-gray-100 text-gray-700 border border-gray-200"
+                    ? "bg-gradient-to-r from-amber-100 to-amber-50 text-amber-700 border-amber-300"
+                    : "bg-gradient-to-r from-gray-100 to-gray-50 text-gray-700 border-gray-300"
                 }`}
               >
                 {showFreeSlots ? (
@@ -2477,11 +2534,12 @@ Generated on: ${new Date().toLocaleString()}
                 ) : (
                   <EyeOff className="w-3 h-3" />
                 )}
-                {showFreeSlots ? "Show Free Slots" : "Hide Free Slots"}
+                {showFreeSlots ? "Show Free Lectures" : "Hide Free Lectures"}
               </button>
-              <div className="text-xs text-gray-500 mt-1">
-                Showing {selectedDivisions.length} class
-                {selectedDivisions.length !== 1 ? "es" : ""}
+              <div className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                <Layers className="w-3 h-3" />
+                Showing {selectedDivisions.length} study group
+                {selectedDivisions.length !== 1 ? "s" : ""}
               </div>
             </div>
           </div>
@@ -2501,12 +2559,15 @@ Generated on: ${new Date().toLocaleString()}
                 return (
                   <div
                     key={division}
-                    className="bg-white rounded-xl border border-gray-200 shadow-sm relative"
+                    className="bg-white rounded-xl border border-amber-200 shadow-sm relative group"
                   >
+                    {/* Notebook Spine Effect */}
+                    <div className="absolute left-0 top-0 bottom-0 w-2 bg-gradient-to-b from-amber-400 to-amber-300 rounded-l-lg"></div>
+                    
                     {/* Empty Warning Badge */}
                     {isEmpty && exists && (
                       <div className="absolute -top-2 -right-2">
-                        <div className="bg-red-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                        <div className="bg-gradient-to-r from-red-500 to-rose-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1 border border-red-600 shadow-sm">
                           <AlertCircle className="w-3 h-3" />
                           Empty
                         </div>
@@ -2515,29 +2576,33 @@ Generated on: ${new Date().toLocaleString()}
 
                     {/* Division Header */}
                     <div
-                      className={`p-4 border-b ${
+                      className={`p-4 border-b ml-2 ${
                         exists
-                          ? "bg-green-50 border-green-200"
-                          : "bg-blue-50 border-blue-200"
+                          ? "bg-gradient-to-r from-orange-50 to-orange-100 border-orange-200"
+                          : "bg-gradient-to-r from-amber-50 to-amber-100 border-amber-200"
                       }`}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <Building
-                            className={`w-5 h-5 ${
-                              exists ? "text-green-600" : "text-blue-600"
-                            }`}
-                          />
+                          <div className={`p-2 rounded-lg border ${
+                            exists ? "border-orange-200 bg-white" : "border-amber-200 bg-white"
+                          }`}>
+                            <BookOpen
+                              className={`w-5 h-5 ${
+                                exists ? "text-orange-600" : "text-amber-600"
+                              }`}
+                            />
+                          </div>
                           <div>
                             <h3 className="font-bold text-lg text-gray-900">
                               {division}
                             </h3>
                             <div className="flex items-center gap-2 mt-1">
                               <div
-                                className={`text-xs px-2 py-1 rounded-full ${
+                                className={`text-xs px-2 py-1 rounded-full border ${
                                   exists
-                                    ? "bg-green-100 text-green-800 border border-green-200"
-                                    : "bg-blue-100 text-blue-800 border border-blue-200"
+                                    ? "bg-orange-100 text-orange-800 border-orange-200"
+                                    : "bg-amber-100 text-amber-800 border-amber-200"
                                 }`}
                               >
                                 {exists ? "Existing" : "New"}
@@ -2552,11 +2617,11 @@ Generated on: ${new Date().toLocaleString()}
                                     )
                                   ).length
                                 }{" "}
-                                assigned slots
+                                assigned Lectures
                               </div>
                               {allowedFaculty.length > 0 && (
-                                <div className="text-xs px-2 py-1 rounded-full bg-purple-100 text-purple-800 border border-purple-200">
-                                  {allowedFaculty.length} faculty
+                                <div className="text-xs px-2 py-1 rounded-full bg-gradient-to-r from-violet-100 to-violet-50 text-violet-800 border border-violet-200">
+                                  {allowedFaculty.length} tutor(s)
                                 </div>
                               )}
                             </div>
@@ -2567,20 +2632,20 @@ Generated on: ${new Date().toLocaleString()}
                           {exists && (
                             <button
                               onClick={(e) => openDeleteModal(division, e)}
-                              className="p-1.5 hover:bg-red-50 text-red-500 hover:text-red-600 rounded-lg transition-colors"
-                              title="Delete timetable"
+                              className="p-1.5 hover:bg-red-50 text-red-500 hover:text-red-600 rounded-lg transition-colors border border-red-200"
+                              title="Delete study schedule"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
                           )}
                           <button
                             onClick={() => toggleDivisionCollapse(division)}
-                            className="p-1 hover:bg-white/50 rounded-lg transition-colors"
+                            className="p-1 hover:bg-white/50 rounded-lg transition-colors border border-amber-200"
                           >
                             {isCollapsed ? (
-                              <ChevronDown className="w-5 h-5 text-gray-500" />
+                              <ChevronDown className="w-5 h-5 text-amber-500" />
                             ) : (
-                              <ChevronUp className="w-5 h-5 text-gray-500" />
+                              <ChevronUp className="w-5 h-5 text-amber-500" />
                             )}
                           </button>
                         </div>
@@ -2589,7 +2654,7 @@ Generated on: ${new Date().toLocaleString()}
 
                     {/* Weekdays inside Division (when not collapsed) */}
                     {!isCollapsed && (
-                      <div className="p-4">
+                      <div className="p-4 ml-2">
                         <div className="space-y-3">
                           {days.map((day) => {
                             const dayCollapsedKey = `${division}-${day}`;
@@ -2606,29 +2671,29 @@ Generated on: ${new Date().toLocaleString()}
                             return (
                               <div
                                 key={day}
-                                className="border border-gray-200 rounded-lg overflow-hidden"
+                                className="border border-amber-200 rounded-lg overflow-hidden"
                               >
                                 {/* Day Header */}
                                 <div
                                   onClick={() =>
                                     toggleDayCollapse(division, day)
                                   }
-                                  className="p-3 bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors flex items-center justify-between"
+                                  className="p-3 bg-gradient-to-r from-amber-50 to-amber-100 hover:from-amber-100 hover:to-amber-150 cursor-pointer transition-colors flex items-center justify-between"
                                 >
                                   <div className="flex items-center gap-2">
-                                    <Calendar className="w-4 h-4 text-gray-500" />
-                                    <span className="font-medium text-gray-900">
+                                    <Calendar className="w-4 h-4 text-amber-600" />
+                                    <span className="font-bold text-gray-900">
                                       {day}
                                     </span>
-                                    <span className="text-xs text-gray-500">
-                                      ({assignedCount}/{timeSlots.length} slots)
+                                    <span className="text-xs text-amber-600">
+                                      ({assignedCount}/{timeSlots.length} Lectures)
                                     </span>
                                   </div>
                                   <div className="flex items-center gap-2">
                                     {isDayCollapsed ? (
-                                      <ChevronDown className="w-4 h-4 text-gray-500" />
+                                      <ChevronDown className="w-4 h-4 text-amber-500" />
                                     ) : (
-                                      <ChevronUp className="w-4 h-4 text-gray-500" />
+                                      <ChevronUp className="w-4 h-4 text-amber-500" />
                                     )}
                                   </div>
                                 </div>
@@ -2654,9 +2719,9 @@ Generated on: ${new Date().toLocaleString()}
                                         return (
                                           <div
                                             key={slot.value}
-                                            className="flex items-center gap-2 p-2 border border-gray-100 rounded hover:bg-gray-50 transition-colors"
+                                            className="flex items-center gap-2 p-2 border border-amber-100 rounded hover:bg-amber-50 transition-colors"
                                           >
-                                            <div className="w-16 text-xs text-gray-600 font-medium">
+                                            <div className="w-16 text-xs text-amber-700 font-bold">
                                               {slot.label}
                                             </div>
                                             <select
@@ -2669,7 +2734,7 @@ Generated on: ${new Date().toLocaleString()}
                                                   e.target.value
                                                 )
                                               }
-                                              className={`flex-1 px-3 py-1.5 text-sm rounded-lg border ${faculty.color} focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all`}
+                                              className={`flex-1 px-3 py-1.5 text-sm rounded-lg border ${faculty.color} focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all`}
                                             >
                                               {classFacultyOptions.map((f) => {
                                                 // For "free" option, keep as is
@@ -2714,10 +2779,10 @@ Generated on: ${new Date().toLocaleString()}
 
                     {/* Collapsed View */}
                     {isCollapsed && (
-                      <div className="p-4 text-center">
+                      <div className="p-4 text-center ml-2">
                         <div className="text-gray-500 text-sm py-8">
                           <Calendar className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                          <p>Click expand to view {days.length} days</p>
+                          <p>Click expand to view {days.length} study days</p>
                           <p className="text-xs mt-1">
                             {
                               Object.values(schedule[division] || {}).flatMap(
@@ -2727,16 +2792,16 @@ Generated on: ${new Date().toLocaleString()}
                                   )
                               ).length
                             }{" "}
-                            assigned slots
+                            assigned Lectures
                           </p>
                           {allowedFaculty.length > 0 && (
-                            <p className="text-xs mt-2">
-                              Allowed faculty: {allowedFaculty.length}
+                            <p className="text-xs mt-2 text-violet-600">
+                              ✓ {allowedFaculty.length} tutor(s) assigned
                             </p>
                           )}
                           {isEmpty && exists && (
                             <p className="text-xs mt-2 text-red-600">
-                              ⚠️ No faculty assigned
+                              ⚠️ No tutor assigned
                             </p>
                           )}
                         </div>
@@ -2749,25 +2814,25 @@ Generated on: ${new Date().toLocaleString()}
 
             {/* Statistics */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-              <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+              <div className="bg-white rounded-xl p-6 border border-amber-200 shadow-sm">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Selected Classes</p>
+                    <p className="text-sm text-gray-600">Study Groups</p>
                     <p className="text-2xl font-bold text-gray-900 mt-2">
                       {selectedDivisions.length}
                     </p>
                   </div>
-                  <div className="p-3 bg-blue-50 rounded-lg">
-                    <Users className="w-6 h-6 text-blue-600" />
+                  <div className="p-3 bg-gradient-to-br from-amber-50 to-amber-100 rounded-lg border border-amber-200">
+                    <Users className="w-6 h-6 text-amber-600" />
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+              <div className="bg-white rounded-xl p-6 border border-amber-200 shadow-sm">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600">
-                      Total Assigned Slots
+                      Assigned Lectures
                     </p>
                     <p className="text-2xl font-bold text-gray-900 mt-2">
                       {selectedDivisions.reduce((total, division) => {
@@ -2781,30 +2846,30 @@ Generated on: ${new Date().toLocaleString()}
                       }, 0)}
                     </p>
                   </div>
-                  <div className="p-3 bg-purple-50 rounded-lg">
-                    <Clock className="w-6 h-6 text-purple-600" />
+                  <div className="p-3 bg-gradient-to-br from-rose-50 to-rose-100 rounded-lg border border-rose-200">
+                    <Clock className="w-6 h-6 text-rose-600" />
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+              <div className="bg-white rounded-xl p-6 border border-amber-200 shadow-sm">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Available Faculty</p>
+                    <p className="text-sm text-gray-600">Available Tutors</p>
                     <p className="text-2xl font-bold text-gray-900 mt-2">
                       {facultyOptions.length - 1} {/* Subtract "free" option */}
                     </p>
                   </div>
-                  <div className="p-3 bg-green-50 rounded-lg">
-                    <GraduationCap className="w-6 h-6 text-green-600" />
+                  <div className="p-3 bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg border border-orange-200">
+                    <PenTool className="w-6 h-6 text-orange-600" />
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+              <div className="bg-white rounded-xl p-6 border border-amber-200 shadow-sm">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Empty Timetables</p>
+                    <p className="text-sm text-gray-600">Empty Schedules</p>
                     <p className="text-2xl font-bold text-gray-900 mt-2">
                       {
                         selectedDivisions.filter((division) =>
@@ -2813,8 +2878,8 @@ Generated on: ${new Date().toLocaleString()}
                       }
                     </p>
                   </div>
-                  <div className="p-3 bg-amber-50 rounded-lg">
-                    <AlertCircle className="w-6 h-6 text-amber-600" />
+                  <div className="p-3 bg-gradient-to-br from-red-50 to-rose-50 rounded-lg border border-red-200">
+                    <AlertCircle className="w-6 h-6 text-red-600" />
                   </div>
                 </div>
               </div>
@@ -2825,18 +2890,18 @@ Generated on: ${new Date().toLocaleString()}
               <button
                 onClick={handleSubmit}
                 disabled={isLoading || selectedDivisions.length === 0}
-                className={`px-8 py-3 rounded-lg font-medium flex items-center gap-2 transition-all duration-300 ${
+                className={`px-8 py-3 rounded-lg font-bold flex items-center gap-2 transition-all duration-300 border ${
                   isLoading || selectedDivisions.length === 0
-                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                    : "bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-sm hover:shadow-md"
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300"
+                    : "bg-gradient-to-r from-amber-600 to-amber-700 text-white hover:from-amber-700 hover:to-amber-800 shadow-sm hover:shadow-md border-amber-700"
                 }`}
               >
                 <Save className="w-5 h-5" />
                 {isLoading
                   ? "Saving..."
                   : saved
-                  ? "All Timetables Saved"
-                  : `Save ${selectedDivisions.length} Timetable${
+                  ? "All Schedules Saved"
+                  : `Save ${selectedDivisions.length} Schedule${
                       selectedDivisions.length !== 1 ? "s" : ""
                     }`}
               </button>
@@ -2844,85 +2909,85 @@ Generated on: ${new Date().toLocaleString()}
               <button
                 onClick={handleClear}
                 disabled={selectedDivisions.length === 0}
-                className={`px-6 py-3 rounded-lg border font-medium flex items-center gap-2 transition-all duration-300 ${
+                className={`px-6 py-3 rounded-lg border font-bold flex items-center gap-2 transition-all duration-300 ${
                   selectedDivisions.length === 0
                     ? "border-gray-200 text-gray-400 cursor-not-allowed"
-                    : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                    : "border-amber-300 text-amber-700 hover:bg-amber-50"
                 }`}
               >
                 <Trash2 className="w-5 h-5" />
-                Clear All Classes
+                Clear All Groups
               </button>
 
               <button
                 onClick={handleReset}
                 disabled={selectedDivisions.length === 0}
-                className={`px-6 py-3 rounded-lg border font-medium flex items-center gap-2 transition-all duration-300 ${
+                className={`px-6 py-3 rounded-lg border font-bold flex items-center gap-2 transition-all duration-300 ${
                   selectedDivisions.length === 0
                     ? "border-gray-200 text-gray-400 cursor-not-allowed"
-                    : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                    : "border-amber-300 text-amber-700 hover:bg-amber-50"
                 }`}
               >
                 <RefreshCw className="w-5 h-5" />
-                Reload Timetables
+                Reload Schedules
               </button>
             </div>
           </>
         )}
 
         {/* Quick Tips */}
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100">
-          <h3 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
-            <Info className="w-5 h-5" />
-            How It Works
-          </h3>
-          <ul className="space-y-2 text-blue-800 text-sm">
+        <div className="bg-gradient-to-r from-amber-50 to-rose-50 rounded-2xl p-6 border-2 border-amber-200">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 bg-gradient-to-br from-amber-100 to-amber-50 rounded-lg border border-amber-200">
+              <Info className="w-5 h-5 text-amber-600" />
+            </div>
+            <h3 className="font-bold text-amber-900">
+              Study Planner Guide
+            </h3>
+          </div>
+          <ul className="space-y-2 text-amber-800 text-sm">
             <li className="flex items-start gap-2">
-              <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5"></div>
+              <div className="w-2 h-2 bg-amber-400 rounded-full mt-1.5"></div>
               <span>
-                <strong>Telegram Chat IDs</strong> - Set multiple Telegram Chat
-                IDs for all {branch} Semester {sem} classes. These will be used
-                for notifications.
+                <strong>Study Notifications</strong> - Set multiple Telegram Chat
+                IDs for all {branch} Semester {sem} study groups. These will be used
+                for schedule updates and announcements.
               </span>
             </li>
             <li className="flex items-start gap-2">
-              <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5"></div>
+              <div className="w-2 h-2 bg-amber-400 rounded-full mt-1.5"></div>
               <span>
-                <strong>Delete Timetable</strong> - Click the trash icon on
-                existing class cards to permanently delete that timetable. This
-                removes all faculty assignments for that class.
+                <strong>Delete Study Schedule</strong> - Click the trash icon on
+                existing study group cards to permanently remove that schedule.
               </span>
             </li>
             <li className="flex items-start gap-2">
-              <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5"></div>
+              <div className="w-2 h-2 bg-amber-400 rounded-full mt-1.5"></div>
               <span>
-                <strong>Empty Timetable Validation</strong> - Classes with all
-                free slots cannot be saved. Assign at least one faculty or
-                delete the class.
+                <strong>Empty Schedule Validation</strong> - Study groups with all
+                free Lectures cannot be saved. Assign at least one tutor or
+                remove the group.
               </span>
             </li>
             <li className="flex items-start gap-2">
-              <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5"></div>
+              <div className="w-2 h-2 bg-amber-400 rounded-full mt-1.5"></div>
               <span>
-                <strong>Faculty Management</strong> - Use the "Add Faculty"
-                button to add faculty members from the database to your dropdown
-                options.
+                <strong>Tutor Management</strong> - Use the "Add Tutor" button to add
+                tutors from the database to your dropdown options.
               </span>
             </li>
             <li className="flex items-start gap-2">
-              <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5"></div>
+              <div className="w-2 h-2 bg-amber-400 rounded-full mt-1.5"></div>
               <span>
-                <strong>Create New Faculty</strong> - Click "Create New Faculty"
-                in the modal to add a new faculty member by entering their ID
-                and Name.
+                <strong>Create New Tutor</strong> - Click "Create New Tutor"
+                in the modal to add a new tutor by entering their ID and Name.
               </span>
             </li>
             <li className="flex items-start gap-2">
-              <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5"></div>
+              <div className="w-2 h-2 bg-amber-400 rounded-full mt-1.5"></div>
               <span>
-                <strong>Class-Specific Faculty</strong> - Each class dropdown
-                only shows faculty assigned to that specific class in
-                classwise_faculty collection.
+                <strong>Group-Specific Tutors</strong> - Each study group dropdown
+                only shows tutors assigned to that specific group in the database.
               </span>
             </li>
           </ul>

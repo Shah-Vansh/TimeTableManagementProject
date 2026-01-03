@@ -20,6 +20,19 @@ import {
   Calendar as CalendarIcon,
   Folder,
   Trash2,
+  Bookmark,
+  ChevronRight,
+  Notebook,
+  ClipboardList,
+  PenTool,
+  Layers,
+  TrendingUp,
+  BookOpen,
+  Highlighter,
+  StickyNote,
+  Download,
+  Upload,
+  Plus,
 } from "lucide-react";
 import api from "../configs/api";
 import Alert from "../components/Alert";
@@ -40,16 +53,16 @@ export default function ViewChanges() {
 
   // Grouping options
   const GROUP_OPTIONS = [
-    { id: "date", label: "Group by Date", icon: CalendarIcon },
-    { id: "class", label: "Group by Class", icon: Folder },
+    { id: "date", label: "Group by Date", icon: CalendarIcon, color: "amber" },
+    { id: "class", label: "Group by Class", icon: Folder, color: "blue" },
   ];
 
   const DATE_OPTIONS = [
-    { id: "all", label: "All Dates" },
-    { id: "today", label: "Today" },
-    { id: "yesterday", label: "Yesterday" },
-    { id: "tomorrow", label: "Tomorrow" },
-    { id: "specific", label: "Specific Date" },
+    { id: "all", label: "All Dates", color: "gray" },
+    { id: "today", label: "Today", color: "emerald" },
+    { id: "yesterday", label: "Yesterday", color: "amber" },
+    { id: "tomorrow", label: "Tomorrow", color: "blue" },
+    { id: "specific", label: "Specific Date", color: "violet" },
   ];
 
   // Show alert message
@@ -75,21 +88,21 @@ export default function ViewChanges() {
         
         // Show success message using Alert component
         showAlert(
-          "Temporary changes loaded",
-          `${flattenedChanges.length} temporary changes loaded successfully`,
+          "Study schedule updates loaded",
+          `${flattenedChanges.length} temporary schedule updates found`,
           "success"
         );
       } else {
         showAlert(
-          "No changes found",
-          "No temporary changes found in the system",
+          "No schedule updates found",
+          "No temporary schedule adjustments found",
           "error"
         );
       }
     } catch (err) {
       console.error("Error fetching changes:", err);
       showAlert(
-        "Failed to fetch changes",
+        "Failed to fetch schedule updates",
         err.response?.data?.error || "Please try again",
         "error"
       );
@@ -170,7 +183,7 @@ export default function ViewChanges() {
   };
 
   const handleDeleteChange = async (change) => {
-    if (!window.confirm("Are you sure you want to delete this temporary change?")) {
+    if (!window.confirm("Are you sure you want to remove this schedule adjustment?")) {
       return;
     }
 
@@ -190,8 +203,8 @@ export default function ViewChanges() {
       if (response.data.success) {
         // Show success message using Alert component
         showAlert(
-          "Change deleted successfully",
-          "Temporary change has been removed",
+          "Schedule adjustment removed",
+          "Temporary schedule change has been cleared",
           "success"
         );
         
@@ -211,27 +224,13 @@ export default function ViewChanges() {
     } catch (err) {
       console.error("Error deleting change:", err);
       showAlert(
-        "Failed to delete change",
+        "Failed to remove adjustment",
         err.response?.data?.error || "Please try again",
         "error"
       );
     } finally {
       setDeletingId(null);
     }
-  };
-
-  const getLecNoFromSlotKey = (slotKey) => {
-    const slotMap = {
-      "Time Slot 1": 0,
-      "Time Slot 2": 1,
-      "Time Slot 3": 2,
-      "Time Slot 4": 3,
-      "Time Slot 5": 4,
-      "Time Slot 6": 5,
-      "Time Slot 7": 6,
-      "Time Slot 8": 7,
-    };
-    return slotMap[slotKey] || 0;
   };
 
   const filterAndGroupChanges = () => {
@@ -383,206 +382,324 @@ export default function ViewChanges() {
     0
   );
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 p-4 md:p-6">
-      {/* Alert Component */}
-      {alert && (
-        <Alert
-          main={alert.main}
-          info={alert.info}
-          type={alert.type}
-          onClose={() => setAlert(null)}
-        />
-      )}
+  const getColorClasses = (color) => {
+    const colorMap = {
+      amber: {
+        bg: "bg-amber-50",
+        border: "border-amber-200",
+        text: "text-amber-700",
+        light: "bg-gradient-to-r from-amber-100 to-amber-50",
+        ribbon: "bg-gradient-to-r from-amber-400 to-amber-300",
+      },
+      blue: {
+        bg: "bg-blue-50",
+        border: "border-blue-200",
+        text: "text-blue-700",
+        light: "bg-gradient-to-r from-blue-100 to-blue-50",
+        ribbon: "bg-gradient-to-r from-blue-400 to-blue-300",
+      },
+      emerald: {
+        bg: "bg-emerald-50",
+        border: "border-emerald-200",
+        text: "text-emerald-700",
+        light: "bg-gradient-to-r from-emerald-100 to-emerald-50",
+        ribbon: "bg-gradient-to-r from-emerald-400 to-emerald-300",
+      },
+      violet: {
+        bg: "bg-violet-50",
+        border: "border-violet-200",
+        text: "text-violet-700",
+        light: "bg-gradient-to-r from-violet-100 to-violet-50",
+        ribbon: "bg-gradient-to-r from-violet-400 to-violet-300",
+      },
+      gray: {
+        bg: "bg-gray-50",
+        border: "border-gray-200",
+        text: "text-gray-700",
+        light: "bg-gradient-to-r from-gray-100 to-gray-50",
+        ribbon: "bg-gradient-to-r from-gray-400 to-gray-300",
+      },
+    };
+    return colorMap[color] || colorMap.amber;
+  };
 
-      {/* Decorative Background */}
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-blue-50">
+      {/* Decorative Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-indigo-100 to-transparent rounded-full opacity-20"></div>
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-emerald-100 to-transparent rounded-full opacity-10"></div>
+        <div className="absolute top-20 right-10 w-72 h-72 bg-gradient-to-br from-amber-100 to-transparent rounded-full opacity-40"></div>
+        <div className="absolute bottom-20 left-10 w-96 h-96 bg-gradient-to-tr from-blue-100 to-transparent rounded-full opacity-30"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-64 bg-gradient-to-r from-transparent via-amber-50/20 to-transparent"></div>
+
+        {/* Stationery Elements */}
+        <div className="absolute top-40 left-20 w-24 h-24 border-4 border-amber-200/40 border-dashed rounded-lg rotate-12"></div>
+        <div className="absolute bottom-40 right-20 w-16 h-16 border-2 border-blue-200/40 border-dotted rounded-full"></div>
+        <div className="absolute top-60 right-40 w-8 h-32 bg-gradient-to-b from-emerald-200/30 to-transparent transform rotate-45"></div>
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto">
-        {/* Breadcrumb */}
-        <div className="mb-6">
-          <div className="flex items-center text-sm text-gray-600 mb-4">
-            <span className="hover:text-gray-800 cursor-pointer">
-              Dashboard
-            </span>
-            <ChevronDown className="w-4 h-4 mx-2 rotate-[-90deg]" />
-            <span className="hover:text-gray-800 cursor-pointer">
-              Timetable Management
-            </span>
-            <ChevronDown className="w-4 h-4 mx-2 rotate-[-90deg]" />
-            <span className="font-medium text-indigo-600">
-              View Temporary Changes
-            </span>
-          </div>
-        </div>
+      <div className="relative z-10 p-4 md:p-8">
+        <div className="max-w-7xl mx-auto">
+          {/* Alert Component */}
+          {alert && (
+            <Alert
+              main={alert.main}
+              info={alert.info}
+              type={alert.type}
+              onClose={() => setAlert(null)}
+            />
+          )}
 
-        {/* Header */}
-        <div className="flex items-start justify-between mb-8">
-          <div>
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-2.5 bg-white rounded-xl shadow-sm border border-gray-100">
-                <Bell className="w-6 h-6 text-indigo-600" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                  Temporary Timetable Changes
-                </h1>
-                <p className="text-gray-600">
-                  View and manage all temporary lecture assignments
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="p-3 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-xl">
-            <CalendarDays className="w-6 h-6 text-indigo-600" />
-          </div>
-        </div>
-
-        {/* Messages */}
-        {error && (
-          <div className="mb-6 p-4 rounded-xl border border-red-200 bg-red-50 flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
-            <div className="flex-1">
-              <p className="font-medium text-red-800">Error</p>
-              <p className="text-red-600 text-sm mt-1">{error}</p>
-            </div>
-          </div>
-        )}
-
-        {success && (
-          <div className="mb-6 p-4 rounded-xl border border-emerald-200 bg-emerald-50 flex items-start gap-3">
-            <CheckCircle className="w-5 h-5 text-emerald-500 mt-0.5 flex-shrink-0" />
-            <div className="flex-1">
-              <p className="font-medium text-emerald-800">Success</p>
-              <p className="text-emerald-600 text-sm mt-1">{success}</p>
-            </div>
-          </div>
-        )}
-
-        {/* Stats Card */}
-        <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-2xl p-6 border border-indigo-200 mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-indigo-700 mb-2">
-                Total Temporary Changes
-              </p>
-              <p className="text-3xl font-bold text-indigo-900">
-                {allChanges.length}
-              </p>
-              <p className="text-sm text-indigo-600 mt-2">
-                {totalFilteredChanges} changes match current filters
-              </p>
-            </div>
-            <div className="p-3 bg-white rounded-xl">
-              <Bell className="w-6 h-6 text-indigo-600" />
-            </div>
-          </div>
-        </div>
-
-        {/* Main Card */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden mb-8">
-          <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900">
-                  All Temporary Changes
-                </h2>
-                <p className="text-sm text-gray-600 mt-1">
-                  View temporary lecture assignments grouped by {groupBy === "date" ? "date" : "class"}
-                </p>
-              </div>
+          {/* Breadcrumb */}
+          <div className="mb-6">
+            <div className="flex items-center text-sm text-gray-500 mb-4">
               <button
-                onClick={fetchChanges}
-                disabled={isLoading}
-                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors"
+                onClick={() => window.history.back()}
+                className="hover:text-gray-700 cursor-pointer flex items-center gap-1"
               >
-                {isLoading ? (
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                ) : (
-                  <RefreshCw className="w-4 h-4" />
-                )}
-                Refresh
+                <Bookmark className="w-3 h-3" />
+                Dashboard
               </button>
+              <ChevronRight className="w-4 h-4 mx-2" />
+              <span className="hover:text-gray-700 cursor-pointer flex items-center gap-1">
+                <Notebook className="w-3 h-3" />
+                Study Planner
+              </span>
+              <ChevronRight className="w-4 h-4 mx-2" />
+              <span className="font-medium text-amber-600 flex items-center gap-1">
+                <ClipboardList className="w-4 h-4" />
+                Schedule Updates
+              </span>
             </div>
           </div>
 
-          <div className="p-6">
-            {/* Controls */}
-            <div className="mb-8">
+          {/* Header */}
+          <div className="flex items-start justify-between mb-8">
+            <div>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2.5 bg-white rounded-xl shadow-sm border border-gray-100 relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-amber-100 to-transparent opacity-60"></div>
+                  <div className="relative">
+                    <Bell className="w-6 h-6 text-amber-600" />
+                  </div>
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900">
+                    Study Schedule Updates
+                  </h1>
+                  <p className="text-gray-600 mt-1">
+                    Manage temporary adjustments to your study group schedules
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="p-2.5 bg-gradient-to-br from-amber-100 to-amber-50 rounded-xl border border-amber-200">
+              <AlertTriangle className="w-6 h-6 text-amber-600" />
+            </div>
+          </div>
+
+          {/* Stats Overview */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-300 relative overflow-hidden group">
+              <div className="absolute -right-6 -top-6 w-24 h-24 bg-gradient-to-br from-amber-100 to-transparent rounded-full opacity-60 group-hover:opacity-80 transition-opacity"></div>
+              <div className="relative">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Total Updates</p>
+                    <p className="text-2xl font-bold text-gray-900 mb-2">
+                      {allChanges.length}
+                    </p>
+                    <div className="flex items-center text-xs text-amber-600">
+                      <TrendingUp className="w-3 h-3 mr-1" />
+                      <span>Active adjustments</span>
+                    </div>
+                  </div>
+                  <div className="p-3 bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl border border-amber-200">
+                    <Bell className="w-6 h-6 text-amber-600" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-300 relative overflow-hidden group">
+              <div className="absolute -right-6 -top-6 w-24 h-24 bg-gradient-to-br from-emerald-100 to-transparent rounded-full opacity-60 group-hover:opacity-80 transition-opacity"></div>
+              <div className="relative">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Showing Now</p>
+                    <p className="text-2xl font-bold text-gray-900 mb-2">
+                      {totalFilteredChanges}
+                    </p>
+                    <div className="flex items-center text-xs text-emerald-600">
+                      <Filter className="w-3 h-3 mr-1" />
+                      <span>With current filters</span>
+                    </div>
+                  </div>
+                  <div className="p-3 bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl border border-emerald-200">
+                    <Eye className="w-6 h-6 text-emerald-600" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-300 relative overflow-hidden group">
+              <div className="absolute -right-6 -top-6 w-24 h-24 bg-gradient-to-br from-blue-100 to-transparent rounded-full opacity-60 group-hover:opacity-80 transition-opacity"></div>
+              <div className="relative">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Grouped By</p>
+                    <p className="text-2xl font-bold text-gray-900 mb-2 capitalize">
+                      {groupBy}
+                    </p>
+                    <div className="flex items-center text-xs text-blue-600">
+                      <Layers className="w-3 h-3 mr-1" />
+                      <span>{groupBy === "date" ? "Dates" : "Classes"}</span>
+                    </div>
+                  </div>
+                  <div className="p-3 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200">
+                    <Folder className="w-6 h-6 text-blue-600" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-300 relative overflow-hidden group">
+              <div className="absolute -right-6 -top-6 w-24 h-24 bg-gradient-to-br from-rose-100 to-transparent rounded-full opacity-60 group-hover:opacity-80 transition-opacity"></div>
+              <div className="relative">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Recent Activity</p>
+                    <p className="text-2xl font-bold text-gray-900 mb-2">
+                      {new Date().getDate()}
+                    </p>
+                    <div className="flex items-center text-xs text-rose-600">
+                      <CalendarDays className="w-3 h-3 mr-1" />
+                      <span>{new Date().toLocaleDateString('en-US', { month: 'short' })}</span>
+                    </div>
+                  </div>
+                  <div className="p-3 bg-gradient-to-br from-rose-50 to-rose-100 rounded-xl border border-rose-200">
+                    <PenTool className="w-6 h-6 text-rose-600" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Main Content Card */}
+          <div className="bg-white rounded-2xl border-2 border-amber-200 shadow-sm overflow-hidden mb-8">
+            {/* Header */}
+            <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-amber-50 to-amber-100/50">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                    <Highlighter className="w-5 h-5 text-amber-600" />
+                    Study Schedule Adjustments
+                  </h2>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Temporary changes to your study planner organized like notebook tabs
+                  </p>
+                </div>
+                <button
+                  onClick={fetchChanges}
+                  disabled={isLoading}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-amber-600 to-amber-700 text-white rounded-lg hover:from-amber-700 hover:to-amber-800 transition-all duration-300 shadow-sm hover:shadow-md group"
+                >
+                  {isLoading ? (
+                    <RefreshCw className="w-4 h-4 animate-spin group-hover:rotate-180 transition-transform" />
+                  ) : (
+                    <RefreshCw className="w-4 h-4 group-hover:rotate-180 transition-transform" />
+                  )}
+                  Refresh Updates
+                </button>
+              </div>
+            </div>
+
+            {/* Controls Section */}
+            <div className="p-6 border-b border-gray-100">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 {/* Grouping Options */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Group Changes By
+                  <label className="block text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+                    <Layers className="w-4 h-4 text-amber-600" />
+                    Organize By
                   </label>
                   <div className="flex flex-wrap gap-3">
-                    {GROUP_OPTIONS.map((option) => (
-                      <button
-                        key={option.id}
-                        onClick={() => setGroupBy(option.id)}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
-                          groupBy === option.id
-                            ? "bg-indigo-600 text-white"
-                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                        }`}
-                      >
-                        <option.icon className="w-4 h-4" />
-                        {option.label}
-                      </button>
-                    ))}
+                    {GROUP_OPTIONS.map((option) => {
+                      const colors = getColorClasses(option.color);
+                      const isActive = groupBy === option.id;
+                      return (
+                        <button
+                          key={option.id}
+                          onClick={() => setGroupBy(option.id)}
+                          className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-all duration-300 ${
+                            isActive
+                              ? `${colors.light} text-gray-900 border-2 ${colors.border} shadow-sm`
+                              : "bg-gradient-to-r from-gray-100 to-gray-50 text-gray-700 hover:from-gray-200 hover:to-gray-100 border border-gray-200"
+                          }`}
+                        >
+                          <option.icon className="w-4 h-4" />
+                          {option.label}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
                 {/* Date Filter */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Filter by Date
+                  <label className="block text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+                    <CalendarDays className="w-4 h-4 text-blue-600" />
+                    Filter Dates
                   </label>
                   <div className="flex flex-wrap gap-3">
-                    {DATE_OPTIONS.map((option) => (
-                      <button
-                        key={option.id}
-                        onClick={() => setDateFilter(option.id)}
-                        className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                          dateFilter === option.id
-                            ? "bg-blue-600 text-white"
-                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                        }`}
-                      >
-                        {option.label}
-                      </button>
-                    ))}
+                    {DATE_OPTIONS.map((option) => {
+                      const colors = getColorClasses(option.color);
+                      const isActive = dateFilter === option.id;
+                      return (
+                        <button
+                          key={option.id}
+                          onClick={() => setDateFilter(option.id)}
+                          className={`px-4 py-2.5 rounded-lg font-medium transition-all duration-300 ${
+                            isActive
+                              ? `${colors.light} text-gray-900 border-2 ${colors.border} shadow-sm`
+                              : "bg-gradient-to-r from-gray-100 to-gray-50 text-gray-700 hover:from-gray-200 hover:to-gray-100 border border-gray-200"
+                          }`}
+                        >
+                          {option.label}
+                        </button>
+                      );
+                    })}
                   </div>
                   
                   {dateFilter === "specific" && (
                     <div className="mt-4">
-                      <input
-                        type="date"
-                        value={specificDate}
-                        onChange={(e) => setSpecificDate(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
+                      <div className="relative">
+                        <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <input
+                          type="date"
+                          value={specificDate}
+                          onChange={(e) => setSpecificDate(e.target.value)}
+                          className="w-full pl-10 pr-3 py-2.5 bg-white border border-gray-300 text-gray-900 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all shadow-sm"
+                        />
+                      </div>
                     </div>
                   )}
                 </div>
               </div>
 
-              {/* Search */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Search Changes
+              {/* Search Bar */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                  <Search className="w-4 h-4 text-gray-400" />
+                  Search Adjustments
                 </label>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
                     type="text"
-                    placeholder="Search by faculty, class, date, branch, etc..."
+                    placeholder="Search by tutor, study group, date, or notes..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    className="w-full pl-10 pr-3 py-2.5 bg-white border border-gray-300 text-gray-900 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all shadow-sm"
                   />
                 </div>
               </div>
@@ -590,248 +707,292 @@ export default function ViewChanges() {
               <div className="flex items-center justify-between">
                 <button
                   onClick={handleClearFilters}
-                  className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-800 font-medium"
+                  className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-800 font-medium hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100/50 rounded-lg transition-all duration-300 group"
                 >
-                  <X className="w-4 h-4" />
-                  Clear Filters
+                  <X className="w-4 h-4 group-hover:rotate-90 transition-transform" />
+                  Clear All Filters
                 </button>
-                <div className="text-sm text-gray-500">
-                  Showing {totalFilteredChanges} changes
+                <div className="text-sm text-gray-500 flex items-center gap-2">
+                  <BookOpen className="w-4 h-4" />
+                  Showing {totalFilteredChanges} schedule adjustments
                 </div>
               </div>
             </div>
 
-            {/* Loading State */}
-            {isLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="text-center">
-                  <RefreshCw className="w-8 h-8 text-indigo-600 animate-spin mx-auto mb-4" />
-                  <p className="text-gray-600">Loading temporary changes...</p>
+            {/* Changes Display */}
+            <div className="p-6">
+              {isLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="text-center">
+                    <div className="relative inline-block">
+                      <div className="w-16 h-16 border-4 border-amber-200 border-t-amber-600 rounded-full animate-spin"></div>
+                      <RefreshCw className="w-8 h-8 text-amber-600 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 animate-spin" />
+                    </div>
+                    <p className="text-gray-600 mt-4">Loading schedule updates...</p>
+                  </div>
                 </div>
-              </div>
-            ) : (
-              /* Changes Display */
-              <div className="space-y-6">
-                {Object.keys(groupedChanges).length > 0 ? (
-                  Object.entries(groupedChanges).map(([groupKey, groupChanges]) => {
-                    const isExpanded = expandedGroup[groupKey];
-                    const groupLabel = groupBy === "date" 
-                      ? getDateDisplay(groupKey)
-                      : getClassDisplay(groupKey);
+              ) : (
+                <div className="space-y-6">
+                  {Object.keys(groupedChanges).length > 0 ? (
+                    Object.entries(groupedChanges).map(([groupKey, groupChanges]) => {
+                      const isExpanded = expandedGroup[groupKey];
+                      const groupLabel = groupBy === "date" 
+                        ? getDateDisplay(groupKey)
+                        : getClassDisplay(groupKey);
+                      const colors = getColorClasses(groupBy === "date" ? "amber" : "blue");
 
-                    return (
-                      <div
-                        key={groupKey}
-                        className="border border-gray-200 rounded-xl overflow-hidden"
-                      >
-                        <button
-                          onClick={() => toggleGroup(groupKey)}
-                          className="w-full p-4 bg-gradient-to-r from-gray-50 to-gray-100 hover:from-gray-100 hover:to-gray-200 flex items-center justify-between transition-all"
+                      return (
+                        <div
+                          key={groupKey}
+                          className={`border-2 ${colors.border} rounded-xl overflow-hidden group hover:border-amber-400 transition-all duration-300`}
                         >
-                          <div className="flex items-center gap-3">
-                            <div className="p-2 bg-white rounded-lg">
-                              {groupBy === "date" ? (
-                                <Calendar className="w-4 h-4 text-indigo-600" />
+                          {/* Notebook Spine Effect */}
+                          <div
+                            className={`absolute left-0 top-0 bottom-0 w-3 ${colors.ribbon}`}
+                          ></div>
+
+                          {/* Group Header */}
+                          <button
+                            onClick={() => toggleGroup(groupKey)}
+                            className="w-full p-6 bg-gradient-to-r from-gray-50 to-gray-100/50 hover:from-gray-100 hover:to-gray-200/50 flex items-center justify-between transition-all relative overflow-hidden"
+                          >
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            
+                            <div className="flex items-center gap-4 relative">
+                              <div className="p-2.5 bg-white rounded-lg border border-gray-200 shadow-sm">
+                                {groupBy === "date" ? (
+                                  <Calendar className="w-5 h-5 text-amber-600" />
+                                ) : (
+                                  <Folder className="w-5 h-5 text-blue-600" />
+                                )}
+                              </div>
+                              <div className="text-left">
+                                <h3 className="font-semibold text-gray-900 text-lg">
+                                  {groupLabel}
+                                </h3>
+                                <p className="text-sm text-gray-600 flex items-center gap-2 mt-1">
+                                  <StickyNote className="w-3 h-3" />
+                                  {groupChanges.length} schedule adjustment{groupChanges.length !== 1 ? "s" : ""}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-3 relative">
+                              <span className={`px-3 py-1.5 ${colors.bg} ${colors.text} rounded-full text-xs font-medium border ${colors.border}`}>
+                                {groupChanges.length} updates
+                              </span>
+                              {isExpanded ? (
+                                <ChevronUp className="w-5 h-5 text-gray-500 group-hover:text-amber-600 transition-colors" />
                               ) : (
-                                <Folder className="w-4 h-4 text-purple-600" />
+                                <ChevronDown className="w-5 h-5 text-gray-500 group-hover:text-amber-600 transition-colors" />
                               )}
                             </div>
-                            <div className="text-left">
-                              <h3 className="font-semibold text-gray-900">
-                                {groupLabel}
-                              </h3>
-                              <p className="text-sm text-gray-600">
-                                {groupChanges.length} change{groupChanges.length !== 1 ? "s" : ""}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <span className="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-xs font-medium">
-                              {groupChanges.length} changes
-                            </span>
-                            {isExpanded ? (
-                              <ChevronUp className="w-5 h-5 text-gray-500" />
-                            ) : (
-                              <ChevronDown className="w-5 h-5 text-gray-500" />
-                            )}
-                          </div>
-                        </button>
+                          </button>
 
-                        {isExpanded && (
-                          <div className="p-4 border-t border-gray-200 bg-white">
-                            <div className="space-y-4">
-                              {groupChanges.map((change, index) => {
-                                const classInfo = parseAssignedTo(change.assigned_to);
-                                const isDeleting = deletingId === (change._id || change.faculty + change.date + change.timeSlotKey);
+                          {/* Expanded Content */}
+                          {isExpanded && (
+                            <div className="p-6 border-t border-gray-200 bg-white">
+                              <div className="space-y-4">
+                                {groupChanges.map((change, index) => {
+                                  const classInfo = parseAssignedTo(change.assigned_to);
+                                  const isDeleting = deletingId === (change._id || change.faculty + change.date + change.timeSlotKey);
 
-                                return (
-                                  <div
-                                    key={index}
-                                    className="p-4 border border-gray-200 rounded-lg hover:border-indigo-300 transition-colors"
-                                  >
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                      {/* Left Column - Faculty Info */}
-                                      <div className="space-y-4">
-                                        <div className="flex items-center gap-3">
-                                          <div className="p-2 bg-indigo-100 rounded-lg">
-                                            <User className="w-4 h-4 text-indigo-600" />
+                                  return (
+                                    <div
+                                      key={index}
+                                      className="p-6 border-2 border-gray-200 rounded-xl hover:border-amber-300 transition-all duration-300 relative overflow-hidden group/item"
+                                    >
+                                      {/* Subtle notebook lines background */}
+                                      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/5 to-transparent"></div>
+                                      
+                                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative">
+                                        {/* Left Column - Tutor & Date Info */}
+                                        <div className="space-y-4">
+                                          <div className="flex items-center gap-3">
+                                            <div className="p-2.5 bg-gradient-to-br from-amber-100 to-amber-50 rounded-lg border border-amber-200">
+                                              <User className="w-4 h-4 text-amber-600" />
+                                            </div>
+                                            <div>
+                                              <p className="text-xs text-gray-500">Tutor ID</p>
+                                              <p className="font-semibold text-gray-900">
+                                                {change.faculty}
+                                              </p>
+                                            </div>
                                           </div>
-                                          <div>
-                                            <p className="text-xs text-gray-500">Faculty ID</p>
-                                            <p className="font-semibold text-gray-900">
-                                              {change.faculty}
-                                            </p>
-                                          </div>
-                                        </div>
 
-                                        <div className="flex items-center gap-3">
-                                          <div className="p-2 bg-blue-100 rounded-lg">
-                                            <Calendar className="w-4 h-4 text-blue-600" />
-                                          </div>
-                                          <div>
-                                            <p className="text-xs text-gray-500">Date</p>
-                                            <p className="font-medium text-gray-900">
-                                              {getDateDisplay(change.date)}
-                                            </p>
-                                          </div>
-                                        </div>
-                                      </div>
-
-                                      {/* Middle Column - Class and Time Info */}
-                                      <div className="space-y-4">
-                                        <div className="flex items-center gap-3">
-                                          <div className="p-2 bg-emerald-100 rounded-lg">
-                                            <Folder className="w-4 h-4 text-emerald-600" />
-                                          </div>
-                                          <div>
-                                            <p className="text-xs text-gray-500">Assigned To</p>
-                                            <div className="flex items-center gap-2 mt-1">
-                                              {classInfo.branch && classInfo.className ? (
-                                                <>
-                                                  <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">
-                                                    {classInfo.branch}-{classInfo.className}
-                                                  </span>
-                                                  <span className="px-2 py-1 bg-emerald-100 text-emerald-800 rounded text-xs font-medium">
-                                                    {classInfo.sem}
-                                                  </span>
-                                                </>
-                                              ) : (
-                                                <span className="text-gray-900">
-                                                  {change.assigned_to || "N/A"}
-                                                </span>
-                                              )}
+                                          <div className="flex items-center gap-3">
+                                            <div className="p-2.5 bg-gradient-to-br from-blue-100 to-blue-50 rounded-lg border border-blue-200">
+                                              <Calendar className="w-4 h-4 text-blue-600" />
+                                            </div>
+                                            <div>
+                                              <p className="text-xs text-gray-500">Study Date</p>
+                                              <p className="font-medium text-gray-900">
+                                                {getDateDisplay(change.date)}
+                                              </p>
                                             </div>
                                           </div>
                                         </div>
 
-                                        <div className="flex items-center gap-3">
-                                          <div className="p-2 bg-amber-100 rounded-lg">
-                                            <Clock className="w-4 h-4 text-amber-600" />
+                                        {/* Middle Column - Study Group Info */}
+                                        <div className="space-y-4">
+                                          <div className="flex items-center gap-3">
+                                            <div className="p-2.5 bg-gradient-to-br from-emerald-100 to-emerald-50 rounded-lg border border-emerald-200">
+                                              <Folder className="w-4 h-4 text-emerald-600" />
+                                            </div>
+                                            <div>
+                                              <p className="text-xs text-gray-500">Study Group</p>
+                                              <div className="flex items-center gap-2 mt-1">
+                                                {classInfo.branch && classInfo.className ? (
+                                                  <>
+                                                    <span className="px-3 py-1.5 bg-blue-100 text-blue-800 rounded-lg text-xs font-medium border border-blue-200">
+                                                      {classInfo.branch}-{classInfo.className}
+                                                    </span>
+                                                    <span className="px-3 py-1.5 bg-emerald-100 text-emerald-800 rounded-lg text-xs font-medium border border-emerald-200">
+                                                      {classInfo.sem}
+                                                    </span>
+                                                  </>
+                                                ) : (
+                                                  <span className="text-gray-900">
+                                                    {change.assigned_to || "N/A"}
+                                                  </span>
+                                                )}
+                                              </div>
+                                            </div>
                                           </div>
-                                          <div>
-                                            <p className="text-xs text-gray-500">Time Slot</p>
-                                            <p className="font-medium text-gray-900">
-                                              {change.timeSlot}
-                                            </p>
+
+                                          <div className="flex items-center gap-3">
+                                            <div className="p-2.5 bg-gradient-to-br from-violet-100 to-violet-50 rounded-lg border border-violet-200">
+                                              <Clock className="w-4 h-4 text-violet-600" />
+                                            </div>
+                                            <div>
+                                              <p className="text-xs text-gray-500">Study Time</p>
+                                              <p className="font-medium text-gray-900">
+                                                {change.timeSlot}
+                                              </p>
+                                            </div>
                                           </div>
+                                        </div>
+
+                                        {/* Right Column - Actions */}
+                                        <div className="flex items-start justify-end">
+                                          <button
+                                            onClick={() => handleDeleteChange(change)}
+                                            disabled={isDeleting}
+                                            className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-rose-600 to-rose-700 text-white rounded-lg font-medium hover:from-rose-700 hover:to-rose-800 transition-all duration-300 shadow-sm hover:shadow-md group/delete disabled:opacity-50 disabled:cursor-not-allowed"
+                                          >
+                                            {isDeleting ? (
+                                              <RefreshCw className="w-4 h-4 animate-spin group-hover/delete:rotate-180 transition-transform" />
+                                            ) : (
+                                              <Trash2 className="w-4 h-4 group-hover/delete:scale-110 transition-transform" />
+                                            )}
+                                            Remove Update
+                                          </button>
                                         </div>
                                       </div>
 
-                                      {/* Right Column - Actions */}
-                                      <div className="flex items-start justify-end">
-                                        <button
-                                          onClick={() => handleDeleteChange(change)}
-                                          disabled={isDeleting}
-                                          className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                          {isDeleting ? (
-                                            <RefreshCw className="w-4 h-4 animate-spin" />
-                                          ) : (
-                                            <Trash2 className="w-4 h-4" />
-                                          )}
-                                          Delete
-                                        </button>
+                                      {/* Additional Note */}
+                                      <div className="mt-6 pt-6 border-t border-gray-100">
+                                        <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-amber-50 to-amber-100/30 rounded-lg border border-amber-200">
+                                          <AlertTriangle className="w-4 h-4 text-amber-500" />
+                                          <p className="text-sm text-amber-700">
+                                            Temporary schedule adjustment overriding regular study planner
+                                          </p>
+                                        </div>
                                       </div>
                                     </div>
-
-                                    {/* Additional Info */}
-                                    <div className="mt-4 pt-4 border-t border-gray-100">
-                                      <div className="flex items-center gap-2">
-                                        <AlertTriangle className="w-4 h-4 text-amber-500" />
-                                        <p className="text-xs text-amber-700">
-                                          Temporary assignment overriding regular timetable
-                                        </p>
-                                      </div>
-                                    </div>
-                                  </div>
-                                );
-                              })}
+                                  );
+                                })}
+                              </div>
                             </div>
-                          </div>
+                          )}
+                        </div>
+                      );
+                    })
+                  ) : (
+                    /* Empty State */
+                    <div className="text-center py-16 bg-gradient-to-br from-amber-50/50 to-blue-50/50 rounded-2xl border-2 border-dashed border-amber-200 relative overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/20 to-transparent"></div>
+                      <div className="relative">
+                        <div className="inline-block p-6 bg-gradient-to-br from-amber-100 to-amber-50 rounded-2xl mb-6 border border-amber-200">
+                          <Bell className="w-16 h-16 text-amber-500" />
+                        </div>
+                        <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                          No Schedule Updates Found
+                        </h3>
+                        <p className="text-gray-600 mb-8 max-w-md mx-auto">
+                          {searchTerm || dateFilter !== "all"
+                            ? "No adjustments match your current filters. Try adjusting your search criteria."
+                            : "All schedule adjustments have been cleared or no temporary changes exist."}
+                        </p>
+                        {(searchTerm || dateFilter !== "all") && (
+                          <button
+                            onClick={handleClearFilters}
+                            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-600 to-amber-700 text-white rounded-lg hover:from-amber-700 hover:to-amber-800 transition-all duration-300 shadow-sm hover:shadow-md group"
+                          >
+                            <X className="w-5 h-5 group-hover:rotate-90 transition-transform" />
+                            Clear Filters
+                          </button>
                         )}
                       </div>
-                    );
-                  })
-                ) : (
-                  /* Empty State */
-                  <div className="text-center py-12">
-                    <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Bell className="w-8 h-8 text-indigo-600" />
                     </div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
-                      No Temporary Changes Found
-                    </h3>
-                    <p className="text-gray-600 mb-6">
-                      {searchTerm || dateFilter !== "all"
-                        ? "Try adjusting your filters"
-                        : "All changes have been cleared or no temporary assignments exist"}
-                    </p>
-                    {(searchTerm || dateFilter !== "all") && (
-                      <button
-                        onClick={handleClearFilters}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors"
-                      >
-                        <X className="w-4 h-4" />
-                        Clear Filters
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Info Card */}
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-200">
-          <div className="flex items-start gap-3">
-            <div className="p-2 bg-white rounded-lg">
-              <Info className="w-5 h-5 text-blue-600" />
+                  )}
+                </div>
+              )}
             </div>
-            <div className="flex-1">
-              <h3 className="font-semibold text-blue-900 mb-2">
-                About Temporary Changes
+          </div>
+
+          {/* Info Card */}
+          <div className="bg-gradient-to-r from-amber-50 to-blue-50 rounded-2xl p-8 border-2 border-amber-200 relative overflow-hidden">
+            <div className="absolute top-4 right-4">
+              <Bookmark className="w-8 h-8 text-amber-400/40" />
+            </div>
+            <div className="relative">
+              <h3 className="font-bold text-amber-900 mb-6 flex items-center gap-3 text-lg">
+                <div className="p-2 bg-gradient-to-br from-amber-100 to-amber-200 rounded-lg">
+                  <Info className="w-5 h-5 text-amber-700" />
+                </div>
+                About Schedule Updates
               </h3>
-              <p className="text-blue-800 text-sm mb-3">
-                Temporary timetable changes override the regular schedule for specific dates. 
-                You can view them grouped by date or by class for better organization.
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-blue-700 text-sm">
-                <div className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5"></div>
-                  <span><strong>Delete Changes:</strong> Click the delete button to remove temporary assignments</span>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center">
+                      <span className="text-xs font-bold text-amber-700">
+                        1
+                      </span>
+                    </div>
+                    <h4 className="font-semibold text-amber-800">
+                      Temporary Adjustments
+                    </h4>
+                  </div>
+                  <p className="text-amber-700 text-sm leading-relaxed">
+                    These are temporary changes to your study planner that override the regular schedule for specific dates only.
+                  </p>
                 </div>
-                <div className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5"></div>
-                  <span><strong>Group by Date:</strong> See all changes for specific dates</span>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
+                      <span className="text-xs font-bold text-blue-700">2</span>
+                    </div>
+                    <h4 className="font-semibold text-blue-800">
+                      Organization
+                    </h4>
+                  </div>
+                  <p className="text-blue-700 text-sm leading-relaxed">
+                    Group updates by date to see all changes for specific days, or by class to see all adjustments affecting a study group.
+                  </p>
                 </div>
-                <div className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5"></div>
-                  <span><strong>Group by Class:</strong> See all changes affecting specific classes</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5"></div>
-                  <span>Use date filters to view today's, yesterday's, or tomorrow's changes</span>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-rose-100 to-rose-200 flex items-center justify-center">
+                      <span className="text-xs font-bold text-rose-700">3</span>
+                    </div>
+                    <h4 className="font-semibold text-rose-800">
+                      Removal
+                    </h4>
+                  </div>
+                  <p className="text-rose-700 text-sm leading-relaxed">
+                    Removing an adjustment will delete it permanently and revert to the original schedule. This action cannot be undone.
+                  </p>
                 </div>
               </div>
             </div>

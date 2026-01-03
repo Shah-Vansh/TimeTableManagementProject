@@ -24,12 +24,23 @@ import {
   GitBranch,
   Bell,
   CalendarDays,
+  BookOpen,
+  PenTool,
+  Highlighter,
+  StickyNote,
+  Compass,
+  Notebook,
+  Scissors,
+  Layers,
+  Ruler,
+  Bookmark,
+  FileText,
 } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { format, parse } from "date-fns";
 import api from "../configs/api";
-import Alert from "../components/Alert"; // Import the Alert component
+import Alert from "../components/Alert";
 
 export default function ReplaceLecture() {
   const days = [
@@ -253,13 +264,14 @@ export default function ReplaceLecture() {
       if (response.data.success) {
         setAvailableFaculty(response.data.available_faculty);
         showAlertMessage(
-          "Available Faculty Found",
-          `Found ${response.data.count} available faculty`
+          "Available Tutors Found",
+          `Found ${response.data.count} available tutor(s)`,
+          "success"
         );
       } else {
         showAlertMessage(
-          "Failed to Fetch Faculty",
-          response.data.message || "Failed to fetch available faculty",
+          "Failed to Fetch Tutors",
+          response.data.message || "Failed to fetch available tutors",
           "error"
         );
       }
@@ -270,20 +282,20 @@ export default function ReplaceLecture() {
         const { status, data } = error.response;
         if (status === 404) {
           showAlertMessage(
-            "Class Not Found",
-            data.message || "Class not found",
+            "Study Group Not Found",
+            data.message || "Study group not found",
             "error"
           );
         } else if (status === 409) {
           showAlertMessage(
-            "No Faculty Available",
-            data.message || "No faculty available for this time slot",
+            "No Tutors Available",
+            data.message || "No tutors available for this study session",
             "error"
           );
         } else {
           showAlertMessage(
-            "Failed to Fetch Faculty",
-            data.message || "Failed to fetch available faculty",
+            "Failed to Fetch Tutors",
+            data.message || "Failed to fetch available tutors",
             "error"
           );
         }
@@ -334,13 +346,14 @@ export default function ReplaceLecture() {
       if (response.data.success) {
         setRearrangeOptions(response.data.options);
         showAlertMessage(
-          "Rearrangement Options Found",
-          `Found ${response.data.count} possible rearrangement option(s)`
+          "Reschedule Options Found",
+          `Found ${response.data.count} possible reschedule option(s)`,
+          "success"
         );
       } else {
         showAlertMessage(
           "Failed to Fetch Options",
-          response.data.message || "Failed to fetch rearrange options",
+          response.data.message || "Failed to fetch reschedule options",
           "error"
         );
       }
@@ -351,19 +364,20 @@ export default function ReplaceLecture() {
         const { status, data } = error.response;
         if (status === 404) {
           showAlertMessage(
-            "Class Not Found",
-            data.message || "Class not found"
+            "Study Group Not Found",
+            data.message || "Study group not found",
+            "error"
           );
         } else if (status === 409) {
           showAlertMessage(
-            "No Rearrangement Options",
-            data.message || "No possible rearrangement options found",
+            "No Reschedule Options",
+            data.message || "No possible reschedule options found",
             "error"
           );
         } else {
           showAlertMessage(
             "Failed to Fetch Options",
-            data.message || "Failed to fetch rearrange options",
+            data.message || "Failed to fetch reschedule options",
             "error"
           );
         }
@@ -383,7 +397,7 @@ export default function ReplaceLecture() {
     if (!selectedOption) {
       showAlertMessage(
         "Selection Required",
-        "Please select a rearrangement option",
+        "Please select a reschedule option",
         "error"
       );
       return;
@@ -423,7 +437,7 @@ export default function ReplaceLecture() {
         } else {
           // For direct assignments, show single toast
           const message =
-            response.data.message || "Lecture successfully assigned!";
+            response.data.message || "Study session successfully assigned!";
           setToastMessage(message);
           setShowToast(true);
         }
@@ -431,15 +445,16 @@ export default function ReplaceLecture() {
         // Show success alert
         showAlertMessage(
           "Operation Successful",
-          response.data.message || "Operation successful"
+          response.data.message || "Study session rescheduled successfully",
+          "success"
         );
 
         setRearrangeOptions([]);
         setSelectedOption(null);
       } else {
         showAlertMessage(
-          "Failed to Execute Rearrangement",
-          response.data.message || "Failed to execute rearrangement",
+          "Failed to Execute Reschedule",
+          response.data.message || "Failed to execute reschedule",
           "error"
         );
       }
@@ -450,20 +465,20 @@ export default function ReplaceLecture() {
         const { status, data } = error.response;
         if (status === 404) {
           showAlertMessage(
-            "Faculty Not Found",
-            data.message || "Faculty not found",
+            "Tutor Not Found",
+            data.message || "Tutor not found",
             "error"
           );
         } else if (status === 409) {
           showAlertMessage(
-            "Rearrangement Not Possible",
-            data.message || "Rearrangement no longer possible",
+            "Reschedule Not Possible",
+            data.message || "Reschedule no longer possible",
             "error"
           );
         } else {
           showAlertMessage(
-            "Failed to Execute Rearrangement",
-            data.message || "Failed to execute rearrangement",
+            "Failed to Execute Reschedule",
+            data.message || "Failed to execute reschedule",
             "error"
           );
         }
@@ -483,7 +498,7 @@ export default function ReplaceLecture() {
     if (!selectedFaculty) {
       showAlertMessage(
         "Selection Required",
-        "Please select a faculty to assign",
+        "Please select a tutor to assign",
         "error"
       );
       return;
@@ -506,10 +521,10 @@ export default function ReplaceLecture() {
         setResult(response.data);
 
         const message =
-          response.data.message || "Lecture successfully assigned!";
+          response.data.message || "Study session successfully assigned!";
 
         // Show success alert
-        showAlertMessage("Assignment Successful", message);
+        showAlertMessage("Assignment Successful", message, "success");
 
         setToastMessage(message);
         setShowToast(true);
@@ -518,8 +533,8 @@ export default function ReplaceLecture() {
         setSelectedFaculty(null);
       } else {
         showAlertMessage(
-          "Failed to Assign Faculty",
-          response.data.message || "Failed to assign faculty",
+          "Failed to Assign Tutor",
+          response.data.message || "Failed to assign tutor",
           "error"
         );
       }
@@ -530,20 +545,20 @@ export default function ReplaceLecture() {
         const { status, data } = error.response;
         if (status === 403) {
           showAlertMessage(
-            "Faculty Not Allowed",
-            data.message || "Faculty not allowed for this class",
+            "Tutor Not Allowed",
+            data.message || "Tutor not allowed for this study group",
             "error"
           );
         } else if (status === 409) {
           showAlertMessage(
-            "Faculty No Longer Available",
-            data.message || "Faculty is no longer available",
+            "Tutor No Longer Available",
+            data.message || "Tutor is no longer available",
             "error"
           );
         } else {
           showAlertMessage(
-            "Failed to Assign Faculty",
-            data.message || "Failed to assign faculty",
+            "Failed to Assign Tutor",
+            data.message || "Failed to assign tutor",
             "error"
           );
         }
@@ -615,7 +630,7 @@ export default function ReplaceLecture() {
           setShowClassToast(true);
         } else {
           const message =
-            response.data.message || "Lecture successfully managed!";
+            response.data.message || "Study session successfully managed!";
           setToastMessage(message);
           setShowToast(true);
         }
@@ -623,19 +638,20 @@ export default function ReplaceLecture() {
         // Show success alert
         showAlertMessage(
           "Operation Successful",
-          response.data.message || "Operation successful"
+          response.data.message || "Study session updated successfully",
+          "success"
         );
       } else {
         showAlertMessage(
           "Operation Failed",
           response.data.message ||
-            `Failed to ${isRearrange ? "rearrange" : "replace"} lecture`,
+            `Failed to ${isRearrange ? "reschedule" : "replace"} study session`,
           "error"
         );
       }
     } catch (error) {
       console.error(
-        `Error ${isRearrange ? "rearranging" : "replacing"} lecture:`,
+        `Error ${isRearrange ? "rescheduling" : "replacing"} study session:`,
         error
       );
 
@@ -643,8 +659,8 @@ export default function ReplaceLecture() {
         const { status, data } = error.response;
         if (status === 404) {
           showAlertMessage(
-            "Class Not Found",
-            data.message || "Class not found",
+            "Study Group Not Found",
+            data.message || "Study group not found",
             "error"
           );
         } else if (status === 409) {
@@ -652,15 +668,17 @@ export default function ReplaceLecture() {
             "No Options Available",
             data.message ||
               (isRearrange
-                ? "No possible rearrangement found"
-                : "No faculty available at this time slot"),
+                ? "No possible reschedule found"
+                : "No tutors available at this time slot"),
             "error"
           );
         } else {
           showAlertMessage(
             "Operation Failed",
             data.message ||
-              `Failed to ${isRearrange ? "rearrange" : "replace"} lecture`,
+              `Failed to ${
+                isRearrange ? "reschedule" : "replace"
+              } study session`,
             "error"
           );
         }
@@ -705,21 +723,21 @@ export default function ReplaceLecture() {
   const copyToClipboard = () => {
     const textToCopy =
       result?.message ||
-      `Lecture Replacement Result:
+      `Study Session Replacement Result:
 Date: ${formData.date}
-Assigned Faculty: ${result?.assigned_faculty || "N/A"}
-Faculty Name: ${result?.faculty_name || "N/A"}
+Assigned Tutor: ${result?.assigned_faculty || "N/A"}
+Tutor Name: ${result?.faculty_name || "N/A"}
 Day: ${days.find((d) => d.value === formData.day)?.label || formData.day}
-Class: ${formData.class}
+Study Group: ${formData.class}
 Semester: ${formData.sem}
-Branch: ${formData.branch}
+Subject: ${formData.branch}
 Time Slot: ${
         timeSlots.find((t) => t.value === parseInt(formData.lec_no))?.label
       }
 Slot Index: ${formData.lec_no}
 Method: ${
         result?.type === "rearranged"
-          ? "Lecture Rearrangement"
+          ? "Session Reschedule"
           : result?.type === "direct"
           ? "Direct Assignment"
           : "Standard Replacement"
@@ -810,19 +828,19 @@ Status: Successfully Completed`;
 
   // Generate time slot options (1-5 as requested)
   const timeSlotOptions = [
-    { value: 0, label: "Lecture 1" },
-    { value: 1, label: "Lecture 2" },
-    { value: 2, label: "Lecture 3" },
-    { value: 3, label: "Lecture 4" },
-    { value: 4, label: "Lecture 5" },
+    { value: 0, label: "Study Session 1" },
+    { value: 1, label: "Study Session 2" },
+    { value: 2, label: "Study Session 3" },
+    { value: 3, label: "Study Session 4" },
+    { value: 4, label: "Study Session 5" },
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 p-4 md:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-blue-50 p-4 md:p-6">
       {/* Decorative Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-100 to-transparent rounded-full opacity-20"></div>
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-emerald-100 to-transparent rounded-full opacity-10"></div>
+        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-amber-100 to-transparent rounded-full opacity-20"></div>
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-blue-100 to-transparent rounded-full opacity-10"></div>
       </div>
 
       {/* Regular Toast Notification */}
@@ -834,7 +852,7 @@ Status: Successfully Completed`;
                 <CheckCircle className="w-5 h-5" />
               </div>
               <div className="ml-3 flex-1">
-                <p className="font-medium">Lecture Replacement Successful</p>
+                <p className="font-bold">Study Session Updated Successfully</p>
                 <div className="text-emerald-100 text-sm mt-1 whitespace-pre-line font-mono">
                   {formatMessage(toastMessage)}
                 </div>
@@ -843,14 +861,14 @@ Status: Successfully Completed`;
                 <button
                   id="toast-copy-btn"
                   onClick={copySuccessMessage}
-                  className="flex items-center gap-1 px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-white rounded-lg text-sm font-medium transition-colors"
+                  className="flex items-center gap-1 px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-white rounded-lg text-sm font-bold transition-colors border border-emerald-600"
                 >
                   <Copy className="w-4 h-4" />
                   <span>Copy</span>
                 </button>
                 <button
                   onClick={() => setShowToast(false)}
-                  className="p-1 hover:bg-emerald-500 rounded-lg transition-colors"
+                  className="p-1 hover:bg-emerald-500 rounded-lg transition-colors border border-emerald-600"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -866,22 +884,22 @@ Status: Successfully Completed`;
       {/* Multi-class Toast Notification for Rearrangements */}
       {showClassToast && classToastMessages.length > 0 && (
         <div className="fixed top-4 right-4 z-50 animate-slide-in">
-          <div className="bg-gradient-to-r from-orange-600 to-amber-600 text-white rounded-xl shadow-lg border border-orange-500 overflow-hidden max-w-md">
+          <div className="bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-xl shadow-lg border border-amber-500 overflow-hidden max-w-md">
             <div className="flex items-start p-4">
               <div className="flex-shrink-0 mt-0.5">
                 <Bell className="w-5 h-5" />
               </div>
               <div className="ml-3 flex-1">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="font-medium">
-                    Lecture Rearrangement ({currentToastIndex + 1}/
+                  <p className="font-bold">
+                    Session Reschedule ({currentToastIndex + 1}/
                     {classToastMessages.length})
                   </p>
-                  <span className="px-2 py-0.5 bg-orange-500 text-white rounded text-xs font-medium">
+                  <span className="px-2 py-0.5 bg-amber-500 text-white rounded text-xs font-bold">
                     {classToastMessages[currentToastIndex].class}
                   </span>
                 </div>
-                <div className="text-orange-100 text-sm mt-1 whitespace-pre-line font-mono">
+                <div className="text-amber-100 text-sm mt-1 whitespace-pre-line font-mono">
                   {formatMessage(classToastMessages[currentToastIndex].message)}
                 </div>
               </div>
@@ -889,7 +907,7 @@ Status: Successfully Completed`;
                 <button
                   id="class-toast-copy-btn"
                   onClick={copyClassMessage}
-                  className="flex items-center gap-1 px-3 py-1.5 bg-orange-500 hover:bg-orange-400 text-white rounded-lg text-sm font-medium transition-colors"
+                  className="flex items-center gap-1 px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-white rounded-lg text-sm font-bold transition-colors border border-amber-600"
                 >
                   <Copy className="w-4 h-4" />
                   <span>Copy</span>
@@ -898,14 +916,14 @@ Status: Successfully Completed`;
                   {currentToastIndex > 0 && (
                     <button
                       onClick={goToPrevClassToast}
-                      className="p-1 hover:bg-orange-500 rounded-lg transition-colors"
+                      className="p-1 hover:bg-amber-500 rounded-lg transition-colors border border-amber-600"
                     >
                       <ChevronRight className="w-4 h-4 rotate-180" />
                     </button>
                   )}
                   <button
                     onClick={goToNextClassToast}
-                    className="p-1 hover:bg-orange-500 rounded-lg transition-colors"
+                    className="p-1 hover:bg-amber-500 rounded-lg transition-colors border border-amber-600"
                   >
                     {currentToastIndex < classToastMessages.length - 1 ? (
                       <ChevronRight className="w-4 h-4" />
@@ -916,7 +934,7 @@ Status: Successfully Completed`;
                 </div>
               </div>
             </div>
-            <div className="h-1 bg-orange-500">
+            <div className="h-1 bg-amber-500">
               <div className="h-full bg-white animate-progress"></div>
             </div>
           </div>
@@ -939,16 +957,19 @@ Status: Successfully Completed`;
         {/* Breadcrumb */}
         <div className="mb-6">
           <div className="flex items-center text-sm text-gray-600 mb-4">
-            <span className="hover:text-gray-800 cursor-pointer">
+            <span className="hover:text-gray-800 cursor-pointer flex items-center gap-1">
+              <Bookmark className="w-3 h-3" />
               Dashboard
             </span>
             <ChevronRight className="w-4 h-4 mx-2" />
-            <span className="hover:text-gray-800 cursor-pointer">
-              Timetable Management
+            <span className="hover:text-gray-800 cursor-pointer flex items-center gap-1">
+              <Notebook className="w-3 h-3" />
+              Study Planner
             </span>
             <ChevronRight className="w-4 h-4 mx-2" />
-            <span className="font-medium text-blue-600">
-              Lecture Replacement
+            <span className="font-bold text-amber-600 flex items-center gap-1">
+              <Scissors className="w-4 h-4" />
+              Study Session Management
             </span>
           </div>
         </div>
@@ -957,52 +978,60 @@ Status: Successfully Completed`;
         <div className="flex items-start justify-between mb-8">
           <div>
             <div className="flex items-center gap-3 mb-3">
-              <div className="p-2.5 bg-white rounded-xl shadow-sm border border-gray-100">
-                <ArrowRightLeft className="w-6 h-6 text-blue-600" />
+              <div className="p-2.5 bg-white rounded-xl shadow-sm border border-amber-100">
+                <Scissors className="w-6 h-6 text-amber-600" />
               </div>
               <div>
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                  Lecture Replacement
+                  Study Session Management
                 </h1>
                 <p className="text-gray-600">
-                  Find available faculty or rearrange existing lectures to
-                  manage scheduling conflicts
+                  Find available tutors or reschedule existing sessions to
+                  manage study schedule conflicts
                 </p>
               </div>
             </div>
           </div>
-          <div className="p-3 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl">
-            <Clock className="w-6 h-6 text-blue-600" />
+          <div className="p-3 bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl border border-amber-200">
+            <Clock className="w-6 h-6 text-amber-600" />
           </div>
         </div>
 
         {/* Main Form Card */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden mb-8">
-          <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100">
-            <h2 className="text-lg font-semibold text-gray-900">
-              Lecture Details
-            </h2>
-            <p className="text-sm text-gray-600 mt-1">
-              Select the lecture slot you want to manage. Date and day are
-              auto-synced.
-            </p>
+        <div className="bg-white rounded-2xl border border-amber-200 shadow-sm overflow-hidden mb-8">
+          <div className="p-6 border-b border-amber-100 bg-gradient-to-r from-amber-50 to-amber-100">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-white rounded-lg border border-amber-200">
+                <Compass className="w-5 h-5 text-amber-600" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-amber-900">
+                  Session Details
+                </h2>
+                <p className="text-sm text-amber-700 mt-1">
+                  Select the study session you want to manage. Date and day are
+                  auto-synced.
+                </p>
+              </div>
+            </div>
           </div>
 
           <div className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Date Selection */}
+              {/* Date Selection - UPDATED with minDate */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                  <CalendarDays className="w-4 h-4 text-blue-500" />
+                <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                  <CalendarDays className="w-4 h-4 text-amber-500" />
                   Date
-                  <span className="ml-auto text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
+                  <span className="ml-auto text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded">
                     Auto-sync
                   </span>
                 </label>
                 <DatePicker
-                  selected={selectedDate}
+                  selected={
+                    formData.date ? new Date(formData.date) : new Date()
+                  }
                   onChange={(date) => {
-                    setSelectedDate(date);
                     if (date) {
                       const year = date.getFullYear();
                       const month = String(date.getMonth() + 1).padStart(
@@ -1020,9 +1049,10 @@ Status: Successfully Completed`;
                       }));
                     }
                   }}
+                  minDate={new Date()} // Add this line to prevent past dates
                   dateFormat="dd/MM/yyyy"
                   placeholderText="DD/MM/YYYY"
-                  className="w-135 px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  className="w-135 px-4 py-3 bg-white border border-amber-200 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
                   required
                 />
                 <p className="text-xs text-gray-500 mt-1">
@@ -1030,13 +1060,12 @@ Status: Successfully Completed`;
                 </p>
               </div>
 
-              {/* Day Selection */}
-              {/* Day Selection */}
+              {/* Day Selection - Also updated to prevent selecting days in the past */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-blue-500" />
+                <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-amber-500" />
                   Day
-                  <span className="ml-auto text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
+                  <span className="ml-auto text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded">
                     Auto-sync
                   </span>
                 </label>
@@ -1045,16 +1074,28 @@ Status: Successfully Completed`;
                   value={formData.day}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  className="w-full px-4 py-3 bg-white border border-amber-200 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
                 >
                   <option value="" className="text-gray-500">
                     Select Day
                   </option>
-                  {days.map((day) => (
-                    <option key={day.value} value={day.value}>
-                      {day.label}
-                    </option>
-                  ))}
+                  {days.map((day) => {
+                    // Check if this day is in the past
+                    const dateForThisDay = getDateForDay(day.value);
+                    const isPastDate = new Date(dateForThisDay) < new Date();
+                    const isToday = dateForThisDay === todayDate;
+
+                    return (
+                      <option
+                        key={day.value}
+                        value={day.value}
+                        disabled={isPastDate && !isToday} // Disable past days except today
+                      >
+                        {day.label} {isToday ? "(Today)" : ""}
+                        {isPastDate && !isToday ? " (Past)" : ""}
+                      </option>
+                    );
+                  })}
                 </select>
                 <p className="text-xs text-gray-500 mt-1">
                   Day is auto-calculated from the selected date, but you can
@@ -1063,21 +1104,20 @@ Status: Successfully Completed`;
               </div>
 
               {/* Class Name */}
-              {/* Class Name */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                  <Users className="w-4 h-4 text-purple-500" />
-                  Class Name
+                <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                  <Users className="w-4 h-4 text-violet-500" />
+                  Study Group
                 </label>
                 <select
                   name="class"
                   value={formData.class}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                  className="w-full px-4 py-3 bg-white border border-violet-200 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition-all"
                 >
                   <option value="" className="text-gray-500">
-                    Select Class
+                    Select Study Group
                   </option>
                   {[
                     "D1",
@@ -1102,7 +1142,7 @@ Status: Successfully Completed`;
 
               {/* Semester */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
                   <GraduationCap className="w-4 h-4 text-emerald-500" />
                   Semester
                 </label>
@@ -1111,7 +1151,7 @@ Status: Successfully Completed`;
                   value={formData.sem}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                  className="w-full px-4 py-3 bg-white border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
                 >
                   {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
                     <option key={s} value={s}>
@@ -1123,16 +1163,16 @@ Status: Successfully Completed`;
 
               {/* Branch */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-indigo-500" />
-                  Branch
+                <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                  <BookOpen className="w-4 h-4 text-blue-500" />
+                  Subject
                 </label>
                 <select
                   name="branch"
                   value={formData.branch}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                  className="w-full px-4 py-3 bg-white border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 >
                   {branchOptions.map((b) => (
                     <option key={b} value={b}>
@@ -1144,19 +1184,19 @@ Status: Successfully Completed`;
 
               {/* Time Slot Selection - Changed to dropdown */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-amber-500" />
-                  Time Slot
+                <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-orange-500" />
+                  Study Session
                 </label>
                 <select
                   name="lec_no"
                   value={formData.lec_no}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
+                  className="w-full px-4 py-3 bg-white border border-orange-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
                 >
                   <option value="" className="text-gray-500">
-                    Select Time Slot
+                    Select Study Session
                   </option>
                   {timeSlotOptions.map((slot) => (
                     <option key={slot.value} value={slot.value}>
@@ -1168,7 +1208,7 @@ Status: Successfully Completed`;
             </div>
 
             {/* Action Buttons */}
-            <div className="mt-8 pt-6 border-t border-gray-200">
+            <div className="mt-8 pt-6 border-t border-amber-200">
               <div className="flex flex-wrap gap-4 justify-center">
                 <button
                   type="button"
@@ -1178,20 +1218,20 @@ Status: Successfully Completed`;
                     formData.lec_no === "" ||
                     isNaN(formData.lec_no)
                   }
-                  className={`px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-all duration-300 ${
+                  className={`px-6 py-3 rounded-lg font-bold flex items-center gap-2 transition-all duration-300 border ${
                     isFetchingFaculty
-                      ? "bg-purple-100 text-purple-400 cursor-not-allowed"
+                      ? "bg-violet-100 text-violet-400 cursor-not-allowed border-violet-300"
                       : formData.lec_no === "" || isNaN(formData.lec_no)
-                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                      : "bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800 shadow-sm hover:shadow-md"
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300"
+                      : "bg-gradient-to-r from-violet-600 to-violet-700 text-white hover:from-violet-700 hover:to-violet-800 shadow-sm hover:shadow-md border-violet-700"
                   }`}
                 >
                   {isFetchingFaculty ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
                   ) : (
-                    <UserCircle className="w-5 h-5" />
+                    <PenTool className="w-5 h-5" />
                   )}
-                  {isFetchingFaculty ? "Fetching..." : "Get Available Faculty"}
+                  {isFetchingFaculty ? "Fetching..." : "Find Available Tutors"}
                 </button>
 
                 <button
@@ -1202,12 +1242,12 @@ Status: Successfully Completed`;
                     formData.lec_no === "" ||
                     isNaN(formData.lec_no)
                   }
-                  className={`px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-all duration-300 ${
+                  className={`px-6 py-3 rounded-lg font-bold flex items-center gap-2 transition-all duration-300 border ${
                     isFetchingOptions
-                      ? "bg-orange-100 text-orange-400 cursor-not-allowed"
+                      ? "bg-amber-100 text-amber-400 cursor-not-allowed border-amber-300"
                       : formData.lec_no === "" || isNaN(formData.lec_no)
-                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                      : "bg-gradient-to-r from-orange-600 to-orange-700 text-white hover:from-orange-700 hover:to-orange-800 shadow-sm hover:shadow-md"
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300"
+                      : "bg-gradient-to-r from-amber-600 to-orange-600 text-white hover:from-amber-700 hover:to-orange-700 shadow-sm hover:shadow-md border-amber-700"
                   }`}
                 >
                   {isFetchingOptions ? (
@@ -1215,7 +1255,7 @@ Status: Successfully Completed`;
                   ) : (
                     <GitBranch className="w-5 h-5" />
                   )}
-                  {isFetchingOptions ? "Loading..." : "Get Rearrange Options"}
+                  {isFetchingOptions ? "Loading..." : "Find Reschedule Options"}
                 </button>
 
                 <button
@@ -1226,12 +1266,12 @@ Status: Successfully Completed`;
                     formData.lec_no === "" ||
                     isNaN(formData.lec_no)
                   }
-                  className={`px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-all duration-300 ${
+                  className={`px-6 py-3 rounded-lg font-bold flex items-center gap-2 transition-all duration-300 border ${
                     isLoading && !isRearranging
-                      ? "bg-blue-100 text-blue-400 cursor-not-allowed"
+                      ? "bg-blue-100 text-blue-400 cursor-not-allowed border-blue-300"
                       : formData.lec_no === "" || isNaN(formData.lec_no)
-                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                      : "bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-sm hover:shadow-md"
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300"
+                      : "bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-sm hover:shadow-md border-blue-700"
                   }`}
                 >
                   {isLoading && !isRearranging ? (
@@ -1241,7 +1281,7 @@ Status: Successfully Completed`;
                   )}
                   {isLoading && !isRearranging
                     ? "Searching..."
-                    : "Auto Replace"}
+                    : "Auto Schedule"}
                 </button>
 
                 <button
@@ -1252,12 +1292,12 @@ Status: Successfully Completed`;
                     formData.lec_no === "" ||
                     isNaN(formData.lec_no)
                   }
-                  className={`px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-all duration-300 ${
+                  className={`px-6 py-3 rounded-lg font-bold flex items-center gap-2 transition-all duration-300 border ${
                     isLoading && isRearranging
-                      ? "bg-amber-100 text-amber-400 cursor-not-allowed"
+                      ? "bg-orange-100 text-orange-400 cursor-not-allowed border-orange-300"
                       : formData.lec_no === "" || isNaN(formData.lec_no)
-                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                      : "bg-gradient-to-r from-amber-600 to-orange-600 text-white hover:from-amber-700 hover:to-orange-700 shadow-sm hover:shadow-md"
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300"
+                      : "bg-gradient-to-r from-orange-600 to-orange-700 text-white hover:from-orange-700 hover:to-orange-800 shadow-sm hover:shadow-md border-orange-700"
                   }`}
                 >
                   {isLoading && isRearranging ? (
@@ -1266,14 +1306,14 @@ Status: Successfully Completed`;
                     <Repeat className="w-5 h-5" />
                   )}
                   {isLoading && isRearranging
-                    ? "Rearranging..."
-                    : "Auto Rearrange"}
+                    ? "Rescheduling..."
+                    : "Auto Reschedule"}
                 </button>
 
                 <button
                   type="button"
                   onClick={handleReset}
-                  className="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 font-medium flex items-center gap-2 hover:bg-gray-50 transition-all duration-300"
+                  className="px-6 py-3 rounded-lg border border-amber-300 text-amber-700 font-bold flex items-center gap-2 hover:bg-amber-50 transition-all duration-300"
                 >
                   <RefreshCw className="w-5 h-5" />
                   Reset Form
@@ -1285,19 +1325,19 @@ Status: Successfully Completed`;
 
         {/* Available Faculty Selection */}
         {availableFaculty.length > 0 && (
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden mb-8">
-            <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-purple-100">
+          <div className="bg-white rounded-2xl border border-amber-200 shadow-sm overflow-hidden mb-8">
+            <div className="p-6 border-b border-amber-100 bg-gradient-to-r from-violet-50 to-violet-100">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-purple-100 rounded-lg">
-                    <UserCircle className="w-5 h-5 text-purple-600" />
+                  <div className="p-2 bg-white rounded-lg border border-violet-200">
+                    <PenTool className="w-5 h-5 text-violet-600" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-semibold text-purple-900">
-                      Available Faculty ({availableFaculty.length})
+                    <h2 className="text-lg font-bold text-violet-900">
+                      Available Tutors ({availableFaculty.length})
                     </h2>
-                    <p className="text-sm text-purple-700">
-                      Select a faculty member to assign to this lecture
+                    <p className="text-sm text-violet-700">
+                      Select a tutor to assign to this study session
                     </p>
                   </div>
                 </div>
@@ -1310,31 +1350,31 @@ Status: Successfully Completed`;
                   <div
                     key={faculty.faculty_id}
                     onClick={() => setSelectedFaculty(faculty)}
-                    className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 ${
+                    className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 ml-2 ${
                       selectedFaculty?.faculty_id === faculty.faculty_id
-                        ? "border-purple-500 bg-purple-50 shadow-md"
-                        : "border-gray-200 bg-gray-50 hover:border-purple-300 hover:bg-purple-50"
+                        ? "border-violet-500 bg-violet-50 shadow-md"
+                        : "border-amber-200 bg-amber-50 hover:border-violet-300 hover:bg-violet-50"
                     }`}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3 flex-1">
                         <div
-                          className={`p-2 rounded-lg ${
+                          className={`p-2 rounded-lg border ${
                             selectedFaculty?.faculty_id === faculty.faculty_id
-                              ? "bg-purple-100"
-                              : "bg-white"
+                              ? "bg-violet-100 border-violet-200"
+                              : "bg-white border-amber-200"
                           }`}
                         >
                           <UserCheck
                             className={`w-5 h-5 ${
                               selectedFaculty?.faculty_id === faculty.faculty_id
-                                ? "text-purple-600"
+                                ? "text-violet-600"
                                 : "text-gray-600"
                             }`}
                           />
                         </div>
                         <div className="flex-1">
-                          <p className="font-semibold text-gray-900">
+                          <p className="font-bold text-gray-900">
                             {faculty.name}
                           </p>
                           <p className="text-sm text-gray-600">
@@ -1347,7 +1387,7 @@ Status: Successfully Completed`;
                       </div>
                       {selectedFaculty?.faculty_id === faculty.faculty_id && (
                         <div className="flex-shrink-0 ml-3">
-                          <div className="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center">
+                          <div className="w-6 h-6 bg-violet-500 rounded-full flex items-center justify-center">
                             <Check className="w-4 h-4 text-white" />
                           </div>
                         </div>
@@ -1358,26 +1398,26 @@ Status: Successfully Completed`;
               </div>
 
               {selectedFaculty && (
-                <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-4 border border-purple-200">
+                <div className="bg-gradient-to-r from-violet-50 to-violet-100 rounded-xl p-4 border border-violet-200 ml-2">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-purple-900">
-                        Selected Faculty
+                      <p className="text-sm font-bold text-violet-900">
+                        Selected Tutor
                       </p>
-                      <p className="text-lg font-bold text-purple-900">
+                      <p className="text-lg font-bold text-violet-900">
                         {selectedFaculty.name}
                       </p>
-                      <p className="text-sm text-purple-700">
+                      <p className="text-sm text-violet-700">
                         {selectedFaculty.faculty_id}
                       </p>
                     </div>
                     <button
                       onClick={handleAssignFaculty}
                       disabled={isAssigning}
-                      className={`px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-all duration-300 ${
+                      className={`px-6 py-3 rounded-lg font-bold flex items-center gap-2 transition-all duration-300 border ${
                         isAssigning
-                          ? "bg-purple-200 text-purple-400 cursor-not-allowed"
-                          : "bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800 shadow-sm hover:shadow-md"
+                          ? "bg-violet-200 text-violet-400 cursor-not-allowed border-violet-300"
+                          : "bg-gradient-to-r from-violet-600 to-violet-700 text-white hover:from-violet-700 hover:to-violet-800 shadow-sm hover:shadow-md border-violet-700"
                       }`}
                     >
                       {isAssigning ? (
@@ -1385,7 +1425,7 @@ Status: Successfully Completed`;
                       ) : (
                         <UserCheck className="w-5 h-5" />
                       )}
-                      {isAssigning ? "Assigning..." : "Assign Faculty"}
+                      {isAssigning ? "Assigning..." : "Assign Tutor"}
                     </button>
                   </div>
                 </div>
@@ -1396,19 +1436,19 @@ Status: Successfully Completed`;
 
         {/* Rearrange Options Selection */}
         {rearrangeOptions.length > 0 && (
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden mb-8">
-            <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-orange-50 to-orange-100">
+          <div className="bg-white rounded-2xl border border-amber-200 shadow-sm overflow-hidden mb-8">
+            <div className="p-6 border-b border-amber-100 bg-gradient-to-r from-amber-50 to-orange-100">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-orange-100 rounded-lg">
-                    <GitBranch className="w-5 h-5 text-orange-600" />
+                  <div className="p-2 bg-white rounded-lg border border-amber-200">
+                    <GitBranch className="w-5 h-5 text-amber-600" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-semibold text-orange-900">
-                      Rearrangement Options ({rearrangeOptions.length})
+                    <h2 className="text-lg font-bold text-amber-900">
+                      Reschedule Options ({rearrangeOptions.length})
                     </h2>
-                    <p className="text-sm text-orange-700">
-                      Select a swap option to execute the rearrangement
+                    <p className="text-sm text-amber-700">
+                      Select a swap option to execute the reschedule
                     </p>
                   </div>
                 </div>
@@ -1421,20 +1461,20 @@ Status: Successfully Completed`;
                   <div
                     key={option.option_id}
                     onClick={() => setSelectedOption(option)}
-                    className={`p-5 rounded-xl border-2 cursor-pointer transition-all duration-300 ${
+                    className={`p-5 rounded-xl border-2 cursor-pointer transition-all duration-300 ml-2 ${
                       selectedOption?.option_id === option.option_id
-                        ? "border-orange-500 bg-orange-50 shadow-md"
-                        : "border-gray-200 bg-gray-50 hover:border-orange-300 hover:bg-orange-50"
+                        ? "border-amber-500 bg-amber-50 shadow-md"
+                        : "border-amber-200 bg-amber-50 hover:border-amber-300 hover:bg-amber-50"
                     }`}
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-3">
-                          <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded-md text-xs font-semibold">
+                          <span className="px-2 py-1 bg-amber-100 text-amber-800 rounded-md text-xs font-bold border border-amber-200">
                             Option {index + 1}
                           </span>
                           {selectedOption?.option_id === option.option_id && (
-                            <div className="w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center">
+                            <div className="w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center">
                               <Check className="w-3 h-3 text-white" />
                             </div>
                           )}
@@ -1442,14 +1482,14 @@ Status: Successfully Completed`;
 
                         <div className="space-y-3">
                           {/* Primary Faculty */}
-                          <div className="bg-white rounded-lg p-3 border border-gray-200">
+                          <div className="bg-white rounded-lg p-3 border border-amber-200">
                             <div className="flex items-center gap-2 mb-2">
                               <UserCheck className="w-4 h-4 text-blue-600" />
-                              <span className="text-xs font-semibold text-gray-600">
-                                Primary Faculty
+                              <span className="text-xs font-bold text-gray-600">
+                                Primary Tutor
                               </span>
                             </div>
-                            <p className="font-semibold text-gray-900">
+                            <p className="font-bold text-gray-900">
                               {option.primary_faculty.name}
                             </p>
                             <p className="text-xs text-gray-600 mt-1">
@@ -1457,25 +1497,25 @@ Status: Successfully Completed`;
                             </p>
                             <div className="mt-2 flex items-center gap-2 text-sm">
                               <span className="text-gray-600">Moves from:</span>
-                              <span className="px-2 py-0.5 bg-red-100 text-red-700 rounded text-xs font-medium">
+                              <span className="px-2 py-0.5 bg-red-100 text-red-700 rounded text-xs font-medium border border-red-200">
                                 {option.primary_faculty.current_class}
                               </span>
                               <ArrowRight className="w-4 h-4 text-gray-400" />
-                              <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs font-medium">
+                              <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded text-xs font-medium border border-emerald-200">
                                 {option.primary_faculty.new_class}
                               </span>
                             </div>
                           </div>
 
                           {/* Secondary Faculty */}
-                          <div className="bg-white rounded-lg p-3 border border-gray-200">
+                          <div className="bg-white rounded-lg p-3 border border-amber-200">
                             <div className="flex items-center gap-2 mb-2">
-                              <UserCircle className="w-4 h-4 text-purple-600" />
-                              <span className="text-xs font-semibold text-gray-600">
-                                Secondary Faculty
+                              <UserCircle className="w-4 h-4 text-violet-600" />
+                              <span className="text-xs font-bold text-gray-600">
+                                Secondary Tutor
                               </span>
                             </div>
-                            <p className="font-semibold text-gray-900">
+                            <p className="font-bold text-gray-900">
                               {option.secondary_faculty.name}
                             </p>
                             <p className="text-xs text-gray-600 mt-1">
@@ -1483,7 +1523,7 @@ Status: Successfully Completed`;
                             </p>
                             <div className="mt-2 flex items-center gap-2 text-sm">
                               <span className="text-gray-600">Takes over:</span>
-                              <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-medium">
+                              <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-medium border border-blue-200">
                                 {option.secondary_faculty.takes_over}
                               </span>
                             </div>
@@ -1491,9 +1531,9 @@ Status: Successfully Completed`;
                         </div>
 
                         {/* Description */}
-                        <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <div className="mt-3 p-3 bg-amber-50 rounded-lg border border-amber-200">
                           <p className="text-sm text-gray-700">
-                            <Info className="w-4 h-4 inline mr-1 text-gray-500" />
+                            <Info className="w-4 h-4 inline mr-1 text-amber-500" />
                             {option.description}
                           </p>
                         </div>
@@ -1504,29 +1544,30 @@ Status: Successfully Completed`;
               </div>
 
               {selectedOption && (
-                <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl p-4 border border-orange-200">
+                <div className="bg-gradient-to-r from-amber-50 to-orange-100 rounded-xl p-4 border border-amber-200 ml-2">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-orange-900">
-                        Selected Rearrangement
+                      <p className="text-sm font-bold text-amber-900">
+                        Selected Reschedule
                       </p>
-                      <p className="text-lg font-bold text-orange-900">
+                      <p className="text-lg font-bold text-amber-900">
                         {selectedOption.primary_faculty.name}
                       </p>
-                      <p className="text-sm text-orange-700">
+                      <p className="text-sm text-amber-700">
                         will be assigned to {formData.class}
                       </p>
-                      <p className="text-xs text-orange-600 mt-1">
-                        Note: Two classes will be affected by this rearrangement
+                      <p className="text-xs text-amber-600 mt-1">
+                        Note: Two study groups will be affected by this
+                        reschedule
                       </p>
                     </div>
                     <button
                       onClick={handleExecuteRearrange}
                       disabled={isExecutingSwap}
-                      className={`px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-all duration-300 ${
+                      className={`px-6 py-3 rounded-lg font-bold flex items-center gap-2 transition-all duration-300 border ${
                         isExecutingSwap
-                          ? "bg-orange-200 text-orange-400 cursor-not-allowed"
-                          : "bg-gradient-to-r from-orange-600 to-orange-700 text-white hover:from-orange-700 hover:to-orange-800 shadow-sm hover:shadow-md"
+                          ? "bg-amber-200 text-amber-400 cursor-not-allowed border-amber-300"
+                          : "bg-gradient-to-r from-amber-600 to-orange-600 text-white hover:from-amber-700 hover:to-orange-700 shadow-sm hover:shadow-md border-amber-700"
                       }`}
                     >
                       {isExecutingSwap ? (
@@ -1534,9 +1575,7 @@ Status: Successfully Completed`;
                       ) : (
                         <Zap className="w-5 h-5" />
                       )}
-                      {isExecutingSwap
-                        ? "Executing..."
-                        : "Execute Rearrangement"}
+                      {isExecutingSwap ? "Executing..." : "Execute Reschedule"}
                     </button>
                   </div>
                 </div>
@@ -1547,84 +1586,84 @@ Status: Successfully Completed`;
 
         {/* Action Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-2xl p-6 border border-purple-100">
+          <div className="bg-gradient-to-br from-violet-50 to-indigo-50 rounded-2xl p-6 border border-violet-200">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <UserCircle className="w-5 h-5 text-purple-600" />
+              <div className="p-2 bg-violet-100 rounded-lg border border-violet-200">
+                <PenTool className="w-5 h-5 text-violet-600" />
               </div>
-              <h3 className="font-semibold text-purple-900">Select Faculty</h3>
+              <h3 className="font-bold text-violet-900">Select Tutor</h3>
             </div>
-            <p className="text-purple-800 text-sm mb-4">
-              View all available faculty members and manually select who you
-              want to assign to the lecture.
+            <p className="text-violet-800 text-sm mb-4">
+              View all available tutors and manually select who you want to
+              assign to the study session.
             </p>
-            <ul className="space-y-2 text-purple-700 text-sm">
+            <ul className="space-y-2 text-violet-700 text-sm">
               <li className="flex items-start gap-2">
-                <div className="w-1.5 h-1.5 bg-purple-400 rounded-full mt-1.5"></div>
-                <span>See all available faculty at once</span>
+                <div className="w-2 h-2 bg-violet-400 rounded-full mt-1.5"></div>
+                <span>See all available tutors at once</span>
               </li>
               <li className="flex items-start gap-2">
-                <div className="w-1.5 h-1.5 bg-purple-400 rounded-full mt-1.5"></div>
+                <div className="w-2 h-2 bg-violet-400 rounded-full mt-1.5"></div>
                 <span>Choose based on preference</span>
               </li>
               <li className="flex items-start gap-2">
-                <div className="w-1.5 h-1.5 bg-purple-400 rounded-full mt-1.5"></div>
+                <div className="w-2 h-2 bg-violet-400 rounded-full mt-1.5"></div>
                 <span>Full control over assignment</span>
               </li>
             </ul>
           </div>
 
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100">
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-200">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-blue-100 rounded-lg">
+              <div className="p-2 bg-blue-100 rounded-lg border border-blue-200">
                 <Search className="w-5 h-5 text-blue-600" />
               </div>
-              <h3 className="font-semibold text-blue-900">Auto Replace</h3>
+              <h3 className="font-bold text-blue-900">Auto Schedule</h3>
             </div>
             <p className="text-blue-800 text-sm mb-4">
-              Automatically find and assign the first available faculty from the
+              Automatically find and assign the first available tutor from the
               allowed list.
             </p>
             <ul className="space-y-2 text-blue-700 text-sm">
               <li className="flex items-start gap-2">
-                <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5"></div>
+                <div className="w-2 h-2 bg-blue-400 rounded-full mt-1.5"></div>
                 <span>Quick one-click assignment</span>
               </li>
               <li className="flex items-start gap-2">
-                <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5"></div>
+                <div className="w-2 h-2 bg-blue-400 rounded-full mt-1.5"></div>
                 <span>No manual selection needed</span>
               </li>
               <li className="flex items-start gap-2">
-                <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-1.5"></div>
+                <div className="w-2 h-2 bg-blue-400 rounded-full mt-1.5"></div>
                 <span>Instant solution for urgent cases</span>
               </li>
             </ul>
           </div>
 
-          <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl p-6 border border-orange-100">
+          <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-6 border border-amber-200">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-orange-100 rounded-lg">
-                <GitBranch className="w-5 h-5 text-orange-600" />
+              <div className="p-2 bg-amber-100 rounded-lg border border-amber-200">
+                <GitBranch className="w-5 h-5 text-amber-600" />
               </div>
-              <h3 className="font-semibold text-orange-900">
-                Rearrange Options
-              </h3>
+              <h3 className="font-bold text-amber-900">Reschedule Options</h3>
             </div>
-            <p className="text-orange-800 text-sm mb-4">
-              View all possible lecture swaps and choose the best rearrangement
+            <p className="text-amber-800 text-sm mb-4">
+              View all possible session swaps and choose the best reschedule
               option.
             </p>
-            <ul className="space-y-2 text-orange-700 text-sm">
+            <ul className="space-y-2 text-amber-700 text-sm">
               <li className="flex items-start gap-2">
-                <div className="w-1.5 h-1.5 bg-orange-400 rounded-full mt-1.5"></div>
+                <div className="w-2 h-2 bg-amber-400 rounded-full mt-1.5"></div>
                 <span>Multiple swap options</span>
               </li>
               <li className="flex items-start gap-2">
-                <div className="w-1.5 h-1.5 bg-orange-400 rounded-full mt-1.5"></div>
-                <span>Separate notifications for each affected class</span>
+                <div className="w-2 h-2 bg-amber-400 rounded-full mt-1.5"></div>
+                <span>
+                  Separate notifications for each affected study group
+                </span>
               </li>
               <li className="flex items-start gap-2">
-                <div className="w-1.5 h-1.5 bg-orange-400 rounded-full mt-1.5"></div>
+                <div className="w-2 h-2 bg-amber-400 rounded-full mt-1.5"></div>
                 <span>Manual approval before execution</span>
               </li>
             </ul>
@@ -1633,34 +1672,34 @@ Status: Successfully Completed`;
 
         {/* Result Display */}
         {result && (
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm mb-8 overflow-hidden">
-            <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100">
+          <div className="bg-white rounded-2xl border border-amber-200 shadow-sm mb-8 overflow-hidden">
+            <div className="p-6 border-b border-amber-100 bg-gradient-to-r from-amber-50 to-amber-100">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-gradient-to-br from-emerald-100 to-emerald-50 rounded-lg">
+                  <div className="p-2 bg-white rounded-lg border border-amber-200">
                     <CheckCircle className="w-5 h-5 text-emerald-600" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-semibold text-gray-900">
+                    <h2 className="text-lg font-bold text-amber-900">
                       Assignment Result
                     </h2>
-                    <p className="text-sm text-gray-600">
-                      Lecture successfully managed
+                    <p className="text-sm text-amber-700">
+                      Study session successfully managed
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <span
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${
+                    className={`px-3 py-1 rounded-full text-xs font-bold border ${
                       result.type === "rearranged"
-                        ? "bg-amber-100 text-amber-800"
+                        ? "bg-amber-100 text-amber-800 border-amber-200"
                         : result.type === "direct"
-                        ? "bg-emerald-100 text-emerald-800"
-                        : "bg-blue-100 text-blue-800"
+                        ? "bg-emerald-100 text-emerald-800 border-emerald-200"
+                        : "bg-blue-100 text-blue-800 border-blue-200"
                     }`}
                   >
                     {result.type === "rearranged"
-                      ? "Rearranged"
+                      ? "Rescheduled"
                       : result.type === "direct"
                       ? "Direct Assignment"
                       : "Manual Selection"}
@@ -1668,7 +1707,7 @@ Status: Successfully Completed`;
                   <button
                     id="copy-toast-btn"
                     onClick={copyToClipboard}
-                    className="flex items-center gap-1 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors"
+                    className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-amber-100 to-amber-50 hover:from-amber-200 hover:to-amber-100 text-amber-700 rounded-lg text-sm font-bold transition-colors border border-amber-200"
                   >
                     <Copy className="w-4 h-4" />
                     <span>Copy Result</span>
@@ -1679,34 +1718,34 @@ Status: Successfully Completed`;
 
             <div className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-5">
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-5 border border-blue-200">
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="p-2 bg-white rounded-lg">
+                    <div className="p-2 bg-white rounded-lg border border-blue-200">
                       <UserCheck className="w-4 h-4 text-blue-600" />
                     </div>
                     <div>
-                      <p className="text-xs font-medium text-blue-700">
-                        Primary Faculty
+                      <p className="text-xs font-bold text-blue-700">
+                        Primary Tutor
                       </p>
-                      <p className="text-lg font-semibold text-blue-900">
+                      <p className="text-lg font-bold text-blue-900">
                         {result.faculty_name || result.assigned_faculty}
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-5">
+                <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-5 border border-emerald-200">
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="p-2 bg-white rounded-lg">
+                    <div className="p-2 bg-white rounded-lg border border-emerald-200">
                       <Zap className="w-4 h-4 text-emerald-600" />
                     </div>
                     <div>
-                      <p className="text-xs font-medium text-emerald-700">
+                      <p className="text-xs font-bold text-emerald-700">
                         Method
                       </p>
-                      <p className="text-lg font-semibold text-emerald-900">
+                      <p className="text-lg font-bold text-emerald-900">
                         {result.type === "rearranged"
-                          ? "Lecture Rearrangement"
+                          ? "Session Reschedule"
                           : result.type === "direct"
                           ? "Direct Assignment"
                           : "Manual Selection"}
@@ -1716,16 +1755,16 @@ Status: Successfully Completed`;
                 </div>
 
                 {result.secondary_faculty_name && (
-                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-5">
+                  <div className="bg-gradient-to-br from-violet-50 to-violet-100 rounded-xl p-5 border border-violet-200">
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="p-2 bg-white rounded-lg">
-                        <UserCircle className="w-4 h-4 text-purple-600" />
+                      <div className="p-2 bg-white rounded-lg border border-violet-200">
+                        <UserCircle className="w-4 h-4 text-violet-600" />
                       </div>
                       <div>
-                        <p className="text-xs font-medium text-purple-700">
-                          Secondary Faculty
+                        <p className="text-xs font-bold text-violet-700">
+                          Secondary Tutor
                         </p>
-                        <p className="text-lg font-semibold text-purple-900">
+                        <p className="text-lg font-bold text-violet-900">
                           {result.secondary_faculty_name}
                         </p>
                       </div>
@@ -1737,33 +1776,33 @@ Status: Successfully Completed`;
               {/* Affected Classes Section for Rearrangements */}
               {result.type === "rearranged" && result.affected_classes && (
                 <div className="mb-6">
-                  <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <Bell className="w-4 h-4 text-orange-500" />
-                    Affected Classes ({result.affected_classes.length})
+                  <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <Bell className="w-4 h-4 text-amber-500" />
+                    Affected Study Groups ({result.affected_classes.length})
                   </h3>
                   <div className="space-y-4">
                     {result.affected_classes.map((cls, index) => (
                       <div
                         key={index}
-                        className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl p-4 border border-orange-200"
+                        className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-4 border border-amber-200"
                       >
                         <div className="flex items-center justify-between mb-3">
                           <div>
-                            <span className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-xs font-medium">
-                              {index === 0 ? "Target Class" : "Occupied Class"}
+                            <span className="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-bold border border-amber-200">
+                              {index === 0 ? "Target Group" : "Occupied Group"}
                             </span>
                             <p className="font-bold text-gray-900 mt-2">
                               {cls.branch}-{cls.class}-Sem{cls.sem}
                             </p>
                           </div>
                           <div className="text-right">
-                            <p className="text-sm text-gray-600">New Faculty</p>
-                            <p className="font-semibold text-gray-900">
+                            <p className="text-sm text-gray-600">New Tutor</p>
+                            <p className="font-bold text-gray-900">
                               {cls.new_faculty}
                             </p>
                           </div>
                         </div>
-                        <div className="bg-white rounded-lg p-3 border border-orange-100">
+                        <div className="bg-white rounded-lg p-3 border border-amber-100">
                           <div className="whitespace-pre-line font-mono text-sm text-gray-700">
                             {formatMessage(cls.message)}
                           </div>
@@ -1774,64 +1813,8 @@ Status: Successfully Completed`;
                 </div>
               )}
 
-              {/* Details Card */}
-              {/* <div className="bg-gray-50 rounded-xl p-5 border border-gray-200">
-                <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <Info className="w-4 h-4 text-gray-500" />
-                  Assignment Details
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="flex justify-between items-center py-2 border-b border-gray-200">
-                    <span className="text-sm text-gray-600">Date</span>
-                    <span className="font-medium text-gray-900">
-                      {new Date(formData.date).toLocaleDateString("en-US", {
-                        weekday: "long",
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center py-2 border-b border-gray-200">
-                    <span className="text-sm text-gray-600">Day</span>
-                    <span className="font-medium text-gray-900">
-                      {days.find((d) => d.value === formData.day)?.label ||
-                        formData.day}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center py-2 border-b border-gray-200">
-                    <span className="text-sm text-gray-600">Class</span>
-                    <span className="font-medium text-gray-900">
-                      {formData.class}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center py-2 border-b border-gray-200">
-                    <span className="text-sm text-gray-600">Semester</span>
-                    <span className="font-medium text-gray-900">
-                      {formData.sem}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center py-2 border-b border-gray-200">
-                    <span className="text-sm text-gray-600">Branch</span>
-                    <span className="font-medium text-gray-900">
-                      {formData.branch}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center py-2 border-b border-gray-200">
-                    <span className="text-sm text-gray-600">Time Slot</span>
-                    <span className="font-medium text-gray-900">
-                      {
-                        timeSlotOptions.find(
-                          (t) => t.value === parseInt(formData.lec_no)
-                        )?.label
-                      }
-                    </span>
-                  </div>
-                </div>
-              </div> */}
-
               {result.message && result.type !== "rearranged" && (
-                <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
+                <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
                   <div className="whitespace-pre-line font-mono text-sm text-blue-800">
                     {formatMessage(result.message)}
                   </div>
