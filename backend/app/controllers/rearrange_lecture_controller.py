@@ -325,7 +325,7 @@ def execute_rearrange():
         f"Change in Lecture\n\n"
         f"Date: {selected_date}\n\n"
         f"Lecture no.: {lec_no+1}\n\n"
-        f"Faculty: {primary_fac_name}\n\n"
+        f"Faculty: {primary_faculty_id}\n\n"
         f"Location: Same as per timetable"
     )
 
@@ -334,7 +334,7 @@ def execute_rearrange():
         f"Change in Lecture\n\n"
         f"Date: {selected_date}\n\n"
         f"Lecture no.: {lec_no+1}\n\n"
-        f"Faculty: {secondary_fac_name}\n\n"
+        f"Faculty: {secondary_faculty_id}\n\n"
         f"Location: Same as per timetable"
     )
 
@@ -476,7 +476,7 @@ def rearrange_lecture():
             f"Change in Lecture\n\n"
             f"Date: {selected_date}\n\n"
             f"Lecture no.: {lec_no+1}\n\n"
-            f"Faculty: {fac_name}\n\n"
+            f"Faculty: {fac_id}\n\n"
             f"Location: Same as per timetable"
         )
 
@@ -586,7 +586,7 @@ def rearrange_lecture():
             f"Change in Lecture\n\n"
             f"Date: {selected_date}\n\n"
             f"Lecture no.: {lec_no+1}\n\n"
-            f"Faculty: {primary_fac_name}\n\n"
+            f"Faculty: {fac_id}\n\n"
             f"Location: Same as per timetable"
         )
 
@@ -595,7 +595,7 @@ def rearrange_lecture():
             f"Change in Lecture\n\n"
             f"Date: {selected_date}\n\n"
             f"Lecture no.: {lec_no+1}\n\n"
-            f"Faculty: {secondary_fac_name}\n\n"
+            f"Faculty: {new_fac}\n\n"
             f"Location: Same as per timetable"
         )
 
