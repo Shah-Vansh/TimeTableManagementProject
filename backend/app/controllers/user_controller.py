@@ -5,11 +5,14 @@ from datetime import datetime, timedelta
 import os
 from app.database.mongo import db
 
-user_bp = Blueprint("user", __name__)
+# user_bp = Blueprint("user", __name__)
 
 # MongoDB collection
 faculty_collection = db["faculty_timetable"]
 
+# ===============================
+# =          HELPERS            =   
+# ===============================
 
 # [JWT token]
 def generate_token(user_id):
@@ -21,6 +24,9 @@ def generate_token(user_id):
     )
     return token
 
+# ===============================
+# =      MAIN CONTROLLER        =
+# ===============================
 
 # ----- / CREATE Functions /------
 
@@ -125,52 +131,7 @@ def login_user():
         return jsonify({"message": str(error)}), 500
 
 
-# GET: /api/user/data
-def get_user_by_id():
-    try:
-        user_id = request.user_id
-
-        # Find user by ID
-        user = faculty_collection.find_one({"_id": user_id})
-
-        if not user:
-            return jsonify({"message": "User not found."}), 404
-
-        # Return user data without password
-        user_data = {
-            "id": user["_id"],
-            "name": user["name"],
-            "username": user["username"],
-        }
-
-        return jsonify({"user": user_data}), 200
-
-    except Exception as error:
-        return jsonify({"message": str(error)}), 400
-
-
 # GET: /api/user/profile
-def get_profile():
-    try:
-        user = faculty_collection.find_one({"_id": request.user_id})
-
-        if not user:
-            return jsonify({"message": "User not found."}), 404
-
-        # Return user data with timetable
-        user_data = {
-            "id": user["_id"],
-            "name": user["name"],
-            "username": user["username"],
-            "timetable": user.get("timetable", {}),
-        }
-
-        return jsonify({"user": user_data}), 200
-
-    except Exception as error:
-        return jsonify({"message": str(error)}), 400
-
-
 def get_my_profile():
     faculty_id = request.user_id  # comes from JWT
     print(faculty_id)
@@ -295,3 +256,52 @@ def update_profile():
 
     except Exception as error:
         return jsonify({"success": False, "error": str(error)}), 400
+    
+    
+    
+    
+# GET: /api/user/data
+# def get_user_by_id():
+#     try:
+#         user_id = request.user_id
+
+#         # Find user by ID
+#         user = faculty_collection.find_one({"_id": user_id})
+
+#         if not user:
+#             return jsonify({"message": "User not found."}), 404
+
+#         # Return user data without password
+#         user_data = {
+#             "id": user["_id"],
+#             "name": user["name"],
+#             "username": user["username"],
+#         }
+
+#         return jsonify({"user": user_data}), 200
+
+#     except Exception as error:
+#         return jsonify({"message": str(error)}), 400
+
+
+# GET: /api/user/profile
+# def get_profile():
+#     try:
+#         user = faculty_collection.find_one({"_id": request.user_id})
+
+#         if not user:
+#             return jsonify({"message": "User not found."}), 404
+
+#         # Return user data with timetable
+#         user_data = {
+#             "id": user["_id"],
+#             "name": user["name"],
+#             "username": user["username"],
+#             "timetable": user.get("timetable", {}),
+#         }
+
+#         return jsonify({"user": user_data}), 200
+
+#     except Exception as error:
+#         return jsonify({"message": str(error)}), 400
+

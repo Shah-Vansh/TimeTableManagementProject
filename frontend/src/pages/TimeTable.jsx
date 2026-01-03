@@ -151,6 +151,9 @@ export default function TimeTable() {
   const [showCredentialsModal, setShowCredentialsModal] = useState(false);
   const [copiedField, setCopiedField] = useState("");
 
+  // Token declare
+  const token = localStorage.getItem("token");
+
   // Faculty color mapping for consistent styling
   const facultyColors = [
     "border-amber-200 bg-amber-50 text-amber-700",
@@ -428,7 +431,7 @@ export default function TimeTable() {
 
     try {
       // Create faculty in backend
-      const token = localStorage.getItem("token");
+      
       const response = await api.post(
         "/api/faculties",
         {
@@ -648,7 +651,11 @@ Generated on: ${new Date().toLocaleString()}
       await fetchTelegramChatIds();
 
       // Then fetch all timetables to see which classes exist for this branch-semester
-      const allTimetablesRes = await api.get("/api/timetable");
+      const allTimetablesRes = await api.get("/api/timetable", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       const allTimetables = allTimetablesRes.data;
 
       // Filter timetables for the current branch and semester
@@ -671,7 +678,12 @@ Generated on: ${new Date().toLocaleString()}
         // Also fetch schedule data for each class
         const fetchPromises = existingClasses.map(async (division) => {
           try {
-            const response = await api.get("/api/fetchtimetable", {
+            const response = await api.get("/api/timetable/fetchtimetable", {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            },
+            {
               params: {
                 sem: sem,
                 branch: branch,
@@ -764,7 +776,12 @@ Generated on: ${new Date().toLocaleString()}
       // Fetch timetables for each selected division
       const fetchPromises = selectedDivisions.map(async (division) => {
         try {
-          const response = await api.get("/api/fetchtimetable", {
+          const response = await api.get("/api/timetable/fetchtimetable", {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }, 
+          {
             params: {
               sem: sem,
               branch: branch,
@@ -942,7 +959,10 @@ Generated on: ${new Date().toLocaleString()}
 
       const response = await api.delete("/api/timetable", {
         data: formData,
-        headers: { "Content-Type": "multipart/form-data" },
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (response.status === 200) {
@@ -1185,7 +1205,9 @@ Generated on: ${new Date().toLocaleString()}
         const endpoint = "/api/timetable"; // Always use POST for create/update
 
         return api.post(endpoint, formData, {
-          headers: { "Content-Type": "multipart/form-data" },
+          headers: { "Content-Type": "multipart/form-data", 
+            Authorization: `Bearer ${token}`,
+          },
         });
       });
 

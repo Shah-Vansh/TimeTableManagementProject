@@ -76,6 +76,9 @@ export default function FacultyProfile() {
     subjectsAssigned: new Set(),
   });
 
+  // token declare
+  const token = localStorage.getItem("token");
+
   /* =======================
      🔹 UTILITIES
   ======================= */
@@ -90,7 +93,6 @@ export default function FacultyProfile() {
   const fetchFacultyData = async (showLoading = true) => {
     if (showLoading) setIsLoading(true);
     else setIsRefreshing(true);
-    const token = localStorage.getItem("token");
     try {
       const response = await api.get(`/api/user/profile`, {
         headers: {
@@ -195,7 +197,7 @@ export default function FacultyProfile() {
 
     setIsSaving(true);
     try {
-      const token = localStorage.getItem("token");
+      
       const response = await api.put(
         `/api/user/profile`,
         {
@@ -259,7 +261,7 @@ export default function FacultyProfile() {
 
     setIsSaving(true);
     try {
-      const token = localStorage.getItem("token");
+      
       const response = await api.put(
         `/api/user/profile`,
         {

@@ -69,6 +69,7 @@ function Dashboard() {
     setTimeout(() => setAlert(null), 5000);
   };
 
+  const token = localStorage.getItem("token");
   // Aggregate timetables by branch
   // Aggregate timetables by branch
   const aggregateByBranch = (timetables) => {
@@ -144,7 +145,11 @@ function Dashboard() {
 
   const fetchTimetables = async () => {
     try {
-      const res = await api.get("/api/timetable");
+      const res = await api.get("/api/timetable", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       const data = res.data;
 
       const enriched = data.map((t) => ({
@@ -213,7 +218,12 @@ function Dashboard() {
         formData.append("branch", timetable.branch);
         formData.append("class", timetable.className || timetable.class);
 
-        return api.delete("/api/timetable", {
+        return api.delete("/api/timetable",{
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+        {
           data: formData,
         });
       });

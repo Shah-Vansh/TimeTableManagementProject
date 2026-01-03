@@ -121,6 +121,9 @@ export default function PreviewTimetable() {
   // Add this state variable
   const [availableFaculty, setAvailableFaculty] = useState([]);
 
+  // Token declare
+  const token = localStorage.getItem("token");
+
   /* =======================
    🔹 UPDATE OVERALL STATISTICS
 ======================= */
@@ -186,7 +189,12 @@ export default function PreviewTimetable() {
       // Fetch timetable for each division
       for (const division of divisions) {
         try {
-          const response = await api.get("/api/fetchtimetable", {
+          const response = await api.get("/api//timetable/fetchtimetable",{
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+         {
             params: {
               sem: sem,
               branch: branch,
@@ -267,7 +275,12 @@ export default function PreviewTimetable() {
 ======================= */
   const fetchSingleDivisionTimetable = async (division) => {
     try {
-      const response = await api.get("/api/fetchtimetable", {
+      const response = await api.get("/api/timetable/fetchtimetable", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+      {
         params: {
           sem: sem,
           branch: branch,

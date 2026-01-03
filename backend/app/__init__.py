@@ -19,12 +19,14 @@ def create_app():
     # import blueprints
     from app.routes.main_routes import main_bp
     from app.routes.user_routes import user_bp
+    from app.routes.timetable_routes import timetable_bp
     from app.controllers.replace_lecture_controller import replace_lecture_bp
     from app.controllers.rearrange_lecture_controller import rearrange_lecture_bp
     from app.routes.telegram_routes import telegram_bp
 
     # register blueprints
     app.register_blueprint(main_bp)
+    app.register_blueprint(timetable_bp, url_prefix="/api/timetable")
     app.register_blueprint(user_bp, url_prefix="/api/user")
     app.register_blueprint(replace_lecture_bp, url_prefix="/api")
     app.register_blueprint(rearrange_lecture_bp, url_prefix="/api")
