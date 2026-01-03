@@ -23,16 +23,17 @@ import {
   Eye,
   EyeOff,
   MessageSquare,
+  Notebook,
+  Bookmark,
+  ClipboardList,
+  PenTool,
+  GraduationCap,
+  BarChart3,
   Shield,
   Bell,
   Key,
-  Bookmark,
-  ClipboardList,
-  GraduationCap,
-  Notebook,
-  CalendarDays,
-  TrendingUp,
   FileText,
+  CalendarDays,
 } from "lucide-react";
 import api from "../configs/api";
 import Alert from "../components/Alert";
@@ -398,7 +399,7 @@ export default function FacultyProfile() {
   ======================= */
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-blue-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-rose-50 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-12 h-12 animate-spin text-amber-600 mx-auto mb-4" />
           <p className="text-gray-600">Loading faculty profile...</p>
@@ -409,7 +410,7 @@ export default function FacultyProfile() {
 
   if (!faculty) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-blue-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-rose-50 flex items-center justify-center">
         <div className="text-center max-w-md">
           <AlertCircle className="w-16 h-16 text-rose-500 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
@@ -420,9 +421,9 @@ export default function FacultyProfile() {
           </p>
           <button
             onClick={() => navigate("/dashboard")}
-            className="px-6 py-3 bg-gradient-to-r from-amber-600 to-amber-700 text-white rounded-lg font-medium hover:from-amber-700 hover:to-amber-800 transition-all duration-300 shadow-sm hover:shadow-md flex items-center gap-2 mx-auto group"
+            className="px-6 py-3 bg-amber-600 text-white rounded-lg font-medium hover:bg-amber-700 transition-colors flex items-center gap-2 mx-auto"
           >
-            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            <ArrowLeft className="w-4 h-4" />
             Back to Dashboard
           </button>
         </div>
@@ -434,640 +435,660 @@ export default function FacultyProfile() {
      🔹 RENDER PROFILE
   ======================= */
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-rose-50 p-4 md:p-6 print:p-0">
       {/* Decorative Background Elements */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+      <div className="fixed inset-0 overflow-hidden pointer-events-none print:hidden">
         <div className="absolute top-20 right-10 w-72 h-72 bg-gradient-to-br from-amber-100 to-transparent rounded-full opacity-40"></div>
-        <div className="absolute bottom-20 left-10 w-96 h-96 bg-gradient-to-tr from-blue-100 to-transparent rounded-full opacity-30"></div>
+        <div className="absolute bottom-20 left-10 w-96 h-96 bg-gradient-to-tr from-rose-100 to-transparent rounded-full opacity-30"></div>
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-64 bg-gradient-to-r from-transparent via-amber-50/20 to-transparent"></div>
-
-        {/* Stationery Elements */}
         <div className="absolute top-40 left-20 w-24 h-24 border-4 border-amber-200/40 border-dashed rounded-lg rotate-12"></div>
-        <div className="absolute bottom-40 right-20 w-16 h-16 border-2 border-blue-200/40 border-dotted rounded-full"></div>
-        <div className="absolute top-60 right-40 w-8 h-32 bg-gradient-to-b from-emerald-200/30 to-transparent transform rotate-45"></div>
+        <div className="absolute bottom-40 right-20 w-16 h-16 border-2 border-rose-200/40 border-dotted rounded-full"></div>
       </div>
 
-      <div className="relative z-10 p-4 md:p-8">
-        <div className="max-w-7xl mx-auto">
-          {/* Alert Component */}
-          {alert && (
-            <Alert
-              main={alert.main}
-              info={alert.info}
-              type={alert.type}
-              onClose={() => setAlert(null)}
-            />
-          )}
+      {/* Alert Component */}
+      {alert && (
+        <Alert
+          main={alert.main}
+          info={alert.info}
+          type={alert.type}
+          onClose={() => setAlert(null)}
+        />
+      )}
 
-          {/* Breadcrumb */}
-          <div className="mb-6 print:hidden">
-            <div className="flex items-center text-sm text-gray-500 mb-4">
-              <button
-                onClick={() => navigate("/dashboard")}
-                className="hover:text-gray-700 cursor-pointer flex items-center gap-1"
-              >
-                <Bookmark className="w-3 h-3" />
-                Dashboard
-              </button>
-              <ChevronRight className="w-4 h-4 mx-2" />
-              <span className="hover:text-gray-700 cursor-pointer flex items-center gap-1">
-                <Notebook className="w-3 h-3" />
-                Faculty
-              </span>
-              <ChevronRight className="w-4 h-4 mx-2" />
-              <span className="font-medium text-amber-600 flex items-center gap-1">
-                <ClipboardList className="w-4 h-4" />
-                My Profile
-              </span>
+      <div className="relative z-10 max-w-7xl mx-auto print:max-w-none">
+        {/* Breadcrumb */}
+        <div className="mb-6 print:hidden">
+          <div className="flex items-center text-sm text-gray-500 mb-4">
+            <button
+              onClick={() => navigate("/dashboard")}
+              className="hover:text-gray-700 cursor-pointer flex items-center gap-1"
+            >
+              <Bookmark className="w-3 h-3" />
+              Dashboard
+            </button>
+            <ChevronRight className="w-4 h-4 mx-2" />
+            <button
+              onClick={() => navigate("/dashboard")}
+              className="hover:text-gray-700 cursor-pointer flex items-center gap-1"
+            >
+              <Notebook className="w-3 h-3" />
+              Academic
+            </button>
+            <ChevronRight className="w-4 h-4 mx-2" />
+            <span className="font-medium text-amber-600 flex items-center gap-1">
+              <ClipboardList className="w-4 h-4" />
+              {faculty.name}'s Profile
+            </span>
+          </div>
+        </div>
+
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8 print:mb-4 print:pt-6">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2.5 bg-white rounded-xl shadow-sm border border-gray-100 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-amber-100 to-transparent opacity-60"></div>
+                <div className="relative">
+                  <User className="w-6 h-6 text-amber-600" />
+                </div>
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900 mb-2 print:text-2xl">
+                  Faculty Profile
+                </h1>
+                <p className="text-gray-600 print:text-sm">
+                  {faculty.isAdmin ? "Administrator" : "Faculty Member"} • ID:{" "}
+                  {faculty._id?.substring(0, 8) || "N/A"}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 print:hidden">
+            <div className="p-3 bg-white rounded-xl border border-gray-200 shadow-sm">
+              <User className="w-6 h-6 text-amber-600" />
+            </div>
+          </div>
+        </div>
+
+        {/* Profile Overview Card */}
+        <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm mb-8 print:rounded-none print:border-0 print:shadow-none print:p-0">
+          <div className="flex flex-col md:flex-row gap-6">
+            {/* Profile Info */}
+            <div className="flex-1">
+              <div className="flex items-start justify-between mb-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-20 h-20 bg-gradient-to-br from-amber-500 to-amber-600 rounded-full flex items-center justify-center">
+                    <span className="text-2xl font-bold text-white">
+                      {faculty.name.charAt(0)}
+                    </span>
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900">
+                      {faculty.name}
+                    </h2>
+                    <div className="flex items-center gap-2 mt-2">
+                      <div
+                        className={`px-3 py-1 rounded-full text-sm font-medium ${
+                          faculty.isAdmin
+                            ? "bg-gradient-to-r from-purple-100 to-purple-200 text-purple-700 border border-purple-200"
+                            : "bg-gradient-to-r from-amber-100 to-amber-200 text-amber-700 border border-amber-200"
+                        }`}
+                      >
+                        {faculty.isAdmin ? "Administrator" : "Faculty Member"}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        ID: {faculty._id?.substring(0, 8) || "N/A"}
+                      </div>
+                    </div>
+
+                    {/* Telegram Chat ID Display */}
+                    {faculty.telegram_chat_id ? (
+                      <div className="flex items-center gap-2 mt-2">
+                        <MessageSquare className="w-4 h-4 text-emerald-600" />
+                        <span className="text-sm text-gray-700">
+                          Telegram: {faculty.telegram_chat_id}
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 mt-2">
+                        <MessageSquare className="w-4 h-4 text-gray-400" />
+                        <span className="text-sm text-gray-500">
+                          Telegram Chat ID not set
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex items-center gap-2 print:hidden">
+                  <button
+                    onClick={() => fetchFacultyData(false)}
+                    disabled={isRefreshing}
+                    className="p-2 hover:bg-amber-50 rounded-lg transition-colors border border-amber-200"
+                    title="Refresh"
+                  >
+                    <RefreshCw
+                      className={`w-5 h-5 text-amber-600 ${
+                        isRefreshing ? "animate-spin" : ""
+                      }`}
+                    />
+                  </button>
+                  <button
+                    onClick={() => setIsEditingTelegram(!isEditingTelegram)}
+                    className="p-2 hover:bg-emerald-50 rounded-lg transition-colors border border-emerald-200"
+                    title={
+                      isEditingTelegram
+                        ? "Cancel Telegram Update"
+                        : "Update Telegram"
+                    }
+                  >
+                    {isEditingTelegram ? (
+                      <X className="w-5 h-5 text-gray-600" />
+                    ) : (
+                      <MessageSquare className="w-5 h-5 text-emerald-600" />
+                    )}
+                  </button>
+                  <button
+                    onClick={() => setIsEditingPassword(!isEditingPassword)}
+                    className="p-2 hover:bg-amber-50 rounded-lg transition-colors border border-amber-200"
+                    title={
+                      isEditingPassword
+                        ? "Cancel Password Change"
+                        : "Change Password"
+                    }
+                  >
+                    {isEditingPassword ? (
+                      <X className="w-5 h-5 text-gray-600" />
+                    ) : (
+                      <Lock className="w-5 h-5 text-amber-600" />
+                    )}
+                  </button>
+                  <button
+                    onClick={handleLogout}
+                    className="p-2 hover:bg-rose-50 rounded-lg transition-colors border border-rose-200"
+                    title="Logout"
+                  >
+                    <LogOut className="w-5 h-5 text-rose-600" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Telegram Chat ID Update Form */}
+              {isEditingTelegram && (
+                <div className="mb-6 p-4 bg-gradient-to-r from-emerald-50 to-emerald-100 rounded-lg border border-emerald-200 print:hidden">
+                  <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <MessageSquare className="w-5 h-5 text-emerald-600" />
+                    Update Telegram Chat ID
+                  </h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Telegram Chat ID
+                        <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800 border border-emerald-200">
+                          Required for notifications
+                        </span>
+                      </label>
+                      <input
+                        type="text"
+                        value={telegramForm.chatId}
+                        onChange={(e) =>
+                          setTelegramForm((prev) => ({
+                            ...prev,
+                            chatId: e.target.value,
+                          }))
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                        placeholder="Enter your Telegram Chat ID (e.g., 123456789)"
+                      />
+                      <div className="mt-2 space-y-1">
+                        <p className="text-xs text-gray-600">
+                          <span className="font-medium">
+                            How to get your Chat ID:
+                          </span>
+                        </p>
+                        <ol className="text-xs text-gray-600 ml-4 list-decimal space-y-1">
+                          <li>
+                            Click this link:
+                            <a
+                              href="https://t.me/sister_saira_bot?start=123"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="ml-1 text-amber-600 hover:text-amber-800 hover:underline font-medium"
+                            >
+                              https://t.me/sister_saira_bot?start
+                            </a>
+                          </li>
+                          <li>
+                            Send{" "}
+                            <code className="bg-gray-100 px-1 rounded border border-gray-200">
+                              /start
+                            </code>{" "}
+                            command to the bot
+                          </li>
+                          <li>Copy the Chat ID provided by the bot</li>
+                          <li>Paste it in the field above</li>
+                        </ol>
+                        <p className="text-xs text-gray-500 mt-2">
+                          You'll receive timetable notifications and updates
+                          directly on Telegram
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 pt-2">
+                      <button
+                        onClick={handleUpdateTelegram}
+                        disabled={isSaving}
+                        className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-lg font-medium hover:from-emerald-700 hover:to-emerald-800 transition-all duration-300 flex items-center gap-2 shadow-sm hover:shadow-md"
+                      >
+                        {isSaving ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="w-4 h-4" />
+                            Update Chat ID
+                          </>
+                        )}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setIsEditingTelegram(false);
+                          setTelegramForm({
+                            chatId: faculty.telegram_chat_id || "",
+                          });
+                        }}
+                        className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors shadow-sm hover:shadow"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Password Change Form */}
+              {isEditingPassword && (
+                <div className="mb-6 p-4 bg-gradient-to-r from-amber-50 to-amber-100 rounded-lg border border-amber-200 print:hidden">
+                  <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <Lock className="w-5 h-5 text-amber-600" />
+                    Change Password
+                  </h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Current Password
+                      </label>
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        value={passwordForm.currentPassword}
+                        onChange={(e) =>
+                          setPasswordForm((prev) => ({
+                            ...prev,
+                            currentPassword: e.target.value,
+                          }))
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                        placeholder="Enter current password"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        New Password
+                      </label>
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        value={passwordForm.newPassword}
+                        onChange={(e) =>
+                          setPasswordForm((prev) => ({
+                            ...prev,
+                            newPassword: e.target.value,
+                          }))
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                        placeholder="Enter new password (min 6 characters)"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Confirm New Password
+                      </label>
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        value={passwordForm.confirmPassword}
+                        onChange={(e) =>
+                          setPasswordForm((prev) => ({
+                            ...prev,
+                            confirmPassword: e.target.value,
+                          }))
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                        placeholder="Confirm new password"
+                      />
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800"
+                      >
+                        {showPassword ? (
+                          <EyeOff className="w-4 h-4" />
+                        ) : (
+                          <Eye className="w-4 h-4" />
+                        )}
+                        {showPassword ? "Hide" : "Show"} passwords
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-3 pt-2">
+                      <button
+                        onClick={handleChangePassword}
+                        disabled={isSaving}
+                        className="px-4 py-2 bg-gradient-to-r from-amber-600 to-amber-700 text-white rounded-lg font-medium hover:from-amber-700 hover:to-amber-800 transition-all duration-300 shadow-sm hover:shadow-md flex items-center gap-2"
+                      >
+                        {isSaving ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="w-4 h-4" />
+                            Change Password
+                          </>
+                        )}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setIsEditingPassword(false);
+                          setPasswordForm({
+                            currentPassword: "",
+                            newPassword: "",
+                            confirmPassword: "",
+                          });
+                        }}
+                        className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors shadow-sm hover:shadow"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Statistics Sidebar */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 print:hidden">
+                <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl p-4 border border-amber-200 relative overflow-hidden group hover:shadow-md transition-shadow duration-300">
+                  <div className="absolute -right-6 -top-6 w-24 h-24 bg-gradient-to-br from-amber-100 to-transparent rounded-full opacity-60 group-hover:opacity-80 transition-opacity"></div>
+                  <div className="relative">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm text-amber-800">Total Lectures</p>
+                      <BookOpen className="w-5 h-5 text-amber-600" />
+                    </div>
+                    <p className="text-2xl font-bold text-amber-900">
+                      {stats.totalLectures}
+                    </p>
+                    <p className="text-xs text-amber-700 mt-1">
+                      {stats.totalLectures} teaching hours per week
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-4 border border-emerald-200 relative overflow-hidden group hover:shadow-md transition-shadow duration-300">
+                  <div className="absolute -right-6 -top-6 w-24 h-24 bg-gradient-to-br from-emerald-100 to-transparent rounded-full opacity-60 group-hover:opacity-80 transition-opacity"></div>
+                  <div className="relative">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm text-emerald-800">Teaching Days</p>
+                      <CalendarDays className="w-5 h-5 text-emerald-600" />
+                    </div>
+                    <p className="text-2xl font-bold text-emerald-900">
+                      {stats.daysPerWeek}/6
+                    </p>
+                    <p className="text-xs text-emerald-700 mt-1">
+                      {stats.daysPerWeek === 6
+                        ? "Full week"
+                        : `${6 - stats.daysPerWeek} free days`}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-gradient-to-br from-rose-50 to-rose-100 rounded-xl p-4 border border-rose-200 relative overflow-hidden group hover:shadow-md transition-shadow duration-300">
+                  <div className="absolute -right-6 -top-6 w-24 h-24 bg-gradient-to-br from-rose-100 to-transparent rounded-full opacity-60 group-hover:opacity-80 transition-opacity"></div>
+                  <div className="relative">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm text-rose-800">Branches Teaching</p>
+                      <GraduationCap className="w-5 h-5 text-rose-600" />
+                    </div>
+                    <p className="text-2xl font-bold text-rose-900">
+                      {stats.classesAssigned.size}
+                    </p>
+                    <p className="text-xs text-rose-700 mt-1">
+                      {stats.subjectsAssigned.size} subjects/semesters
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Header */}
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <div className="flex items-center gap-3 mb-3">
-                <div className="p-2.5 bg-white rounded-xl shadow-sm border border-gray-100 relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-amber-100 to-transparent opacity-60"></div>
-                  <div className="relative">
-                    <User className="w-6 h-6 text-amber-600" />
+          {/* Timetable Section - Using Reusable Component */}
+          <div className="mt-8 print:mt-0">
+            <div className="flex items-center justify-between mb-6 print:hidden">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 mb-2">
+                  Weekly Timetable
+                </h2>
+                <p className="text-gray-600">
+                  Academic Year: {new Date().getFullYear()}-
+                  {new Date().getFullYear() + 1}
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={printTimetable}
+                  className="px-3 py-1.5 bg-gradient-to-r from-amber-100 to-amber-50 text-amber-700 rounded-lg text-sm font-medium flex items-center gap-2 hover:from-amber-200 hover:to-amber-100 transition-all duration-300 shadow-sm hover:shadow border border-amber-200"
+                >
+                  <Printer className="w-4 h-4" />
+                  Print
+                </button>
+                <button
+                  onClick={exportTimetable}
+                  className="px-3 py-1.5 bg-gradient-to-r from-amber-600 to-amber-700 text-white rounded-lg text-sm font-medium flex items-center gap-2 hover:from-amber-700 hover:to-amber-800 transition-all duration-300 shadow-sm hover:shadow-md"
+                >
+                  <Download className="w-4 h-4" />
+                  Export
+                </button>
+              </div>
+            </div>
+
+            <TimetableTable
+              timetable={faculty.timetable || {}}
+              showEmptySlots={showEmptySlots}
+              facultyName={faculty.name}
+              onToggleEmptySlots={() => setShowEmptySlots(!showEmptySlots)}
+              printMode={false}
+            />
+          </div>
+        </div>
+
+        {/* Quick Actions (Non-Print) */}
+        <div className="print:hidden">
+          <div className="bg-gradient-to-r from-amber-50 to-rose-50 rounded-2xl p-6 border-2 border-amber-200 mb-8 relative overflow-hidden">
+            <div className="absolute top-4 right-4">
+              <PenTool className="w-8 h-8 text-amber-400/40" />
+            </div>
+            <h3 className="font-semibold text-amber-900 mb-4 flex items-center gap-2">
+              <div className="p-2 bg-gradient-to-br from-amber-100 to-amber-200 rounded-lg">
+                <BarChart3 className="w-5 h-5 text-amber-700" />
+              </div>
+              Quick Actions
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <button
+                onClick={() => setIsEditingTelegram(true)}
+                className="bg-white border border-emerald-200 rounded-lg p-4 text-left hover:bg-emerald-50 transition-colors shadow-sm hover:shadow-md group"
+              >
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 bg-gradient-to-br from-emerald-100 to-emerald-200 rounded-lg border border-emerald-200">
+                    <MessageSquare className="w-5 h-5 text-emerald-600" />
                   </div>
+                  <h4 className="font-medium text-gray-900">Update Telegram</h4>
                 </div>
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900">
-                    Academic Profile
-                  </h1>
-                  <p className="text-gray-600 mt-1">
-                    Manage your teaching schedule, notifications, and account
-                    settings
+                <p className="text-sm text-gray-600">
+                  Set your Telegram Chat ID for notifications
+                </p>
+              </button>
+
+              <button
+                onClick={() => setIsEditingPassword(true)}
+                className="bg-white border border-amber-200 rounded-lg p-4 text-left hover:bg-amber-50 transition-colors shadow-sm hover:shadow-md group"
+              >
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 bg-gradient-to-br from-amber-100 to-amber-200 rounded-lg border border-amber-200">
+                    <Lock className="w-5 h-5 text-amber-600" />
+                  </div>
+                  <h4 className="font-medium text-gray-900">Change Password</h4>
+                </div>
+                <p className="text-sm text-gray-600">
+                  Update your account password
+                </p>
+              </button>
+
+              <button
+                onClick={exportTimetable}
+                className="bg-white border border-amber-200 rounded-lg p-4 text-left hover:bg-amber-50 transition-colors shadow-sm hover:shadow-md group"
+              >
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 bg-gradient-to-br from-amber-100 to-amber-200 rounded-lg border border-amber-200">
+                    <Download className="w-5 h-5 text-amber-600" />
+                  </div>
+                  <h4 className="font-medium text-gray-900">
+                    Export Timetable
+                  </h4>
+                </div>
+                <p className="text-sm text-gray-600">
+                  Download your timetable as a text file
+                </p>
+              </button>
+            </div>
+          </div>
+
+          {/* Guide Section */}
+          <div className="bg-gradient-to-r from-amber-50 to-rose-50 rounded-2xl p-8 border-2 border-amber-200 relative overflow-hidden print:hidden">
+            <div className="absolute top-4 right-4">
+              <Bookmark className="w-8 h-8 text-amber-400/40" />
+            </div>
+            <div className="relative">
+              <h3 className="font-bold text-amber-900 mb-6 flex items-center gap-3 text-lg">
+                <div className="p-2 bg-gradient-to-br from-amber-100 to-amber-200 rounded-lg">
+                  <Shield className="w-5 h-5 text-amber-700" />
+                </div>
+                Profile Management Guide
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center border border-amber-200">
+                      <span className="text-xs font-bold text-amber-700">
+                        1
+                      </span>
+                    </div>
+                    <h4 className="font-semibold text-amber-800">
+                      Telegram Setup
+                    </h4>
+                  </div>
+                  <p className="text-amber-700 text-sm leading-relaxed">
+                    Set up your Telegram Chat ID to receive real-time
+                    notifications about timetable changes and important updates
+                    directly on your phone.
+                  </p>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-rose-100 to-rose-200 flex items-center justify-center border border-rose-200">
+                      <span className="text-xs font-bold text-rose-700">2</span>
+                    </div>
+                    <h4 className="font-semibold text-rose-800">
+                      Password Security
+                    </h4>
+                  </div>
+                  <p className="text-rose-700 text-sm leading-relaxed">
+                    Regularly update your password with a strong combination of
+                    letters, numbers, and symbols to keep your account secure.
+                  </p>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-100 to-emerald-200 flex items-center justify-center border border-emerald-200">
+                      <span className="text-xs font-bold text-emerald-700">
+                        3
+                      </span>
+                    </div>
+                    <h4 className="font-semibold text-emerald-800">
+                      Export & Print
+                    </h4>
+                  </div>
+                  <p className="text-emerald-700 text-sm leading-relaxed">
+                    Export your timetable as a text file or print it directly
+                    from the browser for offline reference or sharing with
+                    colleagues.
                   </p>
                 </div>
               </div>
             </div>
           </div>
-
-          {/* Main Content */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left Column - Profile Info */}
-            <div className="lg:col-span-1 space-y-6">
-              {/* Profile Card */}
-              <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
-                <div className="flex flex-col items-center mb-6">
-                  <div className="w-24 h-24 bg-gradient-to-br from-amber-500 to-amber-600 rounded-full flex items-center justify-center mb-4 relative">
-                    <span className="text-3xl font-bold text-white">
-                      {faculty.name.charAt(0)}
-                    </span>
-                    <div className="absolute -bottom-2 right-2 p-1.5 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full border-2 border-white">
-                      <Shield className="w-4 h-4 text-white" />
-                    </div>
-                  </div>
-                  <h2 className="text-xl font-bold text-gray-900">
-                    {faculty.name}
-                  </h2>
-                  <div className="flex items-center gap-2 mt-2">
-                    <div
-                      className={`px-3 py-1 rounded-full text-sm font-medium ${
-                        faculty.isAdmin
-                          ? "bg-gradient-to-r from-purple-100 to-purple-50 text-purple-700 border border-purple-200"
-                          : "bg-gradient-to-r from-blue-100 to-blue-50 text-blue-700 border border-blue-200"
-                      }`}
-                    >
-                      {faculty.isAdmin ? "Administrator" : "Faculty Member"}
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      ID: {faculty._id?.substring(0, 8) || "N/A"}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Contact Info */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-amber-50 to-amber-100/30 rounded-lg border border-amber-200/50">
-                    <div className="p-2 bg-gradient-to-br from-amber-100 to-amber-200 rounded-lg">
-                      <Mail className="w-4 h-4 text-amber-700" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Email</p>
-                      <p className="font-medium text-gray-900">
-                        {faculty.email || "Not set"}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div
-                    className={`flex items-center gap-3 p-3 rounded-lg border ${
-                      faculty.telegram_chat_id
-                        ? "bg-gradient-to-r from-emerald-50 to-emerald-100/30 border-emerald-200/50"
-                        : "bg-gradient-to-r from-rose-50 to-rose-100/30 border-rose-200/50"
-                    }`}
-                  >
-                    <div
-                      className={`p-2 rounded-lg ${
-                        faculty.telegram_chat_id
-                          ? "bg-gradient-to-br from-emerald-100 to-emerald-200"
-                          : "bg-gradient-to-br from-rose-100 to-rose-200"
-                      }`}
-                    >
-                      <MessageSquare
-                        className={`w-4 h-4 ${
-                          faculty.telegram_chat_id
-                            ? "text-emerald-700"
-                            : "text-rose-700"
-                        }`}
-                      />
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Telegram</p>
-                      <p className="font-medium text-gray-900">
-                        {faculty.telegram_chat_id || "Not configured"}
-                      </p>
-                      {!faculty.telegram_chat_id && (
-                        <p className="text-xs text-rose-600 mt-1">
-                          Required for notifications
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-50 to-blue-100/30 rounded-lg border border-blue-200/50">
-                    <div className="p-2 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg">
-                      <CalendarDays className="w-4 h-4 text-blue-700" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Member Since</p>
-                      <p className="font-medium text-gray-900">
-                        {new Date(faculty.createdAt).toLocaleDateString(
-                          "en-US",
-                          {
-                            month: "long",
-                            year: "numeric",
-                          }
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Quick Actions */}
-                <div className="mt-6 pt-6 border-t border-gray-100">
-                  <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <Key className="w-4 h-4 text-amber-600" />
-                    Quick Actions
-                  </h3>
-                  <div className="space-y-2">
-                    <button
-                      onClick={() => setIsEditingTelegram(true)}
-                      className="flex items-center justify-between w-full p-3 text-left hover:bg-gradient-to-r from-emerald-50 to-emerald-100/50 rounded-lg border border-emerald-200 hover:border-emerald-300 transition-all duration-300 group"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-gradient-to-br from-emerald-100 to-emerald-200 rounded-lg group-hover:scale-105 transition-transform">
-                          <Bell className="w-4 h-4 text-emerald-700" />
-                        </div>
-                        <span className="font-medium text-gray-900">
-                          Setup Notifications
-                        </span>
-                      </div>
-                      <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-emerald-600 group-hover:translate-x-1 transition-all" />
-                    </button>
-
-                    <button
-                      onClick={() => setIsEditingPassword(true)}
-                      className="flex items-center justify-between w-full p-3 text-left hover:bg-gradient-to-r from-blue-50 to-blue-100/50 rounded-lg border border-blue-200 hover:border-blue-300 transition-all duration-300 group"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg group-hover:scale-105 transition-transform">
-                          <Lock className="w-4 h-4 text-blue-700" />
-                        </div>
-                        <span className="font-medium text-gray-900">
-                          Change Password
-                        </span>
-                      </div>
-                      <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
-                    </button>
-
-                    <button
-                      onClick={handleLogout}
-                      className="flex items-center justify-between w-full p-3 text-left hover:bg-gradient-to-r from-rose-50 to-rose-100/50 rounded-lg border border-rose-200 hover:border-rose-300 transition-all duration-300 group"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-gradient-to-br from-rose-100 to-rose-200 rounded-lg group-hover:scale-105 transition-transform">
-                          <LogOut className="w-4 h-4 text-rose-700" />
-                        </div>
-                        <span className="font-medium text-gray-900">
-                          Logout Account
-                        </span>
-                      </div>
-                      <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-rose-600 group-hover:translate-x-1 transition-all" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Teaching Stats */}
-              <div className="bg-gradient-to-br from-amber-50 to-amber-100/30 rounded-2xl p-6 border border-amber-200 shadow-sm">
-                <h3 className="font-semibold text-amber-900 mb-6 flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5" />
-                  Teaching Analytics
-                </h3>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-3 bg-white/50 rounded-lg border border-amber-200/50">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-gradient-to-br from-amber-100 to-amber-200 rounded-lg">
-                        <BookOpen className="w-4 h-4 text-amber-700" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600">Total Lectures</p>
-                        <p className="text-lg font-bold text-gray-900">
-                          {stats.totalLectures}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-xs text-amber-700 bg-amber-100 px-2 py-1 rounded-full">
-                      per week
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between p-3 bg-white/50 rounded-lg border border-amber-200/50">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-gradient-to-br from-emerald-100 to-emerald-200 rounded-lg">
-                        <Calendar className="w-4 h-4 text-emerald-700" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600">Teaching Days</p>
-                        <p className="text-lg font-bold text-gray-900">
-                          {stats.daysPerWeek}/6
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-xs text-emerald-700 bg-emerald-100 px-2 py-1 rounded-full">
-                      {stats.daysPerWeek === 6
-                        ? "Full week"
-                        : `${6 - stats.daysPerWeek} free days`}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between p-3 bg-white/50 rounded-lg border border-amber-200/50">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg">
-                        <GraduationCap className="w-4 h-4 text-blue-700" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600">Branches</p>
-                        <p className="text-lg font-bold text-gray-900">
-                          {stats.classesAssigned.size}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-xs text-blue-700 bg-blue-100 px-2 py-1 rounded-full">
-                      {stats.subjectsAssigned.size} subjects
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column - Timetable and Forms */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Timetable Card */}
-              <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h2 className="text-xl font-bold text-gray-900 mb-2">
-                      Weekly Teaching Schedule
-                    </h2>
-                    <p className="text-gray-600">
-                      Academic Year: {new Date().getFullYear()}-
-                      {new Date().getFullYear() + 1}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => fetchFacultyData(false)}
-                      disabled={isRefreshing}
-                      className="p-2 hover:bg-gradient-to-r from-amber-50 to-amber-100/50 rounded-lg border border-amber-200 hover:border-amber-300 transition-all duration-300"
-                      title="Refresh"
-                    >
-                      <RefreshCw
-                        className={`w-5 h-5 text-amber-600 ${
-                          isRefreshing ? "animate-spin" : ""
-                        }`}
-                      />
-                    </button>
-                    <button
-                      onClick={printTimetable}
-                      className="px-3 py-1.5 bg-gradient-to-r from-gray-100 to-gray-50 text-gray-700 rounded-lg text-sm font-medium flex items-center gap-2 hover:from-gray-200 hover:to-gray-100 transition-all duration-300 border border-gray-200"
-                    >
-                      <Printer className="w-4 h-4" />
-                      Print
-                    </button>
-                    <button
-                      onClick={exportTimetable}
-                      className="px-3 py-1.5 bg-gradient-to-r from-amber-600 to-amber-700 text-white rounded-lg text-sm font-medium flex items-center gap-2 hover:from-amber-700 hover:to-amber-800 transition-all duration-300 shadow-sm hover:shadow-md"
-                    >
-                      <Download className="w-4 h-4" />
-                      Export
-                    </button>
-                  </div>
-                </div>
-
-                <TimetableTable
-                  timetable={faculty.timetable || {}}
-                  showEmptySlots={showEmptySlots}
-                  facultyName={faculty.name}
-                  onToggleEmptySlots={() => setShowEmptySlots(!showEmptySlots)}
-                  printMode={false}
-                />
-              </div>
-
-              {/* Forms Section */}
-              <div className="space-y-6">
-                {/* Telegram Form */}
-                {isEditingTelegram && (
-                  <div className="bg-gradient-to-r from-emerald-50 to-emerald-100/30 rounded-2xl p-6 border border-emerald-200 shadow-sm">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                        <MessageSquare className="w-5 h-5 text-emerald-600" />
-                        Telegram Notification Setup
-                      </h3>
-                      <button
-                        onClick={() => setIsEditingTelegram(false)}
-                        className="p-1 hover:bg-white/50 rounded-lg transition-colors"
-                      >
-                        <X className="w-5 h-5 text-gray-400" />
-                      </button>
-                    </div>
-
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Telegram Chat ID
-                          <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gradient-to-r from-emerald-100 to-emerald-200 text-emerald-800">
-                            Required for notifications
-                          </span>
-                        </label>
-                        <input
-                          type="text"
-                          value={telegramForm.chatId}
-                          onChange={(e) =>
-                            setTelegramForm((prev) => ({
-                              ...prev,
-                              chatId: e.target.value,
-                            }))
-                          }
-                          className="w-full px-4 py-2.5 bg-white border border-gray-300 text-gray-900 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all shadow-sm"
-                          placeholder="Enter your Telegram Chat ID (e.g., 123456789)"
-                        />
-                        <div className="mt-3 space-y-2">
-                          <p className="text-sm font-medium text-gray-700">
-                            How to get your Chat ID:
-                          </p>
-                          <ol className="text-sm text-gray-600 ml-4 list-decimal space-y-1">
-                            <li>
-                              Click this link:
-                              <a
-                                href="https://t.me/sister_saira_bot?start=123"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="ml-1 text-emerald-600 hover:text-emerald-800 hover:underline font-medium"
-                              >
-                                https://t.me/sister_saira_bot?start
-                              </a>
-                            </li>
-                            <li>
-                              Send{" "}
-                              <code className="bg-white px-2 py-0.5 rounded border border-emerald-200 text-emerald-700">
-                                /start
-                              </code>{" "}
-                              command to the bot
-                            </li>
-                            <li>Copy the Chat ID provided by the bot</li>
-                            <li>Paste it in the field above</li>
-                          </ol>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3 pt-4 border-t border-emerald-200/50">
-                        <button
-                          onClick={handleUpdateTelegram}
-                          disabled={isSaving}
-                          className="px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-lg font-medium hover:from-emerald-700 hover:to-emerald-800 transition-all duration-300 shadow-sm hover:shadow-md flex items-center gap-2 group"
-                        >
-                          {isSaving ? (
-                            <>
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                              Saving...
-                            </>
-                          ) : (
-                            <>
-                              <Save className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                              Update Chat ID
-                            </>
-                          )}
-                        </button>
-                        <button
-                          onClick={() => {
-                            setIsEditingTelegram(false);
-                            setTelegramForm({
-                              chatId: faculty.telegram_chat_id || "",
-                            });
-                          }}
-                          className="px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100/50 transition-all duration-300"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Password Form */}
-                {isEditingPassword && (
-                  <div className="bg-gradient-to-r from-blue-50 to-blue-100/30 rounded-2xl p-6 border border-blue-200 shadow-sm">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                        <Lock className="w-5 h-5 text-blue-600" />
-                        Change Password
-                      </h3>
-                      <button
-                        onClick={() => setIsEditingPassword(false)}
-                        className="p-1 hover:bg-white/50 rounded-lg transition-colors"
-                      >
-                        <X className="w-5 h-5 text-gray-400" />
-                      </button>
-                    </div>
-
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Current Password
-                        </label>
-                        <div className="relative">
-                          <input
-                            type={showPassword ? "text" : "password"}
-                            value={passwordForm.currentPassword}
-                            onChange={(e) =>
-                              setPasswordForm((prev) => ({
-                                ...prev,
-                                currentPassword: e.target.value,
-                              }))
-                            }
-                            className="w-full px-4 py-2.5 bg-white border border-gray-300 text-gray-900 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-sm pr-10"
-                            placeholder="Enter current password"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-blue-600"
-                          >
-                            {showPassword ? (
-                              <EyeOff className="w-5 h-5" />
-                            ) : (
-                              <Eye className="w-5 h-5" />
-                            )}
-                          </button>
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          New Password
-                        </label>
-                        <div className="relative">
-                          <input
-                            type={showPassword ? "text" : "password"}
-                            value={passwordForm.newPassword}
-                            onChange={(e) =>
-                              setPasswordForm((prev) => ({
-                                ...prev,
-                                newPassword: e.target.value,
-                              }))
-                            }
-                            className="w-full px-4 py-2.5 bg-white border border-gray-300 text-gray-900 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-sm pr-10"
-                            placeholder="Enter new password (min 6 characters)"
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Confirm New Password
-                        </label>
-                        <div className="relative">
-                          <input
-                            type={showPassword ? "text" : "password"}
-                            value={passwordForm.confirmPassword}
-                            onChange={(e) =>
-                              setPasswordForm((prev) => ({
-                                ...prev,
-                                confirmPassword: e.target.value,
-                              }))
-                            }
-                            className="w-full px-4 py-2.5 bg-white border border-gray-300 text-gray-900 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-sm pr-10"
-                            placeholder="Confirm new password"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between pt-4 border-t border-blue-200/50">
-                        <button
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 transition-colors"
-                        >
-                          {showPassword ? (
-                            <EyeOff className="w-4 h-4" />
-                          ) : (
-                            <Eye className="w-4 h-4" />
-                          )}
-                          {showPassword ? "Hide" : "Show"} passwords
-                        </button>
-                        <div className="flex items-center gap-3">
-                          <button
-                            onClick={handleChangePassword}
-                            disabled={isSaving}
-                            className="px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-medium hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-sm hover:shadow-md flex items-center gap-2 group"
-                          >
-                            {isSaving ? (
-                              <>
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                                Updating...
-                              </>
-                            ) : (
-                              <>
-                                <Save className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                                Change Password
-                              </>
-                            )}
-                          </button>
-                          <button
-                            onClick={() => {
-                              setIsEditingPassword(false);
-                              setPasswordForm({
-                                currentPassword: "",
-                                newPassword: "",
-                                confirmPassword: "",
-                              });
-                            }}
-                            className="px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100/50 transition-all duration-300"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Print Styles */}
-          <style jsx global>{`
-            @media print {
-              @page {
-                margin: 0.5in;
-              }
-
-              body {
-                background: white !important;
-                font-size: 12px !important;
-              }
-
-              .print\\:hidden {
-                display: none !important;
-              }
-
-              .print\\:max-w-none {
-                max-width: none !important;
-                margin: 0 !important;
-              }
-
-              .print\\:rounded-none {
-                border-radius: 0 !important;
-              }
-
-              .print\\:border-0 {
-                border: 0 !important;
-              }
-
-              .print\\:shadow-none {
-                box-shadow: none !important;
-              }
-
-              table {
-                page-break-inside: auto !important;
-              }
-
-              tr {
-                page-break-inside: avoid !important;
-                page-break-after: auto !important;
-              }
-
-              td,
-              th {
-                border: 1px solid #d1d5db !important;
-              }
-            }
-          `}</style>
         </div>
       </div>
+
+      {/* Print Styles */}
+      <style jsx global>{`
+        @media print {
+          @page {
+            margin: 0.5in;
+          }
+
+          body {
+            background: white !important;
+            font-size: 12px !important;
+          }
+
+          .print\\:hidden {
+            display: none !important;
+          }
+
+          .print\\:max-w-none {
+            max-width: none !important;
+            margin: 0 !important;
+          }
+
+          .print\\:rounded-none {
+            border-radius: 0 !important;
+          }
+
+          .print\\:border-0 {
+            border: 0 !important;
+          }
+
+          .print\\:shadow-none {
+            box-shadow: none !important;
+          }
+
+          table {
+            page-break-inside: auto !important;
+          }
+
+          tr {
+            page-break-inside: avoid !important;
+            page-break-after: auto !important;
+          }
+
+          td,
+          th {
+            border: 1px solid #d1d5db !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }
