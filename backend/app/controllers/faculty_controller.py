@@ -6,7 +6,7 @@ import re
 import secrets
 import string
 
-faculty_bp = Blueprint('faculty', __name__)
+
 
 def generate_strong_password(length=12):
     """
@@ -35,7 +35,7 @@ def generate_strong_password(length=12):
     
     return ''.join(password)
 
-@faculty_bp.route('/api/faculties', methods=['GET'])
+# GET: /api/faculties
 def get_all_faculties():
     """
     Fetch all faculties from the faculty_timetable collection
@@ -82,7 +82,7 @@ def get_all_faculties():
         }), 500
 
 
-@faculty_bp.route('/api/faculties', methods=['POST'])
+# POST: /api/faculties
 def create_faculty():
     """
     Create a new faculty member with auto-generated credentials
@@ -189,7 +189,7 @@ def create_faculty():
         }), 500
 
 
-@faculty_bp.route('/api/faculties/<faculty_id>', methods=['GET'])
+# GET: /api/faculties/<faculty_id>
 def get_faculty(faculty_id):
     """
     Get a specific faculty by ID with their complete timetable
@@ -222,8 +222,7 @@ def get_faculty(faculty_id):
             'error': 'Failed to fetch faculty'
         }), 500
 
-
-@faculty_bp.route('/api/faculties/<faculty_id>', methods=['PUT'])
+# PUT: /api/faculties/<faculty_id>
 def update_faculty(faculty_id):
     """
     Update a faculty member's information
@@ -292,7 +291,7 @@ def update_faculty(faculty_id):
         }), 500
 
 
-@faculty_bp.route('/api/faculties/<faculty_id>', methods=['DELETE'])
+# DELETE: /api/faculties/<faculty_id>
 def delete_faculty(faculty_id):
     """
     Delete a faculty member and remove them from all class allowed_faculty arrays
@@ -359,7 +358,7 @@ def delete_faculty(faculty_id):
             'error': 'Failed to delete faculty'
         }), 500
     
-@faculty_bp.route('/api/faculties/<faculty_id>/admin', methods=['PATCH'])
+# PATCH: /api/faculties/<faculty_id>/admin
 def toggle_faculty_admin(faculty_id):
     """
     Toggle the isAdmin status of a faculty member

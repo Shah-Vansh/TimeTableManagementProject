@@ -77,6 +77,9 @@ export default function Faculties() {
     { id: "available", label: "Available", count: 0 },
   ]);
 
+  //token declared
+  const token = localStorage.getItem("token");
+
   // Alert state
   const [alert, setAlert] = useState({
     show: false,
@@ -185,7 +188,12 @@ export default function Faculties() {
   const fetchFaculties = async () => {
     setLoading(true);
     try {
-      const response = await api.get("/api/faculties");
+      const response = await api.get("/api/faculties",{
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+      });
       if (response.data.success) {
         const facultiesList = response.data.faculties || [];
         setFaculties(facultiesList);
@@ -205,7 +213,12 @@ export default function Faculties() {
   ======================= */
   const fetchAllFacultiesForModal = async () => {
     try {
-      const response = await api.get("/api/faculties");
+      const response = await api.get("/api/faculties",{
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+      });
       if (response.data.success) {
         const facultiesList = response.data.faculties || [];
         setAllAvailableFaculties(facultiesList);
@@ -253,6 +266,11 @@ export default function Faculties() {
       const response = await api.post("/api/faculties", {
         id: newFacultyId.trim(),
         name: newFacultyName.trim(),
+        },        
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+        },  
       });
 
       if (response.data.success) {
@@ -339,7 +357,7 @@ Generated on: ${new Date().toLocaleString()}
 
   const handleAdminToggle = async (faculty_id, currentStatus, facultyName) => {
     try {
-      const token = localStorage.getItem("token");
+      
       const response = await api.patch(
         `/api/faculties/${faculty_id}/toggle-admin`,
         {},
@@ -424,7 +442,7 @@ Generated on: ${new Date().toLocaleString()}
     if (!selectedFaculty) return;
 
     try {
-      const token = localStorage.getItem("token");
+      
       const response = await api.delete(
         `/api/faculties/${selectedFaculty.id}`,
         {

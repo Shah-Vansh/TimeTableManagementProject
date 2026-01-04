@@ -71,7 +71,12 @@ export default function FacultyTimetable() {
     else setIsRefreshing(true);
     setError("");
     try {
-      const response = await api.get(`/api/faculties/${facultyId}`);
+      const response = await api.get(`/api/faculties/${facultyId}`,{
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+      });
       if (response.data.success) {
         setFaculty(response.data.faculty);
       } else {
@@ -86,6 +91,9 @@ export default function FacultyTimetable() {
     }
   };
 
+  // token declared
+  const token = localStorage.getItem("token");
+  
   /* =======================
      🔹 INITIAL LOAD
   ======================= */
@@ -144,6 +152,7 @@ export default function FacultyTimetable() {
     };
   };
 
+  
   /* =======================
      🔹 GET ALL ASSIGNMENTS
   ======================= */

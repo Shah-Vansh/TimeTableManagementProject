@@ -301,7 +301,12 @@ export default function TimeTable() {
   const fetchAllFaculties = async () => {
     setIsLoadingAllFaculties(true);
     try {
-      const response = await api.get("/api/faculties");
+      const response = await api.get("/api/faculties",{
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+      });
       if (response.data.success) {
         const faculties = response.data.faculties || [];
 

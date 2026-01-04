@@ -11,7 +11,7 @@ from app.controllers.fetch_allowed_faculty import (
     update_allowed_faculty, 
     delete_allowed_faculty
 )
-from app.controllers.fetch_all_faculties import get_all_faculties, create_faculty, get_faculty, delete_faculty, update_faculty, toggle_faculty_admin
+#from app.controllers.fetch_all_faculties import get_all_faculties, create_faculty, get_faculty, delete_faculty, update_faculty, toggle_faculty_admin
 
 from app.middlewares.auth_middleware import token_required
 
@@ -34,9 +34,9 @@ main_bp.route("/api/fetch-all-changes", methods=["GET"])(fetch_all_changes)
 main_bp.route("/api/delete-temp-change", methods=["DELETE"])(delete_temp_change)
 main_bp.route("/api/classwise-faculty", methods=["GET"])(fetch_allowed_faculty)
 
-main_bp.route("/api/faculties", methods=["GET"])(get_all_faculties)
-main_bp.route("/api/faculties", methods=["POST"])(create_faculty)
-main_bp.route("/api/faculties/<faculty_id>", methods=["GET"])(get_faculty)
-main_bp.route("/api/faculties/<faculty_id>", methods=["DELETE"])(token_required(delete_faculty))
-main_bp.route("/api/faculties/<faculty_id>", methods=["PUT"])(update_faculty)
-main_bp.route('/api/faculties/<faculty_id>/toggle-admin', methods=['PATCH'])(token_required(toggle_faculty_admin))
+# main_bp.route("/api/faculties", methods=["GET"])(get_all_faculties)
+# main_bp.route("/api/faculties", methods=["POST"])(create_faculty)
+# main_bp.route("/api/faculties/<faculty_id>", methods=["GET"])(get_faculty)
+# main_bp.route("/api/faculties/<faculty_id>", methods=["DELETE"])(token_required(delete_faculty))
+# main_bp.route("/api/faculties/<faculty_id>", methods=["PUT"])(update_faculty)
+# main_bp.route('/api/faculties/<faculty_id>/toggle-admin', methods=['PATCH'])(token_required(toggle_faculty_admin))
