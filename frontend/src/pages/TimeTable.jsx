@@ -157,10 +157,10 @@ export default function TimeTable() {
   // Faculty color mapping for consistent styling
   const facultyColors = [
     "border-indigo-200 bg-indigo-50 text-indigo-700",
-    "border-rose-200 bg-rose-50 text-rose-700",
     "border-violet-200 bg-violet-50 text-violet-700",
     "border-violet-200 bg-violet-50 text-violet-700",
-    "border-rose-200 bg-rose-50 text-rose-700",
+    "border-violet-200 bg-violet-50 text-violet-700",
+    "border-violet-200 bg-violet-50 text-violet-700",
     "border-cyan-200 bg-cyan-50 text-cyan-700",
     "border-pink-200 bg-pink-50 text-pink-700",
     "border-indigo-200 bg-indigo-50 text-indigo-700",
@@ -1400,7 +1400,7 @@ Generated on: ${new Date().toLocaleString()}
      🔹 RENDER
   ======================= */
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-rose-50 p-4 md:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-violet-50 p-4 md:p-6">
       {/* Alert Component */}
       {alert && (
         <Alert
@@ -1458,7 +1458,7 @@ Generated on: ${new Date().toLocaleString()}
                 .
               </p>
 
-              <div className="bg-gradient-to-r from-red-50 to-rose-50 border border-red-200 rounded-lg p-4 mb-6">
+              <div className="bg-gradient-to-r from-red-50 to-violet-50 border border-red-200 rounded-lg p-4 mb-6">
                 <div className="flex items-start gap-3">
                   <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
                   <div>
@@ -1489,7 +1489,7 @@ Generated on: ${new Date().toLocaleString()}
                   className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
                     isDeleting
                       ? "bg-red-400 text-white cursor-not-allowed"
-                      : "bg-gradient-to-r from-red-600 to-rose-600 text-white hover:from-red-700 hover:to-rose-700"
+                      : "bg-gradient-to-r from-red-600 to-violet-600 text-white hover:from-red-700 hover:to-violet-700"
                   }`}
                 >
                   {isDeleting ? (
@@ -1573,7 +1573,7 @@ Generated on: ${new Date().toLocaleString()}
                           "username"
                         )
                       }
-                      className="px-4 py-2 bg-rose-100 text-rose-700 rounded-lg hover:bg-rose-200 transition-colors flex items-center gap-2 border border-rose-200"
+                      className="px-4 py-2 bg-violet-100 text-violet-700 rounded-lg hover:bg-violet-200 transition-colors flex items-center gap-2 border border-violet-200"
                     >
                       {copiedField === "username" ? (
                         <>
@@ -1606,7 +1606,7 @@ Generated on: ${new Date().toLocaleString()}
                           "password"
                         )
                       }
-                      className="px-4 py-2 bg-rose-100 text-rose-700 rounded-lg hover:bg-rose-200 transition-colors flex items-center gap-2 border border-rose-200"
+                      className="px-4 py-2 bg-violet-100 text-violet-700 rounded-lg hover:bg-violet-200 transition-colors flex items-center gap-2 border border-violet-200"
                     >
                       {copiedField === "password" ? (
                         <>
@@ -1708,11 +1708,11 @@ Generated on: ${new Date().toLocaleString()}
 
             {/* Create New Faculty Form */}
             {showCreateFaculty ? (
-              <div className="p-6 border-b border-indigo-100 bg-rose-50">
+              <div className="p-6 border-b border-indigo-100 bg-violet-50">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-white rounded-lg border border-rose-200">
-                      <UserPlus className="w-5 h-5 text-rose-600" />
+                    <div className="p-2 bg-white rounded-lg border border-violet-200">
+                      <UserPlus className="w-5 h-5 text-violet-600" />
                     </div>
                     <h3 className="font-bold text-gray-900">
                       Create New Tutor
@@ -1720,7 +1720,7 @@ Generated on: ${new Date().toLocaleString()}
                   </div>
                   <button
                     onClick={resetNewFacultyForm}
-                    className="p-1 hover:bg-rose-100 rounded-lg transition-colors"
+                    className="p-1 hover:bg-violet-100 rounded-lg transition-colors"
                   >
                     <X className="w-5 h-5 text-gray-600" />
                   </button>
@@ -2131,21 +2131,21 @@ Generated on: ${new Date().toLocaleString()}
                     </p>
 
                     {/* How to get Chat ID instructions */}
-                    <div className="mb-4 p-3 bg-rose-50 border border-rose-200 rounded-lg">
-                      <h4 className="font-bold text-rose-900 mb-2 flex items-center gap-2">
+                    <div className="mb-4 p-3 bg-violet-50 border border-violet-200 rounded-lg">
+                      <h4 className="font-bold text-violet-900 mb-2 flex items-center gap-2">
                         <Info className="w-4 h-4" />
                         How to get your Chat ID:
                       </h4>
-                      <ol className="text-sm text-rose-800 space-y-1 ml-6 list-decimal">
+                      <ol className="text-sm text-violet-800 space-y-1 ml-6 list-decimal">
                         <li>
                           Click this link:{" "}
                           <a
-                            href="https://t.me/MyTestBot?start"
+                            href="https://t.me/sister_saira_bot?start"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-rose-600 hover:text-rose-800 underline font-bold"
+                            className="text-violet-600 hover:text-violet-800 underline font-bold"
                           >
-                            https://t.me/MyTestBot?start
+                            https://t.me/sister_saira_bot?start
                           </a>
                         </li>
                         <li>Add bot to study group and make admin</li>
@@ -2374,17 +2374,17 @@ Generated on: ${new Date().toLocaleString()}
                       </p>
 
                       {/* Instructions in non-edit mode */}
-                      <div className="mb-4 p-3 bg-rose-50 border border-rose-200 rounded-lg text-left">
-                        <p className="text-sm text-rose-800 font-bold mb-1">
+                      <div className="mb-4 p-3 bg-violet-50 border border-violet-200 rounded-lg text-left">
+                        <p className="text-sm text-violet-800 font-bold mb-1">
                           How to get Chat ID:
                         </p>
-                        <ol className="text-xs text-rose-700 space-y-1 ml-4 list-decimal">
+                        <ol className="text-xs text-violet-700 space-y-1 ml-4 list-decimal">
                           <li>
                             <a
-                              href="https://t.me/MyTestBot?start"
+                              href="https://t.me/sister_saira_bot?start=123"
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-rose-600 hover:text-rose-800 underline"
+                              className="text-violet-600 hover:text-violet-800 underline"
                             >
                               Click here to open the bot
                             </a>
@@ -2438,18 +2438,18 @@ Generated on: ${new Date().toLocaleString()}
             {/* Branch */}
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                <Notebook className="w-4 h-4 text-rose-600" />
+                <Notebook className="w-4 h-4 text-violet-600" />
                 Subject
               </label>
               <div className="relative">
-                <Notebook className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-rose-500" />
+                <Notebook className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-violet-500" />
                 <select
                   value={branch}
                   onChange={(e) => {
                     setBranch(e.target.value);
                     setIsInitialLoad(false);
                   }}
-                  className="w-full pl-10 pr-4 py-3 bg-white border border-rose-200 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-rose-500 transition-all"
+                  className="w-full pl-10 pr-4 py-3 bg-white border border-violet-200 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition-all"
                 >
                   {branchOptions.map((b) => (
                     <option key={b} value={b}>
@@ -2626,8 +2626,8 @@ Generated on: ${new Date().toLocaleString()}
 
           <div className="bg-white rounded-xl p-4 border border-indigo-200 shadow-sm">
             <div className="flex items-center gap-2 mb-3">
-              <div className="p-2 bg-gradient-to-br from-rose-100 to-rose-50 rounded-lg border border-rose-200">
-                <Eye className="w-4 h-4 text-rose-600" />
+              <div className="p-2 bg-gradient-to-br from-violet-100 to-violet-50 rounded-lg border border-violet-200">
+                <Eye className="w-4 h-4 text-violet-600" />
               </div>
               <h3 className="text-sm font-bold text-gray-700">View Options</h3>
             </div>
@@ -2678,7 +2678,7 @@ Generated on: ${new Date().toLocaleString()}
                     {/* Empty Warning Badge */}
                     {isEmpty && exists && (
                       <div className="absolute -top-2 -right-2">
-                        <div className="bg-gradient-to-r from-red-500 to-rose-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1 border border-red-600 shadow-sm">
+                        <div className="bg-gradient-to-r from-red-500 to-violet-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1 border border-red-600 shadow-sm">
                           <AlertCircle className="w-3 h-3" />
                           Empty
                         </div>
@@ -2960,8 +2960,8 @@ Generated on: ${new Date().toLocaleString()}
                       }, 0)}
                     </p>
                   </div>
-                  <div className="p-3 bg-gradient-to-br from-rose-50 to-rose-100 rounded-lg border border-rose-200">
-                    <Clock className="w-6 h-6 text-rose-600" />
+                  <div className="p-3 bg-gradient-to-br from-violet-50 to-violet-100 rounded-lg border border-violet-200">
+                    <Clock className="w-6 h-6 text-violet-600" />
                   </div>
                 </div>
               </div>
@@ -2992,7 +2992,7 @@ Generated on: ${new Date().toLocaleString()}
                       }
                     </p>
                   </div>
-                  <div className="p-3 bg-gradient-to-br from-red-50 to-rose-50 rounded-lg border border-red-200">
+                  <div className="p-3 bg-gradient-to-br from-red-50 to-violet-50 rounded-lg border border-red-200">
                     <AlertCircle className="w-6 h-6 text-red-600" />
                   </div>
                 </div>
@@ -3050,7 +3050,7 @@ Generated on: ${new Date().toLocaleString()}
         )}
 
         {/* Quick Tips */}
-        <div className="bg-gradient-to-r from-indigo-50 to-rose-50 rounded-2xl p-6 border-2 border-indigo-200">
+        <div className="bg-gradient-to-r from-indigo-50 to-violet-50 rounded-2xl p-6 border-2 border-indigo-200">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2 bg-gradient-to-br from-indigo-100 to-indigo-50 rounded-lg border border-indigo-200">
               <Info className="w-5 h-5 text-indigo-600" />
