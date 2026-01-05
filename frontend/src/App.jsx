@@ -11,7 +11,7 @@ import TimeTable from "./pages/TimeTable";
 import FacultyTimetable from "./pages/FacultyTimetable";
 import Faculties from "./pages/Faculties";
 import FacultyProfile from "./pages/FacultyProfile";
-import PreviewTimetable from "./pages/PreviewTimeTable";
+import PreviewTimetable from "./pages/PreviewTimetable";
 
 function App() {
   const location = useLocation();
