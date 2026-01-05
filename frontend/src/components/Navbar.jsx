@@ -278,7 +278,7 @@ const Navbar = () => {
                           <PenTool size={18} className="text-indigo-600" />
                         </div>
                         <div>
-                          <div className="font-medium text-gray-900">{user.name}</div>
+                          <div className="font-medium text-gray-900">Profile</div>
                           <div className="text-xs text-gray-500">Profile Settings</div>
                         </div>
                       </div>
