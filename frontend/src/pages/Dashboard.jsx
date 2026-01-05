@@ -165,9 +165,14 @@ function Dashboard() {
       setBranchData(aggregateByBranch(enriched));
     } catch (err) {
       console.error("Failed to fetch timetables", err);
+      const message =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        err.message ||
+        "Something went wrong";
       showAlert(
         "Failed to fetch timetables",
-        "Please try again later",
+        message,
         "error"
       );
     }
@@ -177,6 +182,17 @@ function Dashboard() {
     fetchTimetables();
   }, []);
 
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (selectedFaculty && !event.target.closest('button')) {
+        setSelectedFaculty(null);
+      }
+    };
+  
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [selectedFaculty]);
   // Filter branch data
   const filteredBranchData = branchData.filter((b) => {
     const matchesSearch =
@@ -237,9 +253,14 @@ function Dashboard() {
       fetchTimetables();
     } catch (err) {
       console.error(err);
+      const message =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        err.message ||
+        "Something went wrong";
       showAlert(
         "Failed to delete timetables",
-        "Something went wrong while deleting timetables",
+        message,
         "error"
       );
     }

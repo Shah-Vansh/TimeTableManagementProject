@@ -111,9 +111,14 @@ export default function FacultyProfile() {
       }
     } catch (error) {
       console.error("Error fetching faculty data:", error);
+      const message =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Something went wrong";
       showAlert(
         "Failed to load profile",
-        error.response?.data?.error || "Please try again",
+        message || "Please try again",
         "error"
       );
       navigate("/dashboard");
@@ -228,9 +233,14 @@ export default function FacultyProfile() {
       }
     } catch (error) {
       console.error("Error changing password:", error);
+      const message =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Something went wrong";
       showAlert(
         "Failed to change password",
-        error.response?.data?.error || "Please check your current password",
+        message || "Please check your current password",
         "error"
       );
     } finally {
@@ -292,9 +302,14 @@ export default function FacultyProfile() {
       }
     } catch (error) {
       console.error("Error updating Telegram Chat ID:", error);
+      const message =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Something went wrong";
       showAlert(
         "Update failed",
-        error.response?.data?.error || "Please try again",
+        message || "Please try again",
         "error"
       );
     } finally {
@@ -487,7 +502,7 @@ export default function FacultyProfile() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8 print:mb-4 print:pt-6">
           <div>
-            <div className="flex items-center gap-3 mb-2">
+            <div className="flex items-center gap-3 mb-2 print:hidden">
               <div className="p-2.5 bg-white rounded-xl shadow-sm border border-gray-100 relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-amber-100 to-transparent opacity-60"></div>
                 <div className="relative">

@@ -284,6 +284,12 @@ export default function ReplaceLecture() {
       }
     } catch (error) {
       console.error("Error fetching available faculty:", error);
+      const message =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Something went wrong";
+      showAlert("Error fetching available faculty", message, "error");
 
       if (error.response) {
         const { status, data } = error.response;
@@ -370,6 +376,12 @@ export default function ReplaceLecture() {
       }
     } catch (error) {
       console.error("Error fetching rearrange options:", error);
+      const message =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Something went wrong";
+      showAlert("Error fetching rearrange options", message, "error");
 
       if (error.response) {
         const { status, data } = error.response;
@@ -478,6 +490,13 @@ export default function ReplaceLecture() {
       }
     } catch (error) {
       console.error("Error executing rearrangement:", error);
+      const message =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Something went wrong";
+      showAlert("Error executing rearrangement", message, "error");
+
 
       if (error.response) {
         const { status, data } = error.response;
@@ -563,6 +582,12 @@ export default function ReplaceLecture() {
       }
     } catch (error) {
       console.error("Error assigning faculty:", error);
+      const message =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Something went wrong";
+      showAlert("Error assigning faculty:", message, "error");
 
       if (error.response) {
         const { status, data } = error.response;
@@ -681,6 +706,12 @@ export default function ReplaceLecture() {
         `Error ${isRearrange ? "rescheduling" : "replacing"} study session:`,
         error
       );
+      const message =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Something went wrong";
+      showAlert(`Error ${isRearrange ? "rescheduling" : "replacing"} study session:`, message, "error");
 
       if (error.response) {
         const { status, data } = error.response;

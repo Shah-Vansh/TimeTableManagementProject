@@ -215,6 +215,12 @@ export default function TimeTable() {
       }
     } catch (error) {
       console.error("Error fetching Telegram Chat IDs:", error);
+      const message =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Something went wrong";
+      showAlert("Error fetching Telegram Chat IDs", message, "error");
       setTelegramChatIds([]);
     }
   };
@@ -266,9 +272,14 @@ export default function TimeTable() {
       }
     } catch (error) {
       console.error("Error updating Telegram Chat IDs:", error);
+      const message =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Something went wrong";
       showAlert(
         "Update failed",
-        error.response?.data?.error || "Please try again",
+        message || "Please try again",
         "error"
       );
     } finally {
@@ -332,9 +343,14 @@ export default function TimeTable() {
       }
     } catch (error) {
       console.error("Error fetching all faculties:", error);
+      const message =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Something went wrong";
       showAlert(
         "Failed to fetch faculties",
-        "Using sample faculty data instead",
+        message,
         "error"
       );
 
@@ -498,9 +514,14 @@ export default function TimeTable() {
       }
     } catch (error) {
       console.error("Error creating faculty:", error);
+      const message =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Something went wrong";
       showAlert(
         "Failed to create faculty",
-        error.response?.data?.message || "Please try again",
+        message || "Please try again",
         "error"
       );
     } finally {
@@ -515,7 +536,12 @@ export default function TimeTable() {
       setTimeout(() => setCopiedField(""), 2000);
     } catch (err) {
       console.error("Failed to copy:", err);
-      showAlert("Failed to copy to clipboard", "Please try again", "error");
+      const message =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        err.message ||
+        "Something went wrong";
+      showAlert("Failed to copy to clipboard",message,"error");
     }
   };
 
@@ -578,6 +604,12 @@ Generated on: ${new Date().toLocaleString()}
           };
         } catch (error) {
           console.warn(`No faculty data found for class ${className}:`, error);
+          const message =
+            error.response?.data?.message ||
+            error.response?.data?.error ||
+            error.message ||
+            "Something went wrong";
+          showAlert(`No faculty data found for class ${className}:`, message, "error");
           return {
             class: className,
             faculty: [],
@@ -638,6 +670,12 @@ Generated on: ${new Date().toLocaleString()}
       return facultyMap;
     } catch (error) {
       console.error("Error fetching allowed faculty:", error);
+      const message =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Something went wrong";
+      showAlert("Error fetching allowed faculty", message, "error");
       return {};
     }
   };
@@ -751,9 +789,14 @@ Generated on: ${new Date().toLocaleString()}
       }
     } catch (error) {
       console.error("Error fetching branch classes:", error);
+      const message =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Something went wrong";
       showAlert(
         "Failed to fetch study planner data",
-        "Please try again later",
+        message,
         "error"
       );
     } finally {
@@ -838,7 +881,12 @@ Generated on: ${new Date().toLocaleString()}
       setErrorMsg("");
     } catch (error) {
       console.error("Error fetching timetables:", error);
-      showAlert("Failed to fetch study schedules", "Please try again", "error");
+      const message =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Something went wrong";
+      showAlert("Failed to fetch study schedules", message, "error");
     } finally {
       setFetching(false);
     }
@@ -1001,9 +1049,14 @@ Generated on: ${new Date().toLocaleString()}
       }
     } catch (error) {
       console.error("Error deleting timetable:", error);
+      const message =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Something went wrong";
       showAlert(
         "Failed to delete study schedule",
-        error.response?.data?.error || "Please try again",
+        message || "Please try again",
         "error"
       );
     } finally {
@@ -1184,6 +1237,12 @@ Generated on: ${new Date().toLocaleString()}
           }
         } catch (error) {
           console.warn("Error updating Telegram Chat IDs:", error);
+          const message =
+            error.response?.data?.message ||
+            error.response?.data?.error ||
+            error.message ||
+            "Something went wrong";
+          showAlert("Error updating Telegram Chat IDs", message, "error");
           // Continue saving timetables even if Telegram update fails
         }
       }
@@ -1253,6 +1312,12 @@ Generated on: ${new Date().toLocaleString()}
       );
     } catch (error) {
       console.error("Error saving study schedules:", error);
+      const message =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Something went wrong";
+      showAlert("Error saving study schedules", message, "error");
 
       if (error.response && error.response.status === 409) {
         const data = error.response.data;

@@ -84,6 +84,12 @@ export default function FacultyTimetable() {
       }
     } catch (err) {
       console.error("Error fetching faculty timetable:", err);
+      const message =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Something went wrong";
+      showAlert("Error fetching faculty timetable", message, "error");
       setError(err.response?.data?.error || "Failed to load timetable");
     } finally {
       setLoading(false);
@@ -93,7 +99,7 @@ export default function FacultyTimetable() {
 
   // token declared
   const token = localStorage.getItem("token");
-  
+
   /* =======================
      🔹 INITIAL LOAD
   ======================= */

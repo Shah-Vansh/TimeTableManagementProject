@@ -232,6 +232,12 @@ export default function PreviewTimetable() {
           setSelectedDivisions((prev) => [...prev, division]);
         } catch (error) {
           console.warn(`No timetable found for ${division}:`, error);
+          const message =
+            error.response?.data?.message ||
+            error.response?.data?.error ||
+            error.message ||
+            "Something went wrong";
+          showAlert(`No timetable found for ${division}:`, message, "error");
           // Continue with other divisions
         }
       }
@@ -263,6 +269,12 @@ export default function PreviewTimetable() {
       }
     } catch (error) {
       console.error("Error fetching timetables:", error);
+      const message =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Something went wrong";
+      showAlert("Error fetching timetables", message, "error");
       setErrorMsg("Failed to load timetables. Please try again.");
     } finally {
       setIsLoading(false);
@@ -312,6 +324,12 @@ export default function PreviewTimetable() {
       updateOverallStatistics();
     } catch (error) {
       console.error(`Error fetching timetable for ${division}:`, error);
+      const message =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Something went wrong";
+      showAlert(`Error fetching timetable for ${division}:`, message, "error");
       throw error;
     }
   };
@@ -412,6 +430,12 @@ export default function PreviewTimetable() {
       if (!allSchedules[division]) {
         fetchSingleDivisionTimetable(division).catch(() => {
           setErrorMsg(`Failed to load timetable for ${division}`);
+          const message =
+            error.response?.data?.message ||
+            error.response?.data?.error ||
+            error.message ||
+            "Something went wrong";
+          showAlert(`Failed to load timetable for ${division}`, message, "error");
         });
       } else {
         setSelectedDivisions((prev) => [...prev, division]);

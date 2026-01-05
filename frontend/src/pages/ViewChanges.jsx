@@ -36,6 +36,8 @@ import {
 } from "lucide-react";
 import api from "../configs/api";
 import Alert from "../components/Alert";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 export default function ViewChanges() {
   const [changes, setChanges] = useState(null);
@@ -44,7 +46,7 @@ export default function ViewChanges() {
   const [success, setSuccess] = useState("");
   const [groupBy, setGroupBy] = useState("date"); // "date" or "class"
   const [dateFilter, setDateFilter] = useState("all"); // "all", "today", "yesterday", "tomorrow", "specific"
-  const [specificDate, setSpecificDate] = useState("");
+  const [specificDate, setSpecificDate] = useState(null); // Changed from string to null
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedGroup, setExpandedGroup] = useState({});
   const [allChanges, setAllChanges] = useState([]);
@@ -80,7 +82,7 @@ export default function ViewChanges() {
     setSuccess("");
 
     try {
-      const response = await api.get("/fetch-all-changes",{
+      const response = await api.get("/fetch-all-changes", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -88,11 +90,11 @@ export default function ViewChanges() {
 
       if (response.data.changes) {
         setChanges(response.data.changes);
-        
+
         // Flatten all changes into a single array
         const flattenedChanges = flattenChanges(response.data.changes);
         setAllChanges(flattenedChanges);
-        
+
         // Show success message using Alert component
         showAlert(
           "Study schedule updates loaded",
@@ -108,9 +110,14 @@ export default function ViewChanges() {
       }
     } catch (err) {
       console.error("Error fetching changes:", err);
+      const message =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        err.message ||
+        "Something went wrong";
       showAlert(
         "Failed to fetch schedule updates",
-        err.response?.data?.error || "Please try again",
+        message || "Please try again",
         "error"
       );
     } finally {
@@ -120,9 +127,9 @@ export default function ViewChanges() {
 
   const flattenChanges = (changesData) => {
     const flattened = [];
-    
+
     if (!changesData) return flattened;
-    
+
     // Days from the original structure
     const DAYS = [
       "Monday",
@@ -132,7 +139,7 @@ export default function ViewChanges() {
       "Friday",
       "Saturday",
     ];
-    
+
     const TIME_SLOTS = [
       { key: "Time Slot 1", label: "9:00 AM - 10:00 AM" },
       { key: "Time Slot 2", label: "10:00 AM - 11:00 AM" },
@@ -190,12 +197,18 @@ export default function ViewChanges() {
   };
 
   const handleDeleteChange = async (change) => {
-    if (!window.confirm("Are you sure you want to remove this schedule adjustment?")) {
+    if (
+      !window.confirm(
+        "Are you sure you want to remove this schedule adjustment?"
+      )
+    ) {
       return;
     }
 
-    setDeletingId(change._id || change.faculty + change.date + change.timeSlotKey);
-    
+    setDeletingId(
+      change._id || change.faculty + change.date + change.timeSlotKey
+    );
+
     try {
       const response = await api.delete("/delete-temp-change", {
         headers: {
@@ -207,7 +220,7 @@ export default function ViewChanges() {
           day: change.day.toLowerCase().substring(0, 3), // Convert "Monday" to "mon"
           lec_no: change.lec_no,
           assigned_to: change.assigned_to,
-        }
+        },
       });
 
       if (response.data.success) {
@@ -217,25 +230,33 @@ export default function ViewChanges() {
           "Temporary schedule change has been cleared",
           "success"
         );
-        
+
         // Remove from allChanges
-        const updatedChanges = allChanges.filter(c => 
-          !(c.faculty === change.faculty && 
-            c.date === change.date && 
-            c.timeSlotKey === change.timeSlotKey &&
-            c.assigned_to === change.assigned_to)
+        const updatedChanges = allChanges.filter(
+          (c) =>
+            !(
+              c.faculty === change.faculty &&
+              c.date === change.date &&
+              c.timeSlotKey === change.timeSlotKey &&
+              c.assigned_to === change.assigned_to
+            )
         );
-        
+
         setAllChanges(updatedChanges);
-        
+
         // Also update the original changes structure
         fetchChanges();
       }
     } catch (err) {
       console.error("Error deleting change:", err);
+      const message =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        err.message ||
+        "Something went wrong";
       showAlert(
         "Failed to remove adjustment",
-        err.response?.data?.error || "Please try again",
+        message || "Please try again",
         "error"
       );
     } finally {
@@ -245,7 +266,7 @@ export default function ViewChanges() {
 
   const filterAndGroupChanges = () => {
     const dateInfo = getDateInfo();
-    
+
     // Filter changes
     let filtered = allChanges.filter((change) => {
       // Filter by date
@@ -261,13 +282,19 @@ export default function ViewChanges() {
           case "tomorrow":
             targetDate = dateInfo.tomorrow;
             break;
+          // In filterAndGroupChanges function, update the specific date filtering:
           case "specific":
-            targetDate = specificDate;
+            if (specificDate) {
+              const targetDateStr = specificDate.toISOString().split("T")[0];
+              if (change.date !== targetDateStr) return false;
+            } else {
+              return false; // Don't show anything if no date selected
+            }
             break;
           default:
             return true;
         }
-        
+
         if (change.date !== targetDate) return false;
       }
 
@@ -301,15 +328,14 @@ export default function ViewChanges() {
         }
         grouped[date].push(change);
       });
-      
+
       // Sort dates chronologically
       const sortedDates = Object.keys(grouped).sort();
       const sortedGrouped = {};
-      sortedDates.forEach(date => {
+      sortedDates.forEach((date) => {
         sortedGrouped[date] = grouped[date];
       });
       return sortedGrouped;
-      
     } else {
       // Group by class
       filtered.forEach((change) => {
@@ -320,11 +346,11 @@ export default function ViewChanges() {
         }
         grouped[classKey].push(change);
       });
-      
+
       // Sort classes alphabetically
       const sortedClasses = Object.keys(grouped).sort();
       const sortedGrouped = {};
-      sortedClasses.forEach(className => {
+      sortedClasses.forEach((className) => {
         sortedGrouped[className] = grouped[className];
       });
       return sortedGrouped;
@@ -339,36 +365,53 @@ export default function ViewChanges() {
   };
 
   const getDateDisplay = (dateStr) => {
-    if (!dateStr) return "Unknown Date";
-    
-    const date = new Date(dateStr);
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    
-    const dateFormatted = date.toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-    
-    if (date.toDateString() === today.toDateString()) {
-      return `Today - ${dateFormatted}`;
-    } else if (date.toDateString() === yesterday.toDateString()) {
-      return `Yesterday - ${dateFormatted}`;
-    } else if (date.toDateString() === tomorrow.toDateString()) {
-      return `Tomorrow - ${dateFormatted}`;
-    } else {
-      return dateFormatted;
-    }
+  if (!dateStr) return "Unknown Date";
+  
+  const date = new Date(dateStr);
+  
+  // Check if date is valid
+  if (isNaN(date.getTime())) return "Invalid Date";
+  
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  
+  // Reset time part for comparison
+  const resetTime = (d) => {
+    const newDate = new Date(d);
+    newDate.setHours(0, 0, 0, 0);
+    return newDate;
   };
+  
+  const dateReset = resetTime(date);
+  const todayReset = resetTime(today);
+  const yesterdayReset = resetTime(yesterday);
+  const tomorrowReset = resetTime(tomorrow);
+  
+  let prefix = "";
+  if (dateReset.getTime() === todayReset.getTime()) {
+    prefix = "Today - ";
+  } else if (dateReset.getTime() === yesterdayReset.getTime()) {
+    prefix = "Yesterday - ";
+  } else if (dateReset.getTime() === tomorrowReset.getTime()) {
+    prefix = "Tomorrow - ";
+  }
+  
+  const dateFormatted = date.toLocaleDateString('en-GB', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+  
+  return prefix + dateFormatted;
+};
 
   const getClassDisplay = (classStr) => {
     if (!classStr || classStr === "Unknown Class") return "Unknown Class";
-    
+
     const parts = classStr.split("-");
     if (parts.length >= 3) {
       return `${parts[0]}-${parts[1]} (${parts[2]})`;
@@ -379,7 +422,7 @@ export default function ViewChanges() {
   const handleClearFilters = () => {
     setSearchTerm("");
     setDateFilter("all");
-    setSpecificDate("");
+    setSpecificDate(null); // Changed from "" to null
   };
 
   useEffect(() => {
@@ -577,13 +620,19 @@ export default function ViewChanges() {
               <div className="relative">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600 mb-1">Recent Activity</p>
+                    <p className="text-sm text-gray-600 mb-1">
+                      Recent Activity
+                    </p>
                     <p className="text-2xl font-bold text-gray-900 mb-2">
                       {new Date().getDate()}
                     </p>
                     <div className="flex items-center text-xs text-rose-600">
                       <CalendarDays className="w-3 h-3 mr-1" />
-                      <span>{new Date().toLocaleDateString('en-US', { month: 'short' })}</span>
+                      <span>
+                        {new Date().toLocaleDateString("en-US", {
+                          month: "short",
+                        })}
+                      </span>
                     </div>
                   </div>
                   <div className="p-3 bg-gradient-to-br from-rose-50 to-rose-100 rounded-xl border border-rose-200">
@@ -605,7 +654,8 @@ export default function ViewChanges() {
                     Study Schedule Adjustments
                   </h2>
                   <p className="text-sm text-gray-600 mt-1">
-                    Temporary changes to your study planner organized like notebook tabs
+                    Temporary changes to your study planner organized like
+                    notebook tabs
                   </p>
                 </div>
                 <button
@@ -660,7 +710,7 @@ export default function ViewChanges() {
                     <CalendarDays className="w-4 h-4 text-blue-600" />
                     Filter Dates
                   </label>
-                  <div className="flex flex-wrap gap-3">
+                  <div className="flex flex-wrap gap-2">
                     {DATE_OPTIONS.map((option) => {
                       const colors = getColorClasses(option.color);
                       const isActive = dateFilter === option.id;
@@ -679,16 +729,21 @@ export default function ViewChanges() {
                       );
                     })}
                   </div>
-                  
+
                   {dateFilter === "specific" && (
                     <div className="mt-4">
                       <div className="relative">
-                        <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                        <input
-                          type="date"
-                          value={specificDate}
-                          onChange={(e) => setSpecificDate(e.target.value)}
+                        <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 z-10 pointer-events-none" />
+                        <DatePicker
+                          selected={specificDate}
+                          onChange={(date) => setSpecificDate(date)}
+                          dateFormat="dd/MM/yyyy"
+                          placeholderText="Select a date"
                           className="w-full pl-10 pr-3 py-2.5 bg-white border border-gray-300 text-gray-900 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all shadow-sm"
+                          isClearable
+                          clearButtonClassName="text-gray-400 hover:text-gray-600"
+                          showPopperArrow={false}
+                          popperPlacement="bottom-start"
                         />
                       </div>
                     </div>
@@ -738,185 +793,216 @@ export default function ViewChanges() {
                       <div className="w-16 h-16 border-4 border-amber-200 border-t-amber-600 rounded-full animate-spin"></div>
                       <RefreshCw className="w-8 h-8 text-amber-600 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 animate-spin" />
                     </div>
-                    <p className="text-gray-600 mt-4">Loading schedule updates...</p>
+                    <p className="text-gray-600 mt-4">
+                      Loading schedule updates...
+                    </p>
                   </div>
                 </div>
               ) : (
                 <div className="space-y-6">
                   {Object.keys(groupedChanges).length > 0 ? (
-                    Object.entries(groupedChanges).map(([groupKey, groupChanges]) => {
-                      const isExpanded = expandedGroup[groupKey];
-                      const groupLabel = groupBy === "date" 
-                        ? getDateDisplay(groupKey)
-                        : getClassDisplay(groupKey);
-                      const colors = getColorClasses(groupBy === "date" ? "amber" : "blue");
+                    Object.entries(groupedChanges).map(
+                      ([groupKey, groupChanges]) => {
+                        const isExpanded = expandedGroup[groupKey];
+                        const groupLabel =
+                          groupBy === "date"
+                            ? getDateDisplay(groupKey)
+                            : getClassDisplay(groupKey);
+                        const colors = getColorClasses(
+                          groupBy === "date" ? "amber" : "blue"
+                        );
 
-                      return (
-                        <div
-                          key={groupKey}
-                          className={`border-2 ${colors.border} rounded-xl overflow-hidden group hover:border-amber-400 transition-all duration-300`}
-                        >
-                          {/* Notebook Spine Effect */}
+                        return (
                           <div
-                            className={`absolute left-0 top-0 bottom-0 w-3 ${colors.ribbon}`}
-                          ></div>
-
-                          {/* Group Header */}
-                          <button
-                            onClick={() => toggleGroup(groupKey)}
-                            className="w-full p-6 bg-gradient-to-r from-gray-50 to-gray-100/50 hover:from-gray-100 hover:to-gray-200/50 flex items-center justify-between transition-all relative overflow-hidden"
+                            key={groupKey}
+                            className={`border-2 ${colors.border} rounded-xl overflow-hidden group hover:border-amber-400 transition-all duration-300`}
                           >
-                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                            
-                            <div className="flex items-center gap-4 relative">
-                              <div className="p-2.5 bg-white rounded-lg border border-gray-200 shadow-sm">
-                                {groupBy === "date" ? (
-                                  <Calendar className="w-5 h-5 text-amber-600" />
+                            {/* Notebook Spine Effect */}
+                            <div
+                              className={`absolute left-0 top-0 bottom-0 w-3 ${colors.ribbon}`}
+                            ></div>
+
+                            {/* Group Header */}
+                            <button
+                              onClick={() => toggleGroup(groupKey)}
+                              className="w-full p-6 bg-gradient-to-r from-gray-50 to-gray-100/50 hover:from-gray-100 hover:to-gray-200/50 flex items-center justify-between transition-all relative overflow-hidden"
+                            >
+                              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+
+                              <div className="flex items-center gap-4 relative">
+                                <div className="p-2.5 bg-white rounded-lg border border-gray-200 shadow-sm">
+                                  {groupBy === "date" ? (
+                                    <Calendar className="w-5 h-5 text-amber-600" />
+                                  ) : (
+                                    <Folder className="w-5 h-5 text-blue-600" />
+                                  )}
+                                </div>
+                                <div className="text-left">
+                                  <h3 className="font-semibold text-gray-900 text-lg">
+                                    {groupLabel}
+                                  </h3>
+                                  <p className="text-sm text-gray-600 flex items-center gap-2 mt-1">
+                                    <StickyNote className="w-3 h-3" />
+                                    {groupChanges.length} schedule adjustment
+                                    {groupChanges.length !== 1 ? "s" : ""}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-3 relative">
+                                <span
+                                  className={`px-3 py-1.5 ${colors.bg} ${colors.text} rounded-full text-xs font-medium border ${colors.border}`}
+                                >
+                                  {groupChanges.length} updates
+                                </span>
+                                {isExpanded ? (
+                                  <ChevronUp className="w-5 h-5 text-gray-500 group-hover:text-amber-600 transition-colors" />
                                 ) : (
-                                  <Folder className="w-5 h-5 text-blue-600" />
+                                  <ChevronDown className="w-5 h-5 text-gray-500 group-hover:text-amber-600 transition-colors" />
                                 )}
                               </div>
-                              <div className="text-left">
-                                <h3 className="font-semibold text-gray-900 text-lg">
-                                  {groupLabel}
-                                </h3>
-                                <p className="text-sm text-gray-600 flex items-center gap-2 mt-1">
-                                  <StickyNote className="w-3 h-3" />
-                                  {groupChanges.length} schedule adjustment{groupChanges.length !== 1 ? "s" : ""}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-3 relative">
-                              <span className={`px-3 py-1.5 ${colors.bg} ${colors.text} rounded-full text-xs font-medium border ${colors.border}`}>
-                                {groupChanges.length} updates
-                              </span>
-                              {isExpanded ? (
-                                <ChevronUp className="w-5 h-5 text-gray-500 group-hover:text-amber-600 transition-colors" />
-                              ) : (
-                                <ChevronDown className="w-5 h-5 text-gray-500 group-hover:text-amber-600 transition-colors" />
-                              )}
-                            </div>
-                          </button>
+                            </button>
 
-                          {/* Expanded Content */}
-                          {isExpanded && (
-                            <div className="p-6 border-t border-gray-200 bg-white">
-                              <div className="space-y-4">
-                                {groupChanges.map((change, index) => {
-                                  const classInfo = parseAssignedTo(change.assigned_to);
-                                  const isDeleting = deletingId === (change._id || change.faculty + change.date + change.timeSlotKey);
+                            {/* Expanded Content */}
+                            {isExpanded && (
+                              <div className="p-6 border-t border-gray-200 bg-white">
+                                <div className="space-y-4">
+                                  {groupChanges.map((change, index) => {
+                                    const classInfo = parseAssignedTo(
+                                      change.assigned_to
+                                    );
+                                    const isDeleting =
+                                      deletingId ===
+                                      (change._id ||
+                                        change.faculty +
+                                          change.date +
+                                          change.timeSlotKey);
 
-                                  return (
-                                    <div
-                                      key={index}
-                                      className="p-6 border-2 border-gray-200 rounded-xl hover:border-amber-300 transition-all duration-300 relative overflow-hidden group/item"
-                                    >
-                                      {/* Subtle notebook lines background */}
-                                      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/5 to-transparent"></div>
-                                      
-                                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative">
-                                        {/* Left Column - Tutor & Date Info */}
-                                        <div className="space-y-4">
-                                          <div className="flex items-center gap-3">
-                                            <div className="p-2.5 bg-gradient-to-br from-amber-100 to-amber-50 rounded-lg border border-amber-200">
-                                              <User className="w-4 h-4 text-amber-600" />
-                                            </div>
-                                            <div>
-                                              <p className="text-xs text-gray-500">Tutor ID</p>
-                                              <p className="font-semibold text-gray-900">
-                                                {change.faculty}
-                                              </p>
-                                            </div>
-                                          </div>
+                                    return (
+                                      <div
+                                        key={index}
+                                        className="p-6 border-2 border-gray-200 rounded-xl hover:border-amber-300 transition-all duration-300 relative overflow-hidden group/item"
+                                      >
+                                        {/* Subtle notebook lines background */}
+                                        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/5 to-transparent"></div>
 
-                                          <div className="flex items-center gap-3">
-                                            <div className="p-2.5 bg-gradient-to-br from-blue-100 to-blue-50 rounded-lg border border-blue-200">
-                                              <Calendar className="w-4 h-4 text-blue-600" />
+                                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative">
+                                          {/* Left Column - Tutor & Date Info */}
+                                          <div className="space-y-4">
+                                            <div className="flex items-center gap-3">
+                                              <div className="p-2.5 bg-gradient-to-br from-amber-100 to-amber-50 rounded-lg border border-amber-200">
+                                                <User className="w-4 h-4 text-amber-600" />
+                                              </div>
+                                              <div>
+                                                <p className="text-xs text-gray-500">
+                                                  Tutor ID
+                                                </p>
+                                                <p className="font-semibold text-gray-900">
+                                                  {change.faculty}
+                                                </p>
+                                              </div>
                                             </div>
-                                            <div>
-                                              <p className="text-xs text-gray-500">Study Date</p>
-                                              <p className="font-medium text-gray-900">
-                                                {getDateDisplay(change.date)}
-                                              </p>
-                                            </div>
-                                          </div>
-                                        </div>
 
-                                        {/* Middle Column - Study Group Info */}
-                                        <div className="space-y-4">
-                                          <div className="flex items-center gap-3">
-                                            <div className="p-2.5 bg-gradient-to-br from-emerald-100 to-emerald-50 rounded-lg border border-emerald-200">
-                                              <Folder className="w-4 h-4 text-emerald-600" />
-                                            </div>
-                                            <div>
-                                              <p className="text-xs text-gray-500">Study Group</p>
-                                              <div className="flex items-center gap-2 mt-1">
-                                                {classInfo.branch && classInfo.className ? (
-                                                  <>
-                                                    <span className="px-3 py-1.5 bg-blue-100 text-blue-800 rounded-lg text-xs font-medium border border-blue-200">
-                                                      {classInfo.branch}-{classInfo.className}
-                                                    </span>
-                                                    <span className="px-3 py-1.5 bg-emerald-100 text-emerald-800 rounded-lg text-xs font-medium border border-emerald-200">
-                                                      {classInfo.sem}
-                                                    </span>
-                                                  </>
-                                                ) : (
-                                                  <span className="text-gray-900">
-                                                    {change.assigned_to || "N/A"}
-                                                  </span>
-                                                )}
+                                            <div className="flex items-center gap-3">
+                                              <div className="p-2.5 bg-gradient-to-br from-blue-100 to-blue-50 rounded-lg border border-blue-200">
+                                                <Calendar className="w-4 h-4 text-blue-600" />
+                                              </div>
+                                              <div>
+                                                <p className="text-xs text-gray-500">
+                                                  Study Date
+                                                </p>
+                                                <p className="font-medium text-gray-900">
+                                                  {getDateDisplay(change.date)}
+                                                </p>
                                               </div>
                                             </div>
                                           </div>
 
-                                          <div className="flex items-center gap-3">
-                                            <div className="p-2.5 bg-gradient-to-br from-violet-100 to-violet-50 rounded-lg border border-violet-200">
-                                              <Clock className="w-4 h-4 text-violet-600" />
+                                          {/* Middle Column - Study Group Info */}
+                                          <div className="space-y-4">
+                                            <div className="flex items-center gap-3">
+                                              <div className="p-2.5 bg-gradient-to-br from-emerald-100 to-emerald-50 rounded-lg border border-emerald-200">
+                                                <Folder className="w-4 h-4 text-emerald-600" />
+                                              </div>
+                                              <div>
+                                                <p className="text-xs text-gray-500">
+                                                  Study Group
+                                                </p>
+                                                <div className="flex items-center gap-2 mt-1">
+                                                  {classInfo.branch &&
+                                                  classInfo.className ? (
+                                                    <>
+                                                      <span className="px-3 py-1.5 bg-blue-100 text-blue-800 rounded-lg text-xs font-medium border border-blue-200">
+                                                        {classInfo.branch}-
+                                                        {classInfo.className}
+                                                      </span>
+                                                      <span className="px-3 py-1.5 bg-emerald-100 text-emerald-800 rounded-lg text-xs font-medium border border-emerald-200">
+                                                        {classInfo.sem}
+                                                      </span>
+                                                    </>
+                                                  ) : (
+                                                    <span className="text-gray-900">
+                                                      {change.assigned_to ||
+                                                        "N/A"}
+                                                    </span>
+                                                  )}
+                                                </div>
+                                              </div>
                                             </div>
-                                            <div>
-                                              <p className="text-xs text-gray-500">Study Time</p>
-                                              <p className="font-medium text-gray-900">
-                                                {change.timeSlot}
-                                              </p>
+
+                                            <div className="flex items-center gap-3">
+                                              <div className="p-2.5 bg-gradient-to-br from-violet-100 to-violet-50 rounded-lg border border-violet-200">
+                                                <Clock className="w-4 h-4 text-violet-600" />
+                                              </div>
+                                              <div>
+                                                <p className="text-xs text-gray-500">
+                                                  Study Time
+                                                </p>
+                                                <p className="font-medium text-gray-900">
+                                                  {change.timeSlot}
+                                                </p>
+                                              </div>
                                             </div>
+                                          </div>
+
+                                          {/* Right Column - Actions */}
+                                          <div className="flex items-start justify-end">
+                                            <button
+                                              onClick={() =>
+                                                handleDeleteChange(change)
+                                              }
+                                              disabled={isDeleting}
+                                              className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-rose-600 to-rose-700 text-white rounded-lg font-medium hover:from-rose-700 hover:to-rose-800 transition-all duration-300 shadow-sm hover:shadow-md group/delete disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                              {isDeleting ? (
+                                                <RefreshCw className="w-4 h-4 animate-spin group-hover/delete:rotate-180 transition-transform" />
+                                              ) : (
+                                                <Trash2 className="w-4 h-4 group-hover/delete:scale-110 transition-transform" />
+                                              )}
+                                              Remove Update
+                                            </button>
                                           </div>
                                         </div>
 
-                                        {/* Right Column - Actions */}
-                                        <div className="flex items-start justify-end">
-                                          <button
-                                            onClick={() => handleDeleteChange(change)}
-                                            disabled={isDeleting}
-                                            className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-rose-600 to-rose-700 text-white rounded-lg font-medium hover:from-rose-700 hover:to-rose-800 transition-all duration-300 shadow-sm hover:shadow-md group/delete disabled:opacity-50 disabled:cursor-not-allowed"
-                                          >
-                                            {isDeleting ? (
-                                              <RefreshCw className="w-4 h-4 animate-spin group-hover/delete:rotate-180 transition-transform" />
-                                            ) : (
-                                              <Trash2 className="w-4 h-4 group-hover/delete:scale-110 transition-transform" />
-                                            )}
-                                            Remove Update
-                                          </button>
+                                        {/* Additional Note */}
+                                        <div className="mt-6 pt-6 border-t border-gray-100">
+                                          <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-amber-50 to-amber-100/30 rounded-lg border border-amber-200">
+                                            <AlertTriangle className="w-4 h-4 text-amber-500" />
+                                            <p className="text-sm text-amber-700">
+                                              Temporary schedule adjustment
+                                              overriding regular study planner
+                                            </p>
+                                          </div>
                                         </div>
                                       </div>
-
-                                      {/* Additional Note */}
-                                      <div className="mt-6 pt-6 border-t border-gray-100">
-                                        <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-amber-50 to-amber-100/30 rounded-lg border border-amber-200">
-                                          <AlertTriangle className="w-4 h-4 text-amber-500" />
-                                          <p className="text-sm text-amber-700">
-                                            Temporary schedule adjustment overriding regular study planner
-                                          </p>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  );
-                                })}
+                                    );
+                                  })}
+                                </div>
                               </div>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })
+                            )}
+                          </div>
+                        );
+                      }
+                    )
                   ) : (
                     /* Empty State */
                     <div className="text-center py-16 bg-gradient-to-br from-amber-50/50 to-blue-50/50 rounded-2xl border-2 border-dashed border-amber-200 relative overflow-hidden">
@@ -975,7 +1061,8 @@ export default function ViewChanges() {
                     </h4>
                   </div>
                   <p className="text-amber-700 text-sm leading-relaxed">
-                    These are temporary changes to your study planner that override the regular schedule for specific dates only.
+                    These are temporary changes to your study planner that
+                    override the regular schedule for specific dates only.
                   </p>
                 </div>
                 <div className="space-y-3">
@@ -988,7 +1075,8 @@ export default function ViewChanges() {
                     </h4>
                   </div>
                   <p className="text-blue-700 text-sm leading-relaxed">
-                    Group updates by date to see all changes for specific days, or by class to see all adjustments affecting a study group.
+                    Group updates by date to see all changes for specific days,
+                    or by class to see all adjustments affecting a study group.
                   </p>
                 </div>
                 <div className="space-y-3">
@@ -996,12 +1084,11 @@ export default function ViewChanges() {
                     <div className="w-6 h-6 rounded-full bg-gradient-to-br from-rose-100 to-rose-200 flex items-center justify-center">
                       <span className="text-xs font-bold text-rose-700">3</span>
                     </div>
-                    <h4 className="font-semibold text-rose-800">
-                      Removal
-                    </h4>
+                    <h4 className="font-semibold text-rose-800">Removal</h4>
                   </div>
                   <p className="text-rose-700 text-sm leading-relaxed">
-                    Removing an adjustment will delete it permanently and revert to the original schedule. This action cannot be undone.
+                    Removing an adjustment will delete it permanently and revert
+                    to the original schedule. This action cannot be undone.
                   </p>
                 </div>
               </div>

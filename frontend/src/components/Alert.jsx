@@ -2,7 +2,7 @@ export default function Alert({ main, info, onClose, type }) {
   const isSuccess = type === "success";
   
   return (
-    <div className={`fixed top-6 left-1/2 -translate-x-1/2 bg-white inline-flex space-x-3 p-3 text-sm rounded border z-50 ${
+    <div className={`fixed top-20 left-1/2 -translate-x-1/2 bg-white inline-flex space-x-3 p-3 text-sm rounded border z-50 ${
       isSuccess 
         ? "border-green-200" 
         : "border-red-200"

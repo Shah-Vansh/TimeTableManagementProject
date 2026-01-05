@@ -202,7 +202,12 @@ export default function Faculties() {
       }
     } catch (error) {
       console.error("Error fetching faculties:", error);
-      showAlert("error", "Failed to load tutors", "Please try again.");
+      const message =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Something went wrong";
+      showAlert("error", message, "Please try again.");
     } finally {
       setLoading(false);
     }
@@ -225,6 +230,12 @@ export default function Faculties() {
       }
     } catch (error) {
       console.error("Error fetching faculties for modal:", error);
+      const message =
+      error.response?.data?.message ||
+      error.response?.data?.error ||
+      error.message ||
+      "Something went wrong";
+    showAlert("Error fetching faculties", message, "error");
     }
   };
 
@@ -302,6 +313,12 @@ export default function Faculties() {
       }
     } catch (error) {
       console.error("Error creating faculty:", error);
+      const message =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Something went wrong";
+      showAlert("Error creating faculty", message, "error");
       setCreateFacultyError(
         error.response?.data?.error ||
           "Failed to create tutor. Please try again."
@@ -318,6 +335,12 @@ export default function Faculties() {
       setTimeout(() => setCopiedField(""), 2000);
     } catch (err) {
       console.error("Failed to copy:", err);
+      const message =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        err.message ||
+        "Something went wrong";
+        showAlert("Failed to copy", message, "error");
     }
   };
 
@@ -409,6 +432,12 @@ Generated on: ${new Date().toLocaleString()}
       }
     } catch (error) {
       console.error("Error updating admin status:", error);
+      const message =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Something went wrong";
+        showAlert("Error updating admin status", message, "error");
 
       if (error.response?.data?.error?.includes("can't change your own")) {
         showAlert(
@@ -469,11 +498,12 @@ Generated on: ${new Date().toLocaleString()}
       }
     } catch (error) {
       console.error("Error deleting faculty:", error);
-      showAlert(
-        "error",
-        "Failed to delete tutor",
-        error.response?.data?.error || "Please try again."
-      );
+      const message =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Something went wrong";
+      showAlert("Failed to delete tutor", message, "error");
     }
   };
 
@@ -483,6 +513,17 @@ Generated on: ${new Date().toLocaleString()}
   useEffect(() => {
     applyFilters();
   }, [searchQuery, activeFilter, faculties]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (activeDropdown && !event.target.closest('button')) {
+        setActiveDropdown(null);
+      }
+    };
+  
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [activeDropdown]);
 
   /* =======================
      🔹 INITIAL LOAD
