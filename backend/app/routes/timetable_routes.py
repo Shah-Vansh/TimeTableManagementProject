@@ -3,7 +3,8 @@ from app.controllers.timetable_controller import (
     save_timetable,
     fetch_timetable,
     get_all_timetables,
-    delete_timetable
+    delete_timetable,
+    fetch_allowed_faculty
 )
 from app.middlewares.auth_middleware import token_required
 from app.middlewares.admin_middleware import is_admin_required
@@ -25,6 +26,11 @@ def fetch():
 @token_required
 def read():
     return get_all_timetables()
+
+@timetable_bp.route("/classwise-faculty", methods=["GET"])
+@token_required
+def fetchfaculty():
+    return fetch_allowed_faculty()
 
 @timetable_bp.route("/", methods=["DELETE"], strict_slashes=False)
 @token_required

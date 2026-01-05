@@ -586,7 +586,7 @@ Generated on: ${new Date().toLocaleString()}
       // Fetch faculty data for each class
       const fetchPromises = classes.map(async (className) => {
         try {
-          const response = await api.get("/classwise-faculty", {
+          const response = await api.get("/api/timetable/classwise-faculty", {
             headers:{
               Authorization: `Bearer ${token}`
             },

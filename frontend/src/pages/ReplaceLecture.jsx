@@ -289,7 +289,7 @@ export default function ReplaceLecture() {
         error.response?.data?.error ||
         error.message ||
         "Something went wrong";
-      showAlert("Error fetching available faculty", message, "error");
+      showAlertMessage("Error fetching available faculty", message, "error");
 
       if (error.response) {
         const { status, data } = error.response;
@@ -381,7 +381,7 @@ export default function ReplaceLecture() {
         error.response?.data?.error ||
         error.message ||
         "Something went wrong";
-      showAlert("Error fetching rearrange options", message, "error");
+      showAlertMessage("Error fetching rearrange options", message, "error");
 
       if (error.response) {
         const { status, data } = error.response;
@@ -495,7 +495,7 @@ export default function ReplaceLecture() {
         error.response?.data?.error ||
         error.message ||
         "Something went wrong";
-      showAlert("Error executing rearrangement", message, "error");
+      showAlertMessage("Error executing rearrangement", message, "error");
 
 
       if (error.response) {
@@ -587,7 +587,7 @@ export default function ReplaceLecture() {
         error.response?.data?.error ||
         error.message ||
         "Something went wrong";
-      showAlert("Error assigning faculty:", message, "error");
+      showAlertMessage("Error assigning faculty:", message, "error");
 
       if (error.response) {
         const { status, data } = error.response;
@@ -711,7 +711,7 @@ export default function ReplaceLecture() {
         error.response?.data?.error ||
         error.message ||
         "Something went wrong";
-      showAlert(`Error ${isRearrange ? "rescheduling" : "replacing"} study session:`, message, "error");
+      showAlertMessage(`Error ${isRearrange ? "rescheduling" : "replacing"} study session:`, message, "error");
 
       if (error.response) {
         const { status, data } = error.response;

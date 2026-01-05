@@ -185,14 +185,15 @@ function Dashboard() {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (selectedFaculty && !event.target.closest('button')) {
-        setSelectedFaculty(null);
+      if (activeDropdown && !event.target.closest('button')) {
+        setActiveDropdown(null);
       }
     };
   
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [selectedFaculty]);
+  }, [activeDropdown]);
+  
   // Filter branch data
   const filteredBranchData = branchData.filter((b) => {
     const matchesSearch =

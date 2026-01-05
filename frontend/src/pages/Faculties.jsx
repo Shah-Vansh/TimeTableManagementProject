@@ -38,7 +38,7 @@ import {
   Highlighter,
   Compass,
   Archive,
-  Layers
+  Layers,
 } from "lucide-react";
 import api from "../configs/api";
 import EditFacultyModal from "../components/EditFacultyModal";
@@ -188,7 +188,7 @@ export default function Faculties() {
   const fetchFaculties = async () => {
     setLoading(true);
     try {
-      const response = await api.get("/api/faculties",{
+      const response = await api.get("/api/faculties", {
         headers: {
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${token}`,
@@ -218,7 +218,7 @@ export default function Faculties() {
   ======================= */
   const fetchAllFacultiesForModal = async () => {
     try {
-      const response = await api.get("/api/faculties",{
+      const response = await api.get("/api/faculties", {
         headers: {
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${token}`,
@@ -231,11 +231,11 @@ export default function Faculties() {
     } catch (error) {
       console.error("Error fetching faculties for modal:", error);
       const message =
-      error.response?.data?.message ||
-      error.response?.data?.error ||
-      error.message ||
-      "Something went wrong";
-    showAlert("Error fetching faculties", message, "error");
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Something went wrong";
+      showAlert("Error fetching faculties", message, "error");
     }
   };
 
@@ -274,15 +274,18 @@ export default function Faculties() {
     setCreateFacultyError("");
 
     try {
-      const response = await api.post("/api/faculties", {
-        id: newFacultyId.trim(),
-        name: newFacultyName.trim(),
-        },        
+      const response = await api.post(
+        "/api/faculties",
+        {
+          id: newFacultyId.trim(),
+          name: newFacultyName.trim(),
+        },
         {
           headers: {
             Authorization: `Bearer ${token}`,
-        },  
-      });
+          },
+        }
+      );
 
       if (response.data.success) {
         const username = newFacultyId.trim().toUpperCase();
@@ -340,7 +343,7 @@ export default function Faculties() {
         err.response?.data?.error ||
         err.message ||
         "Something went wrong";
-        showAlert("Failed to copy", message, "error");
+      showAlert("Failed to copy", message, "error");
     }
   };
 
@@ -380,7 +383,6 @@ Generated on: ${new Date().toLocaleString()}
 
   const handleAdminToggle = async (faculty_id, currentStatus, facultyName) => {
     try {
-      
       const response = await api.patch(
         `/api/faculties/${faculty_id}/toggle-admin`,
         {},
@@ -427,7 +429,7 @@ Generated on: ${new Date().toLocaleString()}
         showAlert(
           "error",
           "Failed to update status",
-          response.data.error || "Please try again."
+           error.response?.data?.message || "Please try again."
         );
       }
     } catch (error) {
@@ -437,7 +439,7 @@ Generated on: ${new Date().toLocaleString()}
         error.response?.data?.error ||
         error.message ||
         "Something went wrong";
-        showAlert("Error updating admin status", message, "error");
+      showAlert("Error updating admin status", message, "error");
 
       if (error.response?.data?.error?.includes("can't change your own")) {
         showAlert(
@@ -449,7 +451,7 @@ Generated on: ${new Date().toLocaleString()}
         showAlert(
           "error",
           "Failed to update status",
-          error.response?.data?.error || "Please try again."
+          error.response?.data?.message || "Please try again."
         );
       }
     }
@@ -471,7 +473,6 @@ Generated on: ${new Date().toLocaleString()}
     if (!selectedFaculty) return;
 
     try {
-      
       const response = await api.delete(
         `/api/faculties/${selectedFaculty.id}`,
         {
@@ -516,14 +517,14 @@ Generated on: ${new Date().toLocaleString()}
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (activeDropdown && !event.target.closest('button')) {
-        setActiveDropdown(null);
+      if (selectedFaculty && !event.target.closest("button")) {
+        setSelectedFaculty(null);
       }
     };
-  
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [activeDropdown]);
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [selectedFaculty]);
 
   /* =======================
      🔹 INITIAL LOAD
@@ -920,8 +921,8 @@ Generated on: ${new Date().toLocaleString()}
                 Remove {selectedFaculty.name}?
               </h3>
               <p className="text-gray-600 text-center mb-6">
-                This will permanently remove tutor "{selectedFaculty.name}"
-                (ID: {selectedFaculty.id}) from all assigned study schedules.
+                This will permanently remove tutor "{selectedFaculty.name}" (ID:{" "}
+                {selectedFaculty.id}) from all assigned study schedules.
               </p>
 
               <div className="bg-gradient-to-r from-red-50 to-rose-50 border border-red-200 rounded-lg p-4 mb-6">
@@ -930,8 +931,8 @@ Generated on: ${new Date().toLocaleString()}
                   <div>
                     <p className="text-red-800 font-bold">Important Notice</p>
                     <p className="text-red-700 text-sm mt-1">
-                      This action cannot be undone. All study schedule assignments
-                      will be removed.
+                      This action cannot be undone. All study schedule
+                      assignments will be removed.
                     </p>
                   </div>
                 </div>
@@ -1152,7 +1153,7 @@ Generated on: ${new Date().toLocaleString()}
                   >
                     {/* Notebook Spine Effect */}
                     <div className="absolute left-0 top-0 bottom-0 w-2 bg-gradient-to-b from-amber-400 to-amber-300 rounded-l-lg"></div>
-                    
+
                     <div
                       className={`p-4 border-b ml-2 ${
                         stats.isActive
@@ -1362,9 +1363,7 @@ Generated on: ${new Date().toLocaleString()}
             <div className="p-2 bg-gradient-to-br from-amber-100 to-amber-50 rounded-lg border border-amber-200">
               <Compass className="w-5 h-5 text-amber-600" />
             </div>
-            <h3 className="font-bold text-amber-900">
-              Tutor Management Guide
-            </h3>
+            <h3 className="font-bold text-amber-900">Tutor Management Guide</h3>
           </div>
           <ul className="space-y-2 text-amber-800 text-sm">
             <li className="flex items-start gap-2">
@@ -1398,8 +1397,8 @@ Generated on: ${new Date().toLocaleString()}
             <li className="flex items-start gap-2">
               <div className="w-2 h-2 bg-amber-400 rounded-full mt-1.5"></div>
               <span>
-                <strong>Click "Add Tutor"</strong> to create new tutor
-                accounts with auto-generated study access
+                <strong>Click "Add Tutor"</strong> to create new tutor accounts
+                with auto-generated study access
               </span>
             </li>
             <li className="flex items-start gap-2">

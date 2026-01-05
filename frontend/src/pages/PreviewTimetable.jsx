@@ -38,6 +38,7 @@ import {
   Book,
 } from "lucide-react";
 import api from "../configs/api";
+import Alert from "../components/Alert";
 
 export default function PreviewTimetable() {
   const location = useLocation();
@@ -68,7 +69,6 @@ export default function PreviewTimetable() {
     "D6",
     "D7",
     "D8",
-    "D8",
     "D9",
     "D10",
     "D11",
@@ -77,7 +77,8 @@ export default function PreviewTimetable() {
 
   const branchColors = {
     CSE: "bg-gradient-to-r from-blue-100 to-blue-50 text-blue-700 border-blue-200",
-    "CSE(AIML)": "bg-gradient-to-r from-purple-100 to-purple-50 text-purple-700 border-purple-200",
+    "CSE(AIML)":
+      "bg-gradient-to-r from-purple-100 to-purple-50 text-purple-700 border-purple-200",
     DS: "bg-gradient-to-r from-emerald-100 to-emerald-50 text-emerald-700 border-emerald-200",
     ECE: "bg-gradient-to-r from-rose-100 to-rose-50 text-rose-700 border-rose-200",
     EEE: "bg-gradient-to-r from-indigo-100 to-indigo-50 text-indigo-700 border-indigo-200",
@@ -120,9 +121,14 @@ export default function PreviewTimetable() {
   });
   // Add this state variable
   const [availableFaculty, setAvailableFaculty] = useState([]);
+  const [alert, setAlert] = useState(null);
 
   // Token declare
   const token = localStorage.getItem("token");
+  const showAlert = (main, info, type) => {
+    setAlert({ main, info, type });
+    setTimeout(() => setAlert(null), 5000);
+  };
 
   /* =======================
    🔹 UPDATE OVERALL STATISTICS
@@ -189,7 +195,7 @@ export default function PreviewTimetable() {
       // Fetch timetable for each division
       for (const division of divisions) {
         try {
-          const response = await api.get("/api/timetable/fetchtimetable",{
+          const response = await api.get("/api/timetable/fetchtimetable", {
             headers: {
               Authorization: `Bearer ${token}`,
             },
@@ -198,8 +204,7 @@ export default function PreviewTimetable() {
               branch: branch,
               class: division,
             },
-          },
-        );
+          });
 
           const fetchedSchedule = response.data.schedule;
 
@@ -295,8 +300,7 @@ export default function PreviewTimetable() {
           branch: branch,
           class: division,
         },
-      },
-    );
+      });
 
       const fetchedSchedule = response.data.schedule;
 
@@ -435,7 +439,11 @@ export default function PreviewTimetable() {
             error.response?.data?.error ||
             error.message ||
             "Something went wrong";
-          showAlert(`Failed to load timetable for ${division}`, message, "error");
+          showAlert(
+            `Failed to load timetable for ${division}`,
+            message,
+            "error"
+          );
         });
       } else {
         setSelectedDivisions((prev) => [...prev, division]);
@@ -500,12 +508,23 @@ export default function PreviewTimetable() {
 
     return (
       <div key={division} className="mb-8 last:mb-0">
+        {/* Alert Component */}
+        {alert && (
+          <Alert
+            main={alert.main}
+            info={alert.info}
+            type={alert.type}
+            onClose={() => setAlert(null)}
+          />
+        )}
+
         {/* Division Header */}
         <div className="flex items-center justify-between mb-4 print:mb-2 pt-5">
           <div className="flex items-center gap-3">
             <div
               className={`px-4 py-2 rounded-lg ${
-                branchColors[branch] || "bg-gradient-to-r from-gray-50 to-gray-100"
+                branchColors[branch] ||
+                "bg-gradient-to-r from-gray-50 to-gray-100"
               } print:px-2 print:py-1 border`}
             >
               <h3 className="font-bold text-lg print:text-sm">
@@ -770,7 +789,8 @@ export default function PreviewTimetable() {
                   All Divisions Timetable Preview
                 </h1>
                 <p className="text-gray-600">
-                  View, print, and export timetables for all divisions in a unified view
+                  View, print, and export timetables for all divisions in a
+                  unified view
                 </p>
               </div>
             </div>
@@ -1212,20 +1232,26 @@ export default function PreviewTimetable() {
                       </h4>
                     </div>
                     <p className="text-amber-700 text-sm leading-relaxed">
-                      Click on division checkboxes to select or deselect which timetables to display. Use "Select All" to quickly choose all loaded divisions.
+                      Click on division checkboxes to select or deselect which
+                      timetables to display. Use "Select All" to quickly choose
+                      all loaded divisions.
                     </p>
                   </div>
                   <div className="space-y-3">
                     <div className="flex items-center gap-2 mb-2">
                       <div className="w-6 h-6 rounded-full bg-gradient-to-br from-rose-100 to-rose-200 flex items-center justify-center border border-rose-200">
-                        <span className="text-xs font-bold text-rose-700">2</span>
+                        <span className="text-xs font-bold text-rose-700">
+                          2
+                        </span>
                       </div>
                       <h4 className="font-semibold text-rose-800">
                         View Options
                       </h4>
                     </div>
                     <p className="text-rose-700 text-sm leading-relaxed">
-                      Toggle between Grid and List views. Use the search filter to find specific faculty or time slots across all selected divisions.
+                      Toggle between Grid and List views. Use the search filter
+                      to find specific faculty or time slots across all selected
+                      divisions.
                     </p>
                   </div>
                   <div className="space-y-3">
@@ -1240,7 +1266,9 @@ export default function PreviewTimetable() {
                       </h4>
                     </div>
                     <p className="text-emerald-700 text-sm leading-relaxed">
-                      Export all selected timetables as a text file or print them directly. Each division's timetable will start on a new page when printing.
+                      Export all selected timetables as a text file or print
+                      them directly. Each division's timetable will start on a
+                      new page when printing.
                     </p>
                   </div>
                 </div>
@@ -1282,7 +1310,8 @@ export default function PreviewTimetable() {
         {/* Print Footer - Only visible when printing */}
         <div className="hidden print:block print:mt-8 print:pt-4 print:border-t print:border-gray-300 print:text-center print:text-xs print:text-gray-500">
           <p>
-            This timetable was generated automatically by Timetable Management System
+            This timetable was generated automatically by Timetable Management
+            System
           </p>
           <p>Page {new Date().toLocaleDateString()} • For official use only</p>
         </div>

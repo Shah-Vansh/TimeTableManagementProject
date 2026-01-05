@@ -82,7 +82,7 @@ export default function ViewChanges() {
     setSuccess("");
 
     try {
-      const response = await api.get("/fetch-all-changes", {
+      const response = await api.get("/api/fetch-all-changes", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -210,7 +210,7 @@ export default function ViewChanges() {
     );
 
     try {
-      const response = await api.delete("/delete-temp-change", {
+      const response = await api.delete("/api/delete-temp-change", {
         headers: {
           Authorization: `Bearer ${token}`,
         },

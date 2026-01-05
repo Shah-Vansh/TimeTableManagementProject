@@ -6,7 +6,6 @@ from app.controllers.swap_controller import (
     get_rearrange_options,
     execute_rearrange,
     rearrange_lecture,
-    fetch_allowed_faculty,
     update_allowed_faculty,
     delete_allowed_faculty,
     fetch_all_changes,
@@ -56,11 +55,6 @@ def reaarange():
 # @token_required
 # def reaarangeauto():
 #     return rearrange_lecture()
-
-@swap_bp.route("/classwise-faculty", methods=["GET"])
-@token_required
-def fetchfaculty():
-    return fetch_allowed_faculty()
 
 # @swap_bp.route("/update-allowed-faculty", methods=["GET"])
 # def updateallowed():

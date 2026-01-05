@@ -17,7 +17,7 @@ def create_app():
     init_db(db=db)
 
     # import blueprints
-    #from app.routes.main_routes import main_bp
+    from app.routes.main_routes import main_bp
     from app.routes.user_routes import user_bp
     from app.routes.timetable_routes import timetable_bp
     from app.routes.faculty_routes import faculty_bp
@@ -27,13 +27,11 @@ def create_app():
     from app.routes.telegram_routes import telegram_bp
 
     # register blueprints
-    #app.register_blueprint(main_bp)
+    app.register_blueprint(main_bp)
     app.register_blueprint(timetable_bp, url_prefix="/api/timetable")
     app.register_blueprint(faculty_bp, url_prefix="/api/faculties")
     app.register_blueprint(user_bp, url_prefix="/api/user")
     app.register_blueprint(swap_bp, url_prefix="/api")
-    #app.register_blueprint(replace_lecture_bp, url_prefix="/api")
-    #app.register_blueprint(rearrange_lecture_bp, url_prefix="/api")
     app.register_blueprint(telegram_bp)
 
     return app

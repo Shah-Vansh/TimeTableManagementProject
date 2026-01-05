@@ -41,6 +41,7 @@ import {
 } from "lucide-react";
 import api from "../configs/api";
 import TimetableTable from "../components/TimetableTable";
+import Alert from "../components/Alert";
 
 export default function FacultyTimetable() {
   const { facultyId } = useParams();
@@ -52,7 +53,7 @@ export default function FacultyTimetable() {
   const [viewMode, setViewMode] = useState("weekly");
   const [showEmptySlots, setShowEmptySlots] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  
+  const [alert, setAlert] = useState(null);
   const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   const dayKeys = {
     "Monday": "mon",
@@ -61,6 +62,10 @@ export default function FacultyTimetable() {
     "Thursday": "thu",
     "Friday": "fri",
     "Saturday": "sat"
+  };
+  const showAlert = (main, info, type) => {
+    setAlert({ main, info, type });
+    setTimeout(() => setAlert(null), 5000);
   };
   
   /* =======================
@@ -252,6 +257,15 @@ export default function FacultyTimetable() {
   if (error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-rose-50 flex items-center justify-center">
+        {/* Alert Component */}
+      {alert && (
+        <Alert
+          main={alert.main}
+          info={alert.info}
+          type={alert.type}
+          onClose={() => setAlert(null)}
+        />
+      )}
         <div className="max-w-md mx-auto p-6">
           <div className="bg-white rounded-2xl p-6 border border-rose-200 shadow-sm">
             <AlertCircle className="w-12 h-12 text-rose-500 mx-auto mb-4" />
