@@ -82,7 +82,7 @@ export default function PreviewTimetable() {
     DS: "bg-gradient-to-r from-emerald-100 to-emerald-50 text-emerald-700 border-emerald-200",
     ECE: "bg-gradient-to-r from-rose-100 to-rose-50 text-rose-700 border-rose-200",
     EEE: "bg-gradient-to-r from-indigo-100 to-indigo-50 text-indigo-700 border-indigo-200",
-    ME: "bg-gradient-to-r from-orange-100 to-orange-50 text-orange-700 border-orange-200",
+    ME: "bg-gradient-to-r from-violet-100 to-violet-50 text-violet-700 border-violet-200",
     CE: "bg-gradient-to-r from-teal-100 to-teal-50 text-teal-700 border-teal-200",
   };
 
@@ -90,7 +90,7 @@ export default function PreviewTimetable() {
     free: "bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 border-gray-200",
     ABC: "bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 border-blue-200",
     DEF: "bg-gradient-to-r from-purple-50 to-purple-100 text-purple-700 border-purple-200",
-    XYZ: "bg-gradient-to-r from-amber-50 to-amber-100 text-amber-700 border-amber-200",
+    XYZ: "bg-gradient-to-r from-indigo-50 to-indigo-100 text-indigo-700 border-indigo-200",
     PQR: "bg-gradient-to-r from-rose-50 to-rose-100 text-rose-700 border-rose-200",
     LMN: "bg-gradient-to-r from-indigo-50 to-indigo-100 text-indigo-700 border-indigo-200",
     JKL: "bg-gradient-to-r from-pink-50 to-pink-100 text-pink-700 border-pink-200",
@@ -403,13 +403,13 @@ export default function PreviewTimetable() {
     const colors = [
       "bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 border-blue-200",
       "bg-gradient-to-r from-purple-50 to-purple-100 text-purple-700 border-purple-200",
-      "bg-gradient-to-r from-amber-50 to-amber-100 text-amber-700 border-amber-200",
+      "bg-gradient-to-r from-indigo-50 to-indigo-100 text-indigo-700 border-indigo-200",
       "bg-gradient-to-r from-rose-50 to-rose-100 text-rose-700 border-rose-200",
       "bg-gradient-to-r from-indigo-50 to-indigo-100 text-indigo-700 border-indigo-200",
       "bg-gradient-to-r from-pink-50 to-pink-100 text-pink-700 border-pink-200",
       "bg-gradient-to-r from-cyan-50 to-cyan-100 text-cyan-700 border-cyan-200",
       "bg-gradient-to-r from-emerald-50 to-emerald-100 text-emerald-700 border-emerald-200",
-      "bg-gradient-to-r from-orange-50 to-orange-100 text-orange-700 border-orange-200",
+      "bg-gradient-to-r from-violet-50 to-violet-100 text-violet-700 border-violet-200",
       "bg-gradient-to-r from-teal-50 to-teal-100 text-teal-700 border-teal-200",
       "bg-gradient-to-r from-violet-50 to-violet-100 text-violet-700 border-violet-200",
     ];
@@ -537,12 +537,12 @@ export default function PreviewTimetable() {
                   expandedDivision === division ? null : division
                 )
               }
-              className="p-2 hover:bg-amber-50 rounded-lg transition-colors print:hidden border border-amber-200"
+              className="p-2 hover:bg-indigo-50 rounded-lg transition-colors print:hidden border border-indigo-200"
             >
               {expandedDivision === division ? (
-                <ChevronUp className="w-5 h-5 text-amber-600" />
+                <ChevronUp className="w-5 h-5 text-indigo-600" />
               ) : (
-                <ChevronDown className="w-5 h-5 text-amber-600" />
+                <ChevronDown className="w-5 h-5 text-indigo-600" />
               )}
             </button>
           </div>
@@ -552,7 +552,7 @@ export default function PreviewTimetable() {
               type="checkbox"
               checked={selectedDivisions.includes(division)}
               onChange={() => toggleDivisionSelection(division)}
-              className="w-4 h-4 text-amber-600 rounded focus:ring-amber-500"
+              className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
             />
           </div>
         </div>
@@ -573,7 +573,7 @@ export default function PreviewTimetable() {
                     <th className="print:p-2 print:text-xs print:font-semibold print:text-gray-700 print:border print:border-gray-300 print:min-w-0 print:w-24">
                       <div className="p-3 print:p-2 print:text-center">
                         <div className="flex items-center gap-2 print:block">
-                          <Clock className="w-4 h-4 text-amber-500 print:hidden" />
+                          <Clock className="w-4 h-4 text-indigo-500 print:hidden" />
                           <span className="font-medium text-gray-900 print:text-xs">
                             Time
                           </span>
@@ -608,7 +608,7 @@ export default function PreviewTimetable() {
                     return (
                       <tr
                         key={slot.value}
-                        className="hover:bg-amber-50/50 transition-colors print:hover:bg-white print:border-b print:border-gray-300"
+                        className="hover:bg-indigo-50/50 transition-colors print:hover:bg-white print:border-b print:border-gray-300"
                       >
                         <td className="print:p-2 print:text-xs print:border print:border-gray-300 print:bg-gray-50">
                           <div className="p-3 print:p-2">
@@ -677,13 +677,13 @@ export default function PreviewTimetable() {
      🔹 RENDER
   ======================= */
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-rose-50 p-4 md:p-6 print:p-0">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-rose-50 p-4 md:p-6 print:p-0">
       {/* Decorative Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none print:hidden">
-        <div className="absolute top-20 right-10 w-72 h-72 bg-gradient-to-br from-amber-100 to-transparent rounded-full opacity-40"></div>
+        <div className="absolute top-20 right-10 w-72 h-72 bg-gradient-to-br from-indigo-100 to-transparent rounded-full opacity-40"></div>
         <div className="absolute bottom-20 left-10 w-96 h-96 bg-gradient-to-tr from-rose-100 to-transparent rounded-full opacity-30"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-64 bg-gradient-to-r from-transparent via-amber-50/20 to-transparent"></div>
-        <div className="absolute top-40 left-20 w-24 h-24 border-4 border-amber-200/40 border-dashed rounded-lg rotate-12"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-64 bg-gradient-to-r from-transparent via-indigo-50/20 to-transparent"></div>
+        <div className="absolute top-40 left-20 w-24 h-24 border-4 border-indigo-200/40 border-dashed rounded-lg rotate-12"></div>
         <div className="absolute bottom-40 right-20 w-16 h-16 border-2 border-rose-200/40 border-dotted rounded-full"></div>
         <div className="absolute top-60 right-40 w-8 h-32 bg-gradient-to-b from-emerald-200/30 to-transparent transform rotate-45"></div>
       </div>
@@ -767,7 +767,7 @@ export default function PreviewTimetable() {
               Academic
             </button>
             <ChevronRight className="w-4 h-4 mx-2" />
-            <span className="font-medium text-amber-600 flex items-center gap-1">
+            <span className="font-medium text-indigo-600 flex items-center gap-1">
               <ClipboardList className="w-4 h-4" />
               Preview All Timetables
             </span>
@@ -779,9 +779,9 @@ export default function PreviewTimetable() {
           <div>
             <div className="flex items-center gap-3 mb-2">
               <div className="p-2.5 bg-white rounded-xl shadow-sm border border-gray-100 relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-amber-100 to-transparent opacity-60"></div>
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-100 to-transparent opacity-60"></div>
                 <div className="relative">
-                  <BarChart3 className="w-6 h-6 text-amber-600" />
+                  <BarChart3 className="w-6 h-6 text-indigo-600" />
                 </div>
               </div>
               <div>
@@ -796,7 +796,7 @@ export default function PreviewTimetable() {
             </div>
           </div>
           <div className="p-3 bg-white rounded-xl border border-gray-200 shadow-sm">
-            <Grid className="w-6 h-6 text-amber-600" />
+            <Grid className="w-6 h-6 text-indigo-600" />
           </div>
         </div>
 
@@ -823,10 +823,10 @@ export default function PreviewTimetable() {
 
         {/* Control Panel */}
         <div className="print:hidden bg-white rounded-2xl p-6 border border-gray-200 shadow-sm mb-8 relative overflow-hidden">
-          <div className="absolute -right-6 -top-6 w-24 h-24 bg-gradient-to-br from-amber-100 to-transparent rounded-full opacity-60"></div>
+          <div className="absolute -right-6 -top-6 w-24 h-24 bg-gradient-to-br from-indigo-100 to-transparent rounded-full opacity-60"></div>
           <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <div className="p-2 bg-gradient-to-br from-amber-100 to-amber-200 rounded-lg">
-              <Compass className="w-5 h-5 text-amber-700" />
+            <div className="p-2 bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-lg">
+              <Compass className="w-5 h-5 text-indigo-700" />
             </div>
             Select Branch & Semester
           </h2>
@@ -837,11 +837,11 @@ export default function PreviewTimetable() {
                 Semester
               </label>
               <div className="relative">
-                <GraduationCap className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-amber-500" />
+                <GraduationCap className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-indigo-500" />
                 <select
                   value={sem}
                   onChange={(e) => setSem(Number(e.target.value))}
-                  className="w-full pl-10 pr-4 py-3 bg-gradient-to-r from-amber-50 to-amber-100 border border-amber-200 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
+                  className="w-full pl-10 pr-4 py-3 bg-gradient-to-r from-indigo-50 to-indigo-100 border border-indigo-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
                 >
                   {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
                     <option key={s} value={s}>
@@ -883,7 +883,7 @@ export default function PreviewTimetable() {
                 className={`w-full px-4 py-3 rounded-lg font-medium transition-all duration-300 flex items-center justify-center gap-2 shadow-sm hover:shadow-md ${
                   isLoading
                     ? "bg-gradient-to-r from-gray-100 to-gray-200 text-gray-400 cursor-not-allowed border border-gray-200"
-                    : "bg-gradient-to-r from-amber-600 to-amber-700 text-white hover:from-amber-700 hover:to-amber-800 border border-amber-600"
+                    : "bg-gradient-to-r from-indigo-600 to-indigo-700 text-white hover:from-indigo-700 hover:to-indigo-800 border border-indigo-600"
                 }`}
               >
                 {isLoading ? (
@@ -909,7 +909,7 @@ export default function PreviewTimetable() {
               </label>
               <button
                 onClick={selectAllDivisions}
-                className="text-sm text-amber-600 hover:text-amber-700 font-medium"
+                className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
               >
                 {selectedDivisions.length === Object.keys(allSchedules).length
                   ? "Deselect All"
@@ -924,9 +924,9 @@ export default function PreviewTimetable() {
                   disabled={!allSchedules[division]}
                   className={`px-4 py-2 rounded-lg border transition-all flex items-center gap-2 shadow-sm hover:shadow ${
                     selectedDivisions.includes(division)
-                      ? "bg-gradient-to-r from-amber-600 to-amber-700 text-white border-amber-600"
+                      ? "bg-gradient-to-r from-indigo-600 to-indigo-700 text-white border-indigo-600"
                       : allSchedules[division]
-                      ? "bg-gradient-to-r from-amber-50 to-amber-100 text-amber-700 border-amber-200 hover:from-amber-100 hover:to-amber-200"
+                      ? "bg-gradient-to-r from-indigo-50 to-indigo-100 text-indigo-700 border-indigo-200 hover:from-indigo-100 hover:to-indigo-200"
                       : "bg-gradient-to-r from-gray-50 to-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
                   }`}
                 >
@@ -943,25 +943,25 @@ export default function PreviewTimetable() {
           <div className="flex flex-wrap gap-4">
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-amber-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-indigo-400" />
                 <input
                   type="text"
                   placeholder="Search by faculty, time, or day..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-gradient-to-r from-amber-50 to-amber-100 border border-amber-200 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 placeholder-amber-400/70"
+                  className="w-full pl-10 pr-4 py-3 bg-gradient-to-r from-indigo-50 to-indigo-100 border border-indigo-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 placeholder-indigo-400/70"
                 />
               </div>
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="flex bg-gradient-to-r from-amber-100 to-amber-50 rounded-lg p-1 border border-amber-200">
+              <div className="flex bg-gradient-to-r from-indigo-100 to-indigo-50 rounded-lg p-1 border border-indigo-200">
                 <button
                   onClick={() => setViewMode("grid")}
                   className={`px-3 py-2 rounded-md flex items-center gap-2 transition-all ${
                     viewMode === "grid"
-                      ? "bg-white shadow-sm text-amber-600 border border-amber-200"
-                      : "text-amber-700 hover:text-amber-900 hover:bg-amber-50/50"
+                      ? "bg-white shadow-sm text-indigo-600 border border-indigo-200"
+                      : "text-indigo-700 hover:text-indigo-900 hover:bg-indigo-50/50"
                   }`}
                 >
                   <Grid className="w-4 h-4" />
@@ -971,8 +971,8 @@ export default function PreviewTimetable() {
                   onClick={() => setViewMode("list")}
                   className={`px-3 py-2 rounded-md flex items-center gap-2 transition-all ${
                     viewMode === "list"
-                      ? "bg-white shadow-sm text-amber-600 border border-amber-200"
-                      : "text-amber-700 hover:text-amber-900 hover:bg-amber-50/50"
+                      ? "bg-white shadow-sm text-indigo-600 border border-indigo-200"
+                      : "text-indigo-700 hover:text-indigo-900 hover:bg-indigo-50/50"
                   }`}
                 >
                   <List className="w-4 h-4" />
@@ -984,7 +984,7 @@ export default function PreviewTimetable() {
                 onClick={() => setShowEmptySlots(!showEmptySlots)}
                 className={`px-4 py-3 rounded-lg font-medium flex items-center gap-2 transition-all shadow-sm hover:shadow ${
                   showEmptySlots
-                    ? "bg-gradient-to-r from-amber-100 to-amber-50 text-amber-700 border border-amber-200"
+                    ? "bg-gradient-to-r from-indigo-100 to-indigo-50 text-indigo-700 border border-indigo-200"
                     : "bg-gradient-to-r from-rose-100 to-rose-50 text-rose-700 border border-rose-200"
                 }`}
               >
@@ -1020,7 +1020,7 @@ export default function PreviewTimetable() {
                 className={`px-4 py-3 rounded-lg font-medium flex items-center gap-2 transition-all shadow-sm hover:shadow-md ${
                   selectedDivisions.length === 0
                     ? "bg-gradient-to-r from-gray-100 to-gray-200 text-gray-400 cursor-not-allowed border border-gray-200"
-                    : "bg-gradient-to-r from-amber-600 to-amber-700 text-white hover:from-amber-700 hover:to-amber-800 border border-amber-600"
+                    : "bg-gradient-to-r from-indigo-600 to-indigo-700 text-white hover:from-indigo-700 hover:to-indigo-800 border border-indigo-600"
                 }`}
               >
                 <Printer className="w-4 h-4" />
@@ -1033,8 +1033,8 @@ export default function PreviewTimetable() {
         {/* Statistics Cards */}
         {Object.keys(allSchedules).length > 0 && (
           <div className="print:hidden grid grid-cols-1 md:grid-cols-6 gap-6 mb-8">
-            <div className="bg-white rounded-xl p-6 border border-amber-200 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow duration-300">
-              <div className="absolute -right-6 -top-6 w-24 h-24 bg-gradient-to-br from-amber-100 to-transparent rounded-full opacity-60 group-hover:opacity-80 transition-opacity"></div>
+            <div className="bg-white rounded-xl p-6 border border-indigo-200 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow duration-300">
+              <div className="absolute -right-6 -top-6 w-24 h-24 bg-gradient-to-br from-indigo-100 to-transparent rounded-full opacity-60 group-hover:opacity-80 transition-opacity"></div>
               <div className="relative">
                 <div className="flex items-center justify-between">
                   <div>
@@ -1046,8 +1046,8 @@ export default function PreviewTimetable() {
                       {overallStats.totalDivisions}
                     </p>
                   </div>
-                  <div className="p-3 bg-gradient-to-br from-amber-50 to-amber-100 rounded-lg border border-amber-200">
-                    <Users className="w-6 h-6 text-amber-600" />
+                  <div className="p-3 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg border border-indigo-200">
+                    <Users className="w-6 h-6 text-indigo-600" />
                   </div>
                 </div>
               </div>
@@ -1171,10 +1171,10 @@ export default function PreviewTimetable() {
               ))}
 
             {/* Faculty Legend */}
-            <div className="print:hidden mt-6 bg-white rounded-xl p-4 border border-amber-200 shadow-sm relative overflow-hidden">
-              <div className="absolute -right-6 -top-6 w-24 h-24 bg-gradient-to-br from-amber-100 to-transparent rounded-full opacity-40"></div>
+            <div className="print:hidden mt-6 bg-white rounded-xl p-4 border border-indigo-200 shadow-sm relative overflow-hidden">
+              <div className="absolute -right-6 -top-6 w-24 h-24 bg-gradient-to-br from-indigo-100 to-transparent rounded-full opacity-40"></div>
               <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                <BookOpen className="w-4 h-4 text-amber-600" />
+                <BookOpen className="w-4 h-4 text-indigo-600" />
                 Faculty Legend ({availableFaculty.length} faculty found)
               </h3>
               <div className="flex flex-wrap gap-2">
@@ -1208,30 +1208,30 @@ export default function PreviewTimetable() {
             </div>
 
             {/* Guide Section */}
-            <div className="print:hidden mt-8 bg-gradient-to-r from-amber-50 to-rose-50 rounded-2xl p-8 border-2 border-amber-200 relative overflow-hidden">
+            <div className="print:hidden mt-8 bg-gradient-to-r from-indigo-50 to-rose-50 rounded-2xl p-8 border-2 border-indigo-200 relative overflow-hidden">
               <div className="absolute top-4 right-4">
-                <Book className="w-8 h-8 text-amber-400/40" />
+                <Book className="w-8 h-8 text-indigo-400/40" />
               </div>
               <div className="relative">
-                <h3 className="font-bold text-amber-900 mb-6 flex items-center gap-3 text-lg">
-                  <div className="p-2 bg-gradient-to-br from-amber-100 to-amber-200 rounded-lg">
-                    <Compass className="w-5 h-5 text-amber-700" />
+                <h3 className="font-bold text-indigo-900 mb-6 flex items-center gap-3 text-lg">
+                  <div className="p-2 bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-lg">
+                    <Compass className="w-5 h-5 text-indigo-700" />
                   </div>
                   Preview Guide
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                   <div className="space-y-3">
                     <div className="flex items-center gap-2 mb-2">
-                      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center border border-amber-200">
-                        <span className="text-xs font-bold text-amber-700">
+                      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-indigo-100 to-indigo-200 flex items-center justify-center border border-indigo-200">
+                        <span className="text-xs font-bold text-indigo-700">
                           1
                         </span>
                       </div>
-                      <h4 className="font-semibold text-amber-800">
+                      <h4 className="font-semibold text-indigo-800">
                         Division Selection
                       </h4>
                     </div>
-                    <p className="text-amber-700 text-sm leading-relaxed">
+                    <p className="text-indigo-700 text-sm leading-relaxed">
                       Click on division checkboxes to select or deselect which
                       timetables to display. Use "Select All" to quickly choose
                       all loaded divisions.
@@ -1277,11 +1277,11 @@ export default function PreviewTimetable() {
           </div>
         ) : (
           /* Empty State */
-          <div className="print:hidden text-center py-12 bg-white rounded-2xl border-2 border-dashed border-amber-200 relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-amber-50/50 to-transparent"></div>
+          <div className="print:hidden text-center py-12 bg-white rounded-2xl border-2 border-dashed border-indigo-200 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/50 to-transparent"></div>
             <div className="relative">
-              <div className="inline-block p-6 bg-gradient-to-br from-amber-100 to-amber-50 rounded-2xl mb-6 border border-amber-200">
-                <Grid className="w-16 h-16 text-amber-500" />
+              <div className="inline-block p-6 bg-gradient-to-br from-indigo-100 to-indigo-50 rounded-2xl mb-6 border border-indigo-200">
+                <Grid className="w-16 h-16 text-indigo-500" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-3">
                 {branch ? "No Timetables Loaded" : "Select a Branch"}
@@ -1297,7 +1297,7 @@ export default function PreviewTimetable() {
                 className={`inline-flex items-center px-6 py-3 rounded-lg font-medium transition-all duration-300 shadow-sm hover:shadow-md ${
                   !branch.trim()
                     ? "bg-gradient-to-r from-gray-100 to-gray-200 text-gray-400 cursor-not-allowed"
-                    : "bg-gradient-to-r from-amber-600 to-amber-700 text-white hover:from-amber-700 hover:to-amber-800"
+                    : "bg-gradient-to-r from-indigo-600 to-indigo-700 text-white hover:from-indigo-700 hover:to-indigo-800"
                 }`}
               >
                 <Loader2 className="w-5 h-5 mr-2" />

@@ -416,9 +416,9 @@ export default function FacultyProfile() {
   ======================= */
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-rose-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-rose-50 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-amber-600 mx-auto mb-4" />
+          <Loader2 className="w-12 h-12 animate-spin text-indigo-600 mx-auto mb-4" />
           <p className="text-gray-600">Loading faculty profile...</p>
         </div>
       </div>
@@ -427,7 +427,7 @@ export default function FacultyProfile() {
 
   if (!faculty) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-rose-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-rose-50 flex items-center justify-center">
         <div className="text-center max-w-md">
           <AlertCircle className="w-16 h-16 text-rose-500 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
@@ -438,7 +438,7 @@ export default function FacultyProfile() {
           </p>
           <button
             onClick={() => navigate("/dashboard")}
-            className="px-6 py-3 bg-amber-600 text-white rounded-lg font-medium hover:bg-amber-700 transition-colors flex items-center gap-2 mx-auto"
+            className="px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2 mx-auto"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Dashboard
@@ -452,13 +452,13 @@ export default function FacultyProfile() {
      🔹 RENDER PROFILE
   ======================= */
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-rose-50 p-4 md:p-6 print:p-0">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-rose-50 p-4 md:p-6 print:p-0">
       {/* Decorative Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none print:hidden">
-        <div className="absolute top-20 right-10 w-72 h-72 bg-gradient-to-br from-amber-100 to-transparent rounded-full opacity-40"></div>
+        <div className="absolute top-20 right-10 w-72 h-72 bg-gradient-to-br from-indigo-100 to-transparent rounded-full opacity-40"></div>
         <div className="absolute bottom-20 left-10 w-96 h-96 bg-gradient-to-tr from-rose-100 to-transparent rounded-full opacity-30"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-64 bg-gradient-to-r from-transparent via-amber-50/20 to-transparent"></div>
-        <div className="absolute top-40 left-20 w-24 h-24 border-4 border-amber-200/40 border-dashed rounded-lg rotate-12"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-64 bg-gradient-to-r from-transparent via-indigo-50/20 to-transparent"></div>
+        <div className="absolute top-40 left-20 w-24 h-24 border-4 border-indigo-200/40 border-dashed rounded-lg rotate-12"></div>
         <div className="absolute bottom-40 right-20 w-16 h-16 border-2 border-rose-200/40 border-dotted rounded-full"></div>
       </div>
 
@@ -492,7 +492,7 @@ export default function FacultyProfile() {
               Academic
             </button>
             <ChevronRight className="w-4 h-4 mx-2" />
-            <span className="font-medium text-amber-600 flex items-center gap-1">
+            <span className="font-medium text-indigo-600 flex items-center gap-1">
               <ClipboardList className="w-4 h-4" />
               {faculty.name}'s Profile
             </span>
@@ -504,9 +504,9 @@ export default function FacultyProfile() {
           <div>
             <div className="flex items-center gap-3 mb-2 print:hidden">
               <div className="p-2.5 bg-white rounded-xl shadow-sm border border-gray-100 relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-amber-100 to-transparent opacity-60"></div>
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-100 to-transparent opacity-60"></div>
                 <div className="relative">
-                  <User className="w-6 h-6 text-amber-600" />
+                  <User className="w-6 h-6 text-indigo-600" />
                 </div>
               </div>
               <div>
@@ -522,7 +522,7 @@ export default function FacultyProfile() {
           </div>
           <div className="flex items-center gap-3 print:hidden">
             <div className="p-3 bg-white rounded-xl border border-gray-200 shadow-sm">
-              <User className="w-6 h-6 text-amber-600" />
+              <User className="w-6 h-6 text-indigo-600" />
             </div>
           </div>
         </div>
@@ -534,7 +534,7 @@ export default function FacultyProfile() {
             <div className="flex-1">
               <div className="flex items-start justify-between mb-6">
                 <div className="flex items-center gap-4">
-                  <div className="w-20 h-20 bg-gradient-to-br from-amber-500 to-amber-600 rounded-full flex items-center justify-center">
+                  <div className="w-20 h-20 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-full flex items-center justify-center">
                     <span className="text-2xl font-bold text-white">
                       {faculty.name.charAt(0)}
                     </span>
@@ -548,7 +548,7 @@ export default function FacultyProfile() {
                         className={`px-3 py-1 rounded-full text-sm font-medium ${
                           faculty.isAdmin
                             ? "bg-gradient-to-r from-purple-100 to-purple-200 text-purple-700 border border-purple-200"
-                            : "bg-gradient-to-r from-amber-100 to-amber-200 text-amber-700 border border-amber-200"
+                            : "bg-gradient-to-r from-indigo-100 to-indigo-200 text-indigo-700 border border-indigo-200"
                         }`}
                       >
                         {faculty.isAdmin ? "Administrator" : "Faculty Member"}
@@ -582,11 +582,11 @@ export default function FacultyProfile() {
                   <button
                     onClick={() => fetchFacultyData(false)}
                     disabled={isRefreshing}
-                    className="p-2 hover:bg-amber-50 rounded-lg transition-colors border border-amber-200"
+                    className="p-2 hover:bg-indigo-50 rounded-lg transition-colors border border-indigo-200"
                     title="Refresh"
                   >
                     <RefreshCw
-                      className={`w-5 h-5 text-amber-600 ${
+                      className={`w-5 h-5 text-indigo-600 ${
                         isRefreshing ? "animate-spin" : ""
                       }`}
                     />
@@ -608,7 +608,7 @@ export default function FacultyProfile() {
                   </button>
                   <button
                     onClick={() => setIsEditingPassword(!isEditingPassword)}
-                    className="p-2 hover:bg-amber-50 rounded-lg transition-colors border border-amber-200"
+                    className="p-2 hover:bg-indigo-50 rounded-lg transition-colors border border-indigo-200"
                     title={
                       isEditingPassword
                         ? "Cancel Password Change"
@@ -618,7 +618,7 @@ export default function FacultyProfile() {
                     {isEditingPassword ? (
                       <X className="w-5 h-5 text-gray-600" />
                     ) : (
-                      <Lock className="w-5 h-5 text-amber-600" />
+                      <Lock className="w-5 h-5 text-indigo-600" />
                     )}
                   </button>
                   <button
@@ -671,7 +671,7 @@ export default function FacultyProfile() {
                               href="https://t.me/sister_saira_bot?start=123"
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="ml-1 text-amber-600 hover:text-amber-800 hover:underline font-medium"
+                              className="ml-1 text-indigo-600 hover:text-indigo-800 hover:underline font-medium"
                             >
                               https://t.me/sister_saira_bot?start
                             </a>
@@ -728,9 +728,9 @@ export default function FacultyProfile() {
 
               {/* Password Change Form */}
               {isEditingPassword && (
-                <div className="mb-6 p-4 bg-gradient-to-r from-amber-50 to-amber-100 rounded-lg border border-amber-200 print:hidden">
+                <div className="mb-6 p-4 bg-gradient-to-r from-indigo-50 to-indigo-100 rounded-lg border border-indigo-200 print:hidden">
                   <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <Lock className="w-5 h-5 text-amber-600" />
+                    <Lock className="w-5 h-5 text-indigo-600" />
                     Change Password
                   </h3>
                   <div className="space-y-4">
@@ -747,7 +747,7 @@ export default function FacultyProfile() {
                             currentPassword: e.target.value,
                           }))
                         }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                         placeholder="Enter current password"
                       />
                     </div>
@@ -764,7 +764,7 @@ export default function FacultyProfile() {
                             newPassword: e.target.value,
                           }))
                         }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                         placeholder="Enter new password (min 6 characters)"
                       />
                     </div>
@@ -781,7 +781,7 @@ export default function FacultyProfile() {
                             confirmPassword: e.target.value,
                           }))
                         }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                         placeholder="Confirm new password"
                       />
                     </div>
@@ -802,7 +802,7 @@ export default function FacultyProfile() {
                       <button
                         onClick={handleChangePassword}
                         disabled={isSaving}
-                        className="px-4 py-2 bg-gradient-to-r from-amber-600 to-amber-700 text-white rounded-lg font-medium hover:from-amber-700 hover:to-amber-800 transition-all duration-300 shadow-sm hover:shadow-md flex items-center gap-2"
+                        className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-lg font-medium hover:from-indigo-700 hover:to-indigo-800 transition-all duration-300 shadow-sm hover:shadow-md flex items-center gap-2"
                       >
                         {isSaving ? (
                           <>
@@ -836,17 +836,17 @@ export default function FacultyProfile() {
 
               {/* Statistics Sidebar */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 print:hidden">
-                <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl p-4 border border-amber-200 relative overflow-hidden group hover:shadow-md transition-shadow duration-300">
-                  <div className="absolute -right-6 -top-6 w-24 h-24 bg-gradient-to-br from-amber-100 to-transparent rounded-full opacity-60 group-hover:opacity-80 transition-opacity"></div>
+                <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-xl p-4 border border-indigo-200 relative overflow-hidden group hover:shadow-md transition-shadow duration-300">
+                  <div className="absolute -right-6 -top-6 w-24 h-24 bg-gradient-to-br from-indigo-100 to-transparent rounded-full opacity-60 group-hover:opacity-80 transition-opacity"></div>
                   <div className="relative">
                     <div className="flex items-center justify-between mb-2">
-                      <p className="text-sm text-amber-800">Total Lectures</p>
-                      <BookOpen className="w-5 h-5 text-amber-600" />
+                      <p className="text-sm text-indigo-800">Total Lectures</p>
+                      <BookOpen className="w-5 h-5 text-indigo-600" />
                     </div>
-                    <p className="text-2xl font-bold text-amber-900">
+                    <p className="text-2xl font-bold text-indigo-900">
                       {stats.totalLectures}
                     </p>
-                    <p className="text-xs text-amber-700 mt-1">
+                    <p className="text-xs text-indigo-700 mt-1">
                       {stats.totalLectures} teaching hours per week
                     </p>
                   </div>
@@ -904,14 +904,14 @@ export default function FacultyProfile() {
               <div className="flex items-center gap-3">
                 <button
                   onClick={printTimetable}
-                  className="px-3 py-1.5 bg-gradient-to-r from-amber-100 to-amber-50 text-amber-700 rounded-lg text-sm font-medium flex items-center gap-2 hover:from-amber-200 hover:to-amber-100 transition-all duration-300 shadow-sm hover:shadow border border-amber-200"
+                  className="px-3 py-1.5 bg-gradient-to-r from-indigo-100 to-indigo-50 text-indigo-700 rounded-lg text-sm font-medium flex items-center gap-2 hover:from-indigo-200 hover:to-indigo-100 transition-all duration-300 shadow-sm hover:shadow border border-indigo-200"
                 >
                   <Printer className="w-4 h-4" />
                   Print
                 </button>
                 <button
                   onClick={exportTimetable}
-                  className="px-3 py-1.5 bg-gradient-to-r from-amber-600 to-amber-700 text-white rounded-lg text-sm font-medium flex items-center gap-2 hover:from-amber-700 hover:to-amber-800 transition-all duration-300 shadow-sm hover:shadow-md"
+                  className="px-3 py-1.5 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-lg text-sm font-medium flex items-center gap-2 hover:from-indigo-700 hover:to-indigo-800 transition-all duration-300 shadow-sm hover:shadow-md"
                 >
                   <Download className="w-4 h-4" />
                   Export
@@ -931,13 +931,13 @@ export default function FacultyProfile() {
 
         {/* Quick Actions (Non-Print) */}
         <div className="print:hidden">
-          <div className="bg-gradient-to-r from-amber-50 to-rose-50 rounded-2xl p-6 border-2 border-amber-200 mb-8 relative overflow-hidden">
+          <div className="bg-gradient-to-r from-indigo-50 to-rose-50 rounded-2xl p-6 border-2 border-indigo-200 mb-8 relative overflow-hidden">
             <div className="absolute top-4 right-4">
-              <PenTool className="w-8 h-8 text-amber-400/40" />
+              <PenTool className="w-8 h-8 text-indigo-400/40" />
             </div>
-            <h3 className="font-semibold text-amber-900 mb-4 flex items-center gap-2">
-              <div className="p-2 bg-gradient-to-br from-amber-100 to-amber-200 rounded-lg">
-                <BarChart3 className="w-5 h-5 text-amber-700" />
+            <h3 className="font-semibold text-indigo-900 mb-4 flex items-center gap-2">
+              <div className="p-2 bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-lg">
+                <BarChart3 className="w-5 h-5 text-indigo-700" />
               </div>
               Quick Actions
             </h3>
@@ -959,11 +959,11 @@ export default function FacultyProfile() {
 
               <button
                 onClick={() => setIsEditingPassword(true)}
-                className="bg-white border border-amber-200 rounded-lg p-4 text-left hover:bg-amber-50 transition-colors shadow-sm hover:shadow-md group"
+                className="bg-white border border-indigo-200 rounded-lg p-4 text-left hover:bg-indigo-50 transition-colors shadow-sm hover:shadow-md group"
               >
                 <div className="flex items-center gap-3 mb-2">
-                  <div className="p-2 bg-gradient-to-br from-amber-100 to-amber-200 rounded-lg border border-amber-200">
-                    <Lock className="w-5 h-5 text-amber-600" />
+                  <div className="p-2 bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-lg border border-indigo-200">
+                    <Lock className="w-5 h-5 text-indigo-600" />
                   </div>
                   <h4 className="font-medium text-gray-900">Change Password</h4>
                 </div>
@@ -974,11 +974,11 @@ export default function FacultyProfile() {
 
               <button
                 onClick={exportTimetable}
-                className="bg-white border border-amber-200 rounded-lg p-4 text-left hover:bg-amber-50 transition-colors shadow-sm hover:shadow-md group"
+                className="bg-white border border-indigo-200 rounded-lg p-4 text-left hover:bg-indigo-50 transition-colors shadow-sm hover:shadow-md group"
               >
                 <div className="flex items-center gap-3 mb-2">
-                  <div className="p-2 bg-gradient-to-br from-amber-100 to-amber-200 rounded-lg border border-amber-200">
-                    <Download className="w-5 h-5 text-amber-600" />
+                  <div className="p-2 bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-lg border border-indigo-200">
+                    <Download className="w-5 h-5 text-indigo-600" />
                   </div>
                   <h4 className="font-medium text-gray-900">
                     Export Timetable
@@ -992,30 +992,30 @@ export default function FacultyProfile() {
           </div>
 
           {/* Guide Section */}
-          <div className="bg-gradient-to-r from-amber-50 to-rose-50 rounded-2xl p-8 border-2 border-amber-200 relative overflow-hidden print:hidden">
+          <div className="bg-gradient-to-r from-indigo-50 to-rose-50 rounded-2xl p-8 border-2 border-indigo-200 relative overflow-hidden print:hidden">
             <div className="absolute top-4 right-4">
-              <Bookmark className="w-8 h-8 text-amber-400/40" />
+              <Bookmark className="w-8 h-8 text-indigo-400/40" />
             </div>
             <div className="relative">
-              <h3 className="font-bold text-amber-900 mb-6 flex items-center gap-3 text-lg">
-                <div className="p-2 bg-gradient-to-br from-amber-100 to-amber-200 rounded-lg">
-                  <Shield className="w-5 h-5 text-amber-700" />
+              <h3 className="font-bold text-indigo-900 mb-6 flex items-center gap-3 text-lg">
+                <div className="p-2 bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-lg">
+                  <Shield className="w-5 h-5 text-indigo-700" />
                 </div>
                 Profile Management Guide
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center border border-amber-200">
-                      <span className="text-xs font-bold text-amber-700">
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-indigo-100 to-indigo-200 flex items-center justify-center border border-indigo-200">
+                      <span className="text-xs font-bold text-indigo-700">
                         1
                       </span>
                     </div>
-                    <h4 className="font-semibold text-amber-800">
+                    <h4 className="font-semibold text-indigo-800">
                       Telegram Setup
                     </h4>
                   </div>
-                  <p className="text-amber-700 text-sm leading-relaxed">
+                  <p className="text-indigo-700 text-sm leading-relaxed">
                     Set up your Telegram Chat ID to receive real-time
                     notifications about timetable changes and important updates
                     directly on your phone.

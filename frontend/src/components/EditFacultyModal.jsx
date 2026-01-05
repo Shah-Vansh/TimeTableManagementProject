@@ -58,20 +58,20 @@ export default function EditFacultyModal({ faculty, isOpen, onClose, onSuccess }
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       {/* Decorative Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/3 left-1/4 w-64 h-64 bg-gradient-to-br from-amber-100/30 to-transparent rounded-full"></div>
+        <div className="absolute top-1/3 left-1/4 w-64 h-64 bg-gradient-to-br from-indigo-100/30 to-transparent rounded-full"></div>
         <div className="absolute bottom-1/3 right-1/4 w-96 h-96 bg-gradient-to-tr from-blue-100/20 to-transparent rounded-full"></div>
       </div>
 
-      <div className="relative z-10 bg-white rounded-2xl w-full max-w-md overflow-hidden border-2 border-amber-200 shadow-xl">
+      <div className="relative z-10 bg-white rounded-2xl w-full max-w-md overflow-hidden border-2 border-indigo-200 shadow-xl">
         {/* Notebook Spine Effect */}
-        <div className="absolute left-0 top-0 bottom-0 w-2 bg-gradient-to-b from-amber-400 to-amber-300 rounded-l-xl"></div>
+        <div className="absolute left-0 top-0 bottom-0 w-2 bg-gradient-to-b from-indigo-400 to-indigo-300 rounded-l-xl"></div>
 
         {/* Header */}
-        <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-amber-50 to-amber-100/50">
+        <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-indigo-50 to-indigo-100/50">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-gradient-to-br from-amber-100 to-amber-200 rounded-lg border border-amber-300">
-                <PenTool className="w-5 h-5 text-amber-600" />
+              <div className="p-2 bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-lg border border-indigo-300">
+                <PenTool className="w-5 h-5 text-indigo-600" />
               </div>
               <div>
                 <h2 className="text-xl font-bold text-gray-900">
@@ -84,9 +84,9 @@ export default function EditFacultyModal({ faculty, isOpen, onClose, onSuccess }
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-gradient-to-r hover:from-amber-100 hover:to-amber-50 rounded-lg border border-amber-200 hover:border-amber-300 transition-all duration-300"
+              className="p-2 hover:bg-gradient-to-r hover:from-indigo-100 hover:to-indigo-50 rounded-lg border border-indigo-200 hover:border-indigo-300 transition-all duration-300"
             >
-              <X className="w-5 h-5 text-amber-600" />
+              <X className="w-5 h-5 text-indigo-600" />
             </button>
           </div>
         </div>
@@ -97,7 +97,7 @@ export default function EditFacultyModal({ faculty, isOpen, onClose, onSuccess }
               {/* Tutor ID Field */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-amber-600" />
+                  <Shield className="w-4 h-4 text-indigo-600" />
                   Tutor ID
                 </label>
                 <div className="relative">
@@ -118,7 +118,7 @@ export default function EditFacultyModal({ faculty, isOpen, onClose, onSuccess }
               {/* Tutor Name Field */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                  <User className="w-4 h-4 text-amber-600" />
+                  <User className="w-4 h-4 text-indigo-600" />
                   Tutor Name <span className="text-rose-500">*</span>
                 </label>
                 <div className="relative">
@@ -127,7 +127,7 @@ export default function EditFacultyModal({ faculty, isOpen, onClose, onSuccess }
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     placeholder="Enter tutor's full name"
-                    className="w-full px-4 py-3 pl-11 bg-white border border-gray-300 text-gray-900 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all shadow-sm"
+                    className="w-full px-4 py-3 pl-11 bg-white border border-gray-300 text-gray-900 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all shadow-sm"
                     required
                   />
                   <User className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
@@ -187,7 +187,7 @@ export default function EditFacultyModal({ faculty, isOpen, onClose, onSuccess }
           </div>
 
           {/* Footer */}
-          <div className="p-6 border-t border-gray-200 bg-gradient-to-r from-amber-50/50 to-blue-50/50">
+          <div className="p-6 border-t border-gray-200 bg-gradient-to-r from-indigo-50/50 to-blue-50/50">
             <div className="flex justify-end gap-3">
               <button
                 type="button"
@@ -202,7 +202,7 @@ export default function EditFacultyModal({ faculty, isOpen, onClose, onSuccess }
                 className={`px-4 py-2.5 rounded-lg font-medium transition-all duration-300 shadow-sm hover:shadow-md flex items-center gap-2 group ${
                   loading || !formData.name.trim()
                     ? "bg-gradient-to-r from-gray-100 to-gray-50 text-gray-400 border border-gray-200 cursor-not-allowed"
-                    : "bg-gradient-to-r from-amber-600 to-amber-700 text-white hover:from-amber-700 hover:to-amber-800"
+                    : "bg-gradient-to-r from-indigo-600 to-indigo-700 text-white hover:from-indigo-700 hover:to-indigo-800"
                 }`}
               >
                 {loading ? (

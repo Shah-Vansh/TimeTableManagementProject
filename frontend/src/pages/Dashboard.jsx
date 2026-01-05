@@ -131,7 +131,7 @@ function Dashboard() {
 
   const getRandomCoverColor = () => {
     const colors = [
-      "from-amber-100 to-amber-200",
+      "from-indigo-100 to-indigo-200",
       "from-rose-100 to-rose-200",
       "from-emerald-100 to-emerald-200",
       "from-rose-100 to-rose-200",
@@ -311,11 +311,11 @@ function Dashboard() {
   const getColorClasses = (color) => {
     const colorMap = {
       yellow: {
-        bg: "bg-amber-50",
-        border: "border-amber-200",
-        text: "text-amber-700",
-        light: "bg-gradient-to-r from-amber-100 to-amber-50",
-        ribbon: "bg-gradient-to-r from-amber-400 to-amber-300",
+        bg: "bg-indigo-50",
+        border: "border-indigo-200",
+        text: "text-indigo-700",
+        light: "bg-gradient-to-r from-indigo-100 to-indigo-50",
+        ribbon: "bg-gradient-to-r from-indigo-400 to-indigo-300",
       },
       rose: {
         bg: "bg-rose-50",
@@ -355,7 +355,7 @@ function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-rose-50">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-rose-50">
       {/* Alert Component */}
       {alert && (
         <Alert
@@ -368,12 +368,12 @@ function Dashboard() {
 
       {/* Decorative Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 right-10 w-72 h-72 bg-gradient-to-br from-amber-100 to-transparent rounded-full opacity-40"></div>
+        <div className="absolute top-20 right-10 w-72 h-72 bg-gradient-to-br from-indigo-100 to-transparent rounded-full opacity-40"></div>
         <div className="absolute bottom-20 left-10 w-96 h-96 bg-gradient-to-tr from-rose-100 to-transparent rounded-full opacity-30"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-64 bg-gradient-to-r from-transparent via-amber-50/20 to-transparent"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-64 bg-gradient-to-r from-transparent via-indigo-50/20 to-transparent"></div>
 
         {/* Stationery Elements */}
-        <div className="absolute top-40 left-20 w-24 h-24 border-4 border-amber-200/40 border-dashed rounded-lg rotate-12"></div>
+        <div className="absolute top-40 left-20 w-24 h-24 border-4 border-indigo-200/40 border-dashed rounded-lg rotate-12"></div>
         <div className="absolute bottom-40 right-20 w-16 h-16 border-2 border-rose-200/40 border-dotted rounded-full"></div>
         <div className="absolute top-60 right-40 w-8 h-32 bg-gradient-to-b from-emerald-200/30 to-transparent transform rotate-45"></div>
       </div>
@@ -393,7 +393,7 @@ function Dashboard() {
                 Academic
               </span>
               <ChevronRight className="w-4 h-4 mx-2" />
-              <span className="font-medium text-amber-600 flex items-center gap-1">
+              <span className="font-medium text-indigo-600 flex items-center gap-1">
                 <ClipboardList className="w-4 h-4" />
                 Study Planner
               </span>
@@ -403,9 +403,9 @@ function Dashboard() {
               <div>
                 <div className="flex items-center gap-3 mb-3">
                   <div className="p-2.5 bg-white rounded-xl shadow-sm border border-gray-100 relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-br from-amber-100 to-transparent opacity-60"></div>
+                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-100 to-transparent opacity-60"></div>
                     <div className="relative">
-                      <Notebook className="w-6 h-6 text-amber-600" />
+                      <Notebook className="w-6 h-6 text-indigo-600" />
                     </div>
                   </div>
                   <div>
@@ -427,7 +427,7 @@ function Dashboard() {
                     placeholder="Search planners..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 pr-4 py-2.5 bg-white border border-gray-300 text-gray-900 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 w-64 transition-all shadow-sm"
+                    className="pl-10 pr-4 py-2.5 bg-white border border-gray-300 text-gray-900 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 w-64 transition-all shadow-sm"
                   />
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                 </div>
@@ -438,7 +438,7 @@ function Dashboard() {
           {/* Stats Overview with Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-300 relative overflow-hidden group">
-              <div className="absolute -right-6 -top-6 w-24 h-24 bg-gradient-to-br from-amber-100 to-transparent rounded-full opacity-60 group-hover:opacity-80 transition-opacity"></div>
+              <div className="absolute -right-6 -top-6 w-24 h-24 bg-gradient-to-br from-indigo-100 to-transparent rounded-full opacity-60 group-hover:opacity-80 transition-opacity"></div>
               <div className="relative">
                 <div className="flex items-center justify-between">
                   <div>
@@ -446,13 +446,13 @@ function Dashboard() {
                     <p className="text-2xl font-bold text-gray-900 mb-2">
                       {[...new Set(branchData.map((b) => b.branch))].length}
                     </p>
-                    <div className="flex items-center text-xs text-amber-600">
+                    <div className="flex items-center text-xs text-indigo-600">
                       <BookOpen className="w-3 h-3 mr-1" />
                       <span>Organized subjects</span>
                     </div>
                   </div>
-                  <div className="p-3 bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl border border-amber-200">
-                    <Book className="w-6 h-6 text-amber-600" />
+                  <div className="p-3 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-xl border border-indigo-200">
+                    <Book className="w-6 h-6 text-indigo-600" />
                   </div>
                 </div>
               </div>
@@ -529,7 +529,7 @@ function Dashboard() {
             <div className="flex items-center space-x-3">
               <button
                 onClick={handleCreateNew}
-                className="inline-flex items-center px-5 py-2.5 bg-gradient-to-r from-amber-600 to-amber-700 text-white rounded-lg hover:from-amber-700 hover:to-amber-800 transition-all duration-300 shadow-sm hover:shadow-md group"
+                className="inline-flex items-center px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-lg hover:from-indigo-700 hover:to-indigo-800 transition-all duration-300 shadow-sm hover:shadow-md group"
               >
                 <Plus className="w-4 h-4 mr-2 group-hover:rotate-90 transition-transform" />
                 New Study Section
@@ -550,7 +550,7 @@ function Dashboard() {
                   onClick={() => setViewMode("grid")}
                   className={`p-2 rounded transition-colors ${
                     viewMode === "grid"
-                      ? "bg-amber-50 text-amber-600 border border-amber-200"
+                      ? "bg-indigo-50 text-indigo-600 border border-indigo-200"
                       : "text-gray-600 hover:bg-gray-50"
                   }`}
                 >
@@ -560,7 +560,7 @@ function Dashboard() {
                   onClick={() => setViewMode("list")}
                   className={`p-2 rounded transition-colors ${
                     viewMode === "list"
-                      ? "bg-amber-50 text-amber-600 border border-amber-200"
+                      ? "bg-indigo-50 text-indigo-600 border border-indigo-200"
                       : "text-gray-600 hover:bg-gray-50"
                   }`}
                 >
@@ -572,7 +572,7 @@ function Dashboard() {
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="pl-10 pr-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 appearance-none cursor-pointer"
+                  className="pl-10 pr-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 appearance-none cursor-pointer"
                 >
                   <option value="recent">Most Recent</option>
                   <option value="name">By Subject</option>
@@ -585,7 +585,7 @@ function Dashboard() {
                 <select
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
-                  className="pl-10 pr-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 appearance-none cursor-pointer"
+                  className="pl-10 pr-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 appearance-none cursor-pointer"
                 >
                   <option value="all">All Status</option>
                   <option value="active">Active Only</option>
@@ -605,7 +605,7 @@ function Dashboard() {
                   return (
                     <div
                       key={`${branchInfo.sem}-${branchInfo.branch}`}
-                      className={`bg-white rounded-xl border-2 ${colors.border} hover:border-amber-400 transition-all duration-300 overflow-hidden group hover:shadow-lg relative`}
+                      className={`bg-white rounded-xl border-2 ${colors.border} hover:border-indigo-400 transition-all duration-300 overflow-hidden group hover:shadow-lg relative`}
                     >
                       {/* Notebook Spine Effect */}
                       <div
@@ -698,7 +698,7 @@ function Dashboard() {
                               className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${
                                 branchInfo.status === "active"
                                   ? "bg-emerald-100 text-emerald-800 border-emerald-200"
-                                  : "bg-amber-100 text-amber-800 border-amber-200"
+                                  : "bg-indigo-100 text-indigo-800 border-indigo-200"
                               }`}
                             >
                               {branchInfo.status === "active"
@@ -785,27 +785,27 @@ function Dashboard() {
               <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
                 <div className="overflow-x-auto">
                   <table className="w-full">
-                    <thead className="bg-gradient-to-r from-amber-50 to-amber-100 border-b border-amber-200">
+                    <thead className="bg-gradient-to-r from-indigo-50 to-indigo-100 border-b border-indigo-200">
                       <tr>
-                        <th className="py-4 px-6 text-left text-xs font-semibold text-amber-800 uppercase tracking-wider">
+                        <th className="py-4 px-6 text-left text-xs font-semibold text-indigo-800 uppercase tracking-wider">
                           Study Section
                         </th>
-                        <th className="py-4 px-6 text-left text-xs font-semibold text-amber-800 uppercase tracking-wider">
+                        <th className="py-4 px-6 text-left text-xs font-semibold text-indigo-800 uppercase tracking-wider">
                           Groups
                         </th>
-                        <th className="py-4 px-6 text-left text-xs font-semibold text-amber-800 uppercase tracking-wider">
+                        <th className="py-4 px-6 text-left text-xs font-semibold text-indigo-800 uppercase tracking-wider">
                           Tutors
                         </th>
-                        <th className="py-4 px-6 text-left text-xs font-semibold text-amber-800 uppercase tracking-wider">
+                        <th className="py-4 px-6 text-left text-xs font-semibold text-indigo-800 uppercase tracking-wider">
                           Hours/Day
                         </th>
-                        <th className="py-4 px-6 text-left text-xs font-semibold text-amber-800 uppercase tracking-wider">
+                        <th className="py-4 px-6 text-left text-xs font-semibold text-indigo-800 uppercase tracking-wider">
                           Status
                         </th>
-                        <th className="py-4 px-6 text-left text-xs font-semibold text-amber-800 uppercase tracking-wider">
+                        <th className="py-4 px-6 text-left text-xs font-semibold text-indigo-800 uppercase tracking-wider">
                           Last Updated
                         </th>
-                        <th className="py-4 px-6 text-left text-xs font-semibold text-amber-800 uppercase tracking-wider">
+                        <th className="py-4 px-6 text-left text-xs font-semibold text-indigo-800 uppercase tracking-wider">
                           Actions
                         </th>
                       </tr>
@@ -816,7 +816,7 @@ function Dashboard() {
                         return (
                           <tr
                             key={`${branchInfo.sem}-${branchInfo.branch}`}
-                            className="hover:bg-amber-50/50 transition-colors"
+                            className="hover:bg-indigo-50/50 transition-colors"
                           >
                             <td className="py-4 px-6">
                               <div className="flex items-center gap-3">
@@ -877,7 +877,7 @@ function Dashboard() {
                                 className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${
                                   branchInfo.status === "active"
                                     ? "bg-emerald-100 text-emerald-800 border-emerald-200"
-                                    : "bg-amber-100 text-amber-800 border-amber-200"
+                                    : "bg-indigo-100 text-indigo-800 border-indigo-200"
                                 }`}
                               >
                                 {branchInfo.status === "active"
@@ -904,7 +904,7 @@ function Dashboard() {
                                   onClick={() =>
                                     handleEditBranchTimetable(branchInfo)
                                   }
-                                  className="p-2 hover:bg-amber-50 rounded-lg text-amber-600 hover:text-amber-700 transition-colors border border-amber-200 hover:border-amber-300"
+                                  className="p-2 hover:bg-indigo-50 rounded-lg text-indigo-600 hover:text-indigo-700 transition-colors border border-indigo-200 hover:border-indigo-300"
                                   title="Edit"
                                 >
                                   <Edit className="w-4 h-4" />
@@ -930,11 +930,11 @@ function Dashboard() {
             )
           ) : (
             /* Empty State */
-            <div className="text-center py-16 bg-white rounded-2xl border-2 border-dashed border-amber-200 relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-amber-50/50 to-transparent"></div>
+            <div className="text-center py-16 bg-white rounded-2xl border-2 border-dashed border-indigo-200 relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/50 to-transparent"></div>
               <div className="relative">
-                <div className="inline-block p-6 bg-gradient-to-br from-amber-100 to-amber-50 rounded-2xl mb-6 border border-amber-200">
-                  <Notebook className="w-16 h-16 text-amber-500" />
+                <div className="inline-block p-6 bg-gradient-to-br from-indigo-100 to-indigo-50 rounded-2xl mb-6 border border-indigo-200">
+                  <Notebook className="w-16 h-16 text-indigo-500" />
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900 mb-3">
                   No study planners found
@@ -945,7 +945,7 @@ function Dashboard() {
                 </p>
                 <button
                   onClick={handleCreateNew}
-                  className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-amber-600 to-amber-700 text-white rounded-lg hover:from-amber-700 hover:to-amber-800 transition-all duration-300 shadow-sm hover:shadow-md group"
+                  className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-lg hover:from-indigo-700 hover:to-indigo-800 transition-all duration-300 shadow-sm hover:shadow-md group"
                 >
                   <Plus className="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform" />
                   Create Study Section
@@ -955,30 +955,30 @@ function Dashboard() {
           )}
 
           {/* Instructions Section */}
-          <div className="mt-12 bg-gradient-to-r from-amber-50 to-rose-50 rounded-2xl p-8 border-2 border-amber-200 relative overflow-hidden">
+          <div className="mt-12 bg-gradient-to-r from-indigo-50 to-rose-50 rounded-2xl p-8 border-2 border-indigo-200 relative overflow-hidden">
             <div className="absolute top-4 right-4">
-              <Bookmark className="w-8 h-8 text-amber-400/40" />
+              <Bookmark className="w-8 h-8 text-indigo-400/40" />
             </div>
             <div className="relative">
-              <h3 className="font-bold text-amber-900 mb-6 flex items-center gap-3 text-lg">
-                <div className="p-2 bg-gradient-to-br from-amber-100 to-amber-200 rounded-lg">
-                  <Compass className="w-5 h-5 text-amber-700" />
+              <h3 className="font-bold text-indigo-900 mb-6 flex items-center gap-3 text-lg">
+                <div className="p-2 bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-lg">
+                  <Compass className="w-5 h-5 text-indigo-700" />
                 </div>
                 Study Planner Guide
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center">
-                      <span className="text-xs font-bold text-amber-700">
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-indigo-100 to-indigo-200 flex items-center justify-center">
+                      <span className="text-xs font-bold text-indigo-700">
                         1
                       </span>
                     </div>
-                    <h4 className="font-semibold text-amber-800">
+                    <h4 className="font-semibold text-indigo-800">
                       Create New Section
                     </h4>
                   </div>
-                  <p className="text-amber-700 text-sm leading-relaxed">
+                  <p className="text-indigo-700 text-sm leading-relaxed">
                     Click "New Study Section" to open the planner editor where
                     you can manage multiple study groups within a section
                     simultaneously.

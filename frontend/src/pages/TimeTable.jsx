@@ -94,9 +94,9 @@ export default function TimeTable() {
     {
       value: "free",
       label: "Free Period",
-      color: "border-orange-200 bg-orange-50 text-orange-700",
-      bgColor: "bg-orange-50",
-      textColor: "text-orange-700",
+      color: "border-violet-200 bg-violet-50 text-violet-700",
+      bgColor: "bg-violet-50",
+      textColor: "text-violet-700",
     },
   ];
 
@@ -156,16 +156,16 @@ export default function TimeTable() {
 
   // Faculty color mapping for consistent styling
   const facultyColors = [
-    "border-amber-200 bg-amber-50 text-amber-700",
+    "border-indigo-200 bg-indigo-50 text-indigo-700",
     "border-rose-200 bg-rose-50 text-rose-700",
-    "border-orange-200 bg-orange-50 text-orange-700",
+    "border-violet-200 bg-violet-50 text-violet-700",
     "border-violet-200 bg-violet-50 text-violet-700",
     "border-rose-200 bg-rose-50 text-rose-700",
     "border-cyan-200 bg-cyan-50 text-cyan-700",
     "border-pink-200 bg-pink-50 text-pink-700",
     "border-indigo-200 bg-indigo-50 text-indigo-700",
     "border-lime-200 bg-lime-50 text-lime-700",
-    "border-orange-200 bg-orange-50 text-orange-700",
+    "border-violet-200 bg-violet-50 text-violet-700",
     "border-teal-200 bg-teal-50 text-teal-700",
     "border-sky-200 bg-sky-50 text-sky-700",
     "border-fuchsia-200 bg-fuchsia-50 text-fuchsia-700",
@@ -1400,7 +1400,7 @@ Generated on: ${new Date().toLocaleString()}
      🔹 RENDER
   ======================= */
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-rose-50 p-4 md:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-rose-50 p-4 md:p-6">
       {/* Alert Component */}
       {alert && (
         <Alert
@@ -1414,14 +1414,14 @@ Generated on: ${new Date().toLocaleString()}
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden border border-amber-200">
-            <div className="p-6 border-b border-amber-100 bg-gradient-to-r from-amber-50 to-amber-100">
+          <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden border border-indigo-200">
+            <div className="p-6 border-b border-indigo-100 bg-gradient-to-r from-indigo-50 to-indigo-100">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-2.5 bg-white rounded-lg border border-amber-200">
-                    <Archive className="w-5 h-5 text-amber-600" />
+                  <div className="p-2.5 bg-white rounded-lg border border-indigo-200">
+                    <Archive className="w-5 h-5 text-indigo-600" />
                   </div>
-                  <h2 className="text-xl font-bold text-amber-900">
+                  <h2 className="text-xl font-bold text-indigo-900">
                     Delete Study Schedule
                   </h2>
                 </div>
@@ -1430,9 +1430,9 @@ Generated on: ${new Date().toLocaleString()}
                     setShowDeleteModal(false);
                     setDivisionToDelete(null);
                   }}
-                  className="p-2 hover:bg-white/50 rounded-lg transition-colors border border-amber-200"
+                  className="p-2 hover:bg-white/50 rounded-lg transition-colors border border-indigo-200"
                 >
-                  <X className="w-5 h-5 text-amber-600" />
+                  <X className="w-5 h-5 text-indigo-600" />
                 </button>
               </div>
             </div>
@@ -1448,11 +1448,11 @@ Generated on: ${new Date().toLocaleString()}
               </h3>
               <p className="text-gray-600 text-center mb-6">
                 This will permanently remove the study schedule for{" "}
-                <span className="font-semibold text-amber-700">{branch}</span> -
+                <span className="font-semibold text-indigo-700">{branch}</span> -
                 Semester{" "}
-                <span className="font-semibold text-amber-700">{sem}</span>,
+                <span className="font-semibold text-indigo-700">{sem}</span>,
                 Study Group{" "}
-                <span className="font-semibold text-amber-700">
+                <span className="font-semibold text-indigo-700">
                   {divisionToDelete}
                 </span>
                 .
@@ -1472,14 +1472,14 @@ Generated on: ${new Date().toLocaleString()}
               </div>
             </div>
 
-            <div className="p-6 border-t border-gray-200 bg-amber-50">
+            <div className="p-6 border-t border-gray-200 bg-indigo-50">
               <div className="flex items-center justify-end gap-3">
                 <button
                   onClick={() => {
                     setShowDeleteModal(false);
                     setDivisionToDelete(null);
                   }}
-                  className="px-4 py-2 border border-amber-300 text-amber-700 rounded-lg font-medium hover:bg-white transition-colors"
+                  className="px-4 py-2 border border-indigo-300 text-indigo-700 rounded-lg font-medium hover:bg-white transition-colors"
                 >
                   Cancel
                 </button>
@@ -1513,15 +1513,15 @@ Generated on: ${new Date().toLocaleString()}
       {/* Credentials Modal */}
       {showCredentialsModal && generatedCredentials && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 z-[100]">
-          <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl border border-amber-200">
-            <div className="p-6 bg-gradient-to-r from-orange-500 to-orange-600 text-white">
+          <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl border border-indigo-200">
+            <div className="p-6 bg-gradient-to-r from-violet-500 to-violet-600 text-white">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
                   <Key className="w-6 h-6" />
                 </div>
                 <div>
                   <h2 className="text-xl font-bold">Study Access Created!</h2>
-                  <p className="text-orange-100 text-sm mt-1">
+                  <p className="text-violet-100 text-sm mt-1">
                     Tutor account created successfully
                   </p>
                 </div>
@@ -1529,14 +1529,14 @@ Generated on: ${new Date().toLocaleString()}
             </div>
 
             <div className="p-6">
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+              <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 mb-6">
                 <div className="flex gap-3">
-                  <StickyNote className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <StickyNote className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="font-bold text-amber-900 text-sm">
+                    <p className="font-bold text-indigo-900 text-sm">
                       Save These Credentials!
                     </p>
-                    <p className="text-amber-700 text-sm mt-1">
+                    <p className="text-indigo-700 text-sm mt-1">
                       This password will not be shown again. Please save it
                       securely or download the credentials file.
                     </p>
@@ -1625,11 +1625,11 @@ Generated on: ${new Date().toLocaleString()}
               </div>
             </div>
 
-            <div className="p-6 border-t border-gray-200 bg-amber-50">
+            <div className="p-6 border-t border-gray-200 bg-indigo-50">
               <div className="flex gap-3">
                 <button
                   onClick={downloadCredentials}
-                  className="flex-1 px-4 py-3 bg-white border border-amber-300 text-amber-700 rounded-lg font-medium hover:bg-amber-50 transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-3 bg-white border border-indigo-300 text-indigo-700 rounded-lg font-medium hover:bg-indigo-50 transition-colors flex items-center justify-center gap-2"
                 >
                   <Download className="w-4 h-4" />
                   Download as File
@@ -1639,7 +1639,7 @@ Generated on: ${new Date().toLocaleString()}
                     setShowCredentialsModal(false);
                     setGeneratedCredentials(null);
                   }}
-                  className="flex-1 px-4 py-3 bg-gradient-to-r from-orange-600 to-orange-700 text-white rounded-lg font-medium hover:from-orange-700 hover:to-orange-800 transition-colors"
+                  className="flex-1 px-4 py-3 bg-gradient-to-r from-violet-600 to-violet-700 text-white rounded-lg font-medium hover:from-violet-700 hover:to-violet-800 transition-colors"
                 >
                   Done
                 </button>
@@ -1652,19 +1652,19 @@ Generated on: ${new Date().toLocaleString()}
       {/* Faculty Management Modal */}
       {showFacultyModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[80vh] overflow-hidden flex flex-col border border-amber-200">
+          <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[80vh] overflow-hidden flex flex-col border border-indigo-200">
             {/* Modal Header */}
-            <div className="p-6 border-b border-amber-100 bg-gradient-to-r from-amber-50 to-amber-100">
+            <div className="p-6 border-b border-indigo-100 bg-gradient-to-r from-indigo-50 to-indigo-100">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-white rounded-lg border border-amber-200">
-                    <PenTool className="w-5 h-5 text-amber-600" />
+                  <div className="p-2 bg-white rounded-lg border border-indigo-200">
+                    <PenTool className="w-5 h-5 text-indigo-600" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold text-amber-900">
+                    <h2 className="text-xl font-bold text-indigo-900">
                       Add Study Tutors
                     </h2>
-                    <p className="text-amber-700 text-sm mt-1">
+                    <p className="text-indigo-700 text-sm mt-1">
                       Select tutors to add to your schedule dropdowns or create
                       new tutor
                     </p>
@@ -1677,30 +1677,30 @@ Generated on: ${new Date().toLocaleString()}
                     setSearchQuery("");
                     resetNewFacultyForm();
                   }}
-                  className="p-2 hover:bg-white/50 rounded-lg transition-colors border border-amber-200"
+                  className="p-2 hover:bg-white/50 rounded-lg transition-colors border border-indigo-200"
                 >
-                  <X className="w-5 h-5 text-amber-600" />
+                  <X className="w-5 h-5 text-indigo-600" />
                 </button>
               </div>
 
               {/* Search Bar */}
               <div className="mt-4 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-amber-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-indigo-400" />
                 <input
                   type="text"
                   placeholder="Search tutors by name or ID..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-white border border-amber-200 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                  className="w-full pl-10 pr-4 py-2.5 bg-white border border-indigo-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 />
               </div>
 
               {/* Selected Count */}
               <div className="mt-3 flex items-center justify-between">
-                <span className="text-sm text-amber-700">
+                <span className="text-sm text-indigo-700">
                   {selectedFacultiesToAdd.length} tutor(s) selected
                 </span>
-                <span className="text-sm text-amber-700">
+                <span className="text-sm text-indigo-700">
                   {filteredFaculties.length} available
                 </span>
               </div>
@@ -1708,7 +1708,7 @@ Generated on: ${new Date().toLocaleString()}
 
             {/* Create New Faculty Form */}
             {showCreateFaculty ? (
-              <div className="p-6 border-b border-amber-100 bg-rose-50">
+              <div className="p-6 border-b border-indigo-100 bg-rose-50">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-white rounded-lg border border-rose-200">
@@ -1743,7 +1743,7 @@ Generated on: ${new Date().toLocaleString()}
                       value={newFacultyId}
                       onChange={(e) => setNewFacultyId(e.target.value)}
                       placeholder="e.g., TUT009"
-                      className="w-full px-4 py-2.5 bg-white border border-amber-200 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                      className="w-full px-4 py-2.5 bg-white border border-indigo-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                     />
                     <p className="text-xs text-gray-500 mt-2">
                       Unique identifier for the tutor
@@ -1760,7 +1760,7 @@ Generated on: ${new Date().toLocaleString()}
                       value={newFacultyName}
                       onChange={(e) => setNewFacultyName(e.target.value)}
                       placeholder="e.g., Dr. Sunil Verma"
-                      className="w-full px-4 py-2.5 bg-white border border-amber-200 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                      className="w-full px-4 py-2.5 bg-white border border-indigo-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                     />
                     <p className="text-xs text-gray-500 mt-2">
                       Full name of the tutor
@@ -1771,7 +1771,7 @@ Generated on: ${new Date().toLocaleString()}
                 <div className="flex gap-3 mt-6">
                   <button
                     onClick={resetNewFacultyForm}
-                    className="px-4 py-2.5 border border-amber-300 text-amber-700 rounded-lg font-medium hover:bg-amber-50 transition-colors"
+                    className="px-4 py-2.5 border border-indigo-300 text-indigo-700 rounded-lg font-medium hover:bg-indigo-50 transition-colors"
                   >
                     Cancel
                   </button>
@@ -1787,7 +1787,7 @@ Generated on: ${new Date().toLocaleString()}
                       !newFacultyId.trim() ||
                       !newFacultyName.trim()
                         ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                        : "bg-gradient-to-r from-amber-600 to-amber-700 text-white hover:from-amber-700 hover:to-amber-800"
+                        : "bg-gradient-to-r from-indigo-600 to-indigo-700 text-white hover:from-indigo-700 hover:to-indigo-800"
                     }`}
                   >
                     {isCreatingFaculty ? (
@@ -1805,10 +1805,10 @@ Generated on: ${new Date().toLocaleString()}
                 </div>
               </div>
             ) : (
-              <div className="p-4 border-b border-amber-100">
+              <div className="p-4 border-b border-indigo-100">
                 <button
                   onClick={() => setShowCreateFaculty(true)}
-                  className="w-full px-4 py-3 border-2 border-dashed border-amber-300 rounded-xl text-amber-600 hover:border-amber-500 hover:text-amber-700 hover:bg-amber-50 transition-all flex items-center justify-center gap-2"
+                  className="w-full px-4 py-3 border-2 border-dashed border-indigo-300 rounded-xl text-indigo-600 hover:border-indigo-500 hover:text-indigo-700 hover:bg-indigo-50 transition-all flex items-center justify-center gap-2"
                 >
                   <Plus className="w-5 h-5" />
                   Create New Tutor
@@ -1820,7 +1820,7 @@ Generated on: ${new Date().toLocaleString()}
             <div className="flex-1 overflow-y-auto p-6">
               {isLoadingAllFaculties ? (
                 <div className="flex flex-col items-center justify-center py-12">
-                  <Loader2 className="w-8 h-8 animate-spin text-amber-600 mb-4" />
+                  <Loader2 className="w-8 h-8 animate-spin text-indigo-600 mb-4" />
                   <p className="text-gray-600">Loading all tutors...</p>
                 </div>
               ) : filteredFaculties.length === 0 ? (
@@ -1855,8 +1855,8 @@ Generated on: ${new Date().toLocaleString()}
                           isAlreadyInOptions
                             ? "border-gray-200 bg-gray-50 opacity-75 cursor-not-allowed"
                             : isSelected
-                            ? "border-amber-500 bg-amber-50"
-                            : "border-amber-200 hover:border-amber-300 hover:bg-amber-50"
+                            ? "border-indigo-500 bg-indigo-50"
+                            : "border-indigo-200 hover:border-indigo-300 hover:bg-indigo-50"
                         }`}
                       >
                         <div className="flex items-start gap-3">
@@ -1865,8 +1865,8 @@ Generated on: ${new Date().toLocaleString()}
                               isAlreadyInOptions
                                 ? "border-gray-300 bg-gray-200"
                                 : isSelected
-                                ? "border-amber-500 bg-amber-500"
-                                : "border-amber-300"
+                                ? "border-indigo-500 bg-indigo-500"
+                                : "border-indigo-300"
                             }`}
                           >
                             {isAlreadyInOptions ? (
@@ -1906,7 +1906,7 @@ Generated on: ${new Date().toLocaleString()}
             </div>
 
             {/* Modal Footer */}
-            <div className="p-6 border-t border-amber-100 bg-amber-50">
+            <div className="p-6 border-t border-indigo-100 bg-indigo-50">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600">
@@ -1927,7 +1927,7 @@ Generated on: ${new Date().toLocaleString()}
                       setSearchQuery("");
                       resetNewFacultyForm();
                     }}
-                    className="px-4 py-2 border border-amber-300 text-amber-700 rounded-lg font-medium hover:bg-amber-50 transition-colors"
+                    className="px-4 py-2 border border-indigo-300 text-indigo-700 rounded-lg font-medium hover:bg-indigo-50 transition-colors"
                   >
                     Cancel
                   </button>
@@ -1937,7 +1937,7 @@ Generated on: ${new Date().toLocaleString()}
                     className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                       selectedFacultiesToAdd.length === 0
                         ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                        : "bg-gradient-to-r from-amber-600 to-amber-700 text-white hover:from-amber-700 hover:to-amber-800"
+                        : "bg-gradient-to-r from-indigo-600 to-indigo-700 text-white hover:from-indigo-700 hover:to-indigo-800"
                     }`}
                   >
                     Add Selected Tutor(s)
@@ -1963,7 +1963,7 @@ Generated on: ${new Date().toLocaleString()}
               Study Planner
             </span>
             <ChevronRight className="w-4 h-4 mx-2" />
-            <span className="font-medium text-amber-600 flex items-center gap-1">
+            <span className="font-medium text-indigo-600 flex items-center gap-1">
               <Clipboard className="w-4 h-4" />
               {selectedDivisions.length > 0
                 ? `Edit ${branch} - Sem ${sem}`
@@ -1988,8 +1988,8 @@ Generated on: ${new Date().toLocaleString()}
                 : "Manage study schedules for multiple groups within a subject"}
             </p>
           </div>
-          <div className="p-3 bg-white rounded-xl border border-amber-200 shadow-sm">
-            <Clipboard className="w-6 h-6 text-amber-600" />
+          <div className="p-3 bg-white rounded-xl border border-indigo-200 shadow-sm">
+            <Clipboard className="w-6 h-6 text-indigo-600" />
           </div>
         </div>
 
@@ -2001,7 +2001,7 @@ Generated on: ${new Date().toLocaleString()}
               errorMsg.includes("Added") ||
               errorMsg.includes("created successfully") ||
               errorMsg.includes("Failed to fetch")
-                ? "border-amber-200 bg-amber-50"
+                ? "border-indigo-200 bg-indigo-50"
                 : errorMsg.includes("already assigned")
                 ? "border-red-200 bg-red-50"
                 : "border-red-200 bg-red-50"
@@ -2013,7 +2013,7 @@ Generated on: ${new Date().toLocaleString()}
                 errorMsg.includes("Added") ||
                 errorMsg.includes("created successfully") ||
                 errorMsg.includes("Failed to fetch")
-                  ? "text-amber-500"
+                  ? "text-indigo-500"
                   : "text-red-500"
               }`}
             />
@@ -2024,7 +2024,7 @@ Generated on: ${new Date().toLocaleString()}
                   errorMsg.includes("Added") ||
                   errorMsg.includes("created successfully") ||
                   errorMsg.includes("Failed to fetch")
-                    ? "text-amber-800"
+                    ? "text-indigo-800"
                     : "text-red-800"
                 }`}
               >
@@ -2041,7 +2041,7 @@ Generated on: ${new Date().toLocaleString()}
                   errorMsg.includes("Added") ||
                   errorMsg.includes("created successfully") ||
                   errorMsg.includes("Failed to fetch")
-                    ? "text-amber-700"
+                    ? "text-indigo-700"
                     : "text-red-700"
                 }`}
               >
@@ -2052,15 +2052,15 @@ Generated on: ${new Date().toLocaleString()}
         )}
 
         {saved && (
-          <div className="mb-6 p-4 rounded-xl border border-orange-200 bg-gradient-to-r from-orange-50 to-orange-100 flex items-center gap-3">
-            <div className="p-2 bg-white rounded-lg border border-orange-200">
-              <FileCheck className="w-5 h-5 text-orange-500" />
+          <div className="mb-6 p-4 rounded-xl border border-violet-200 bg-gradient-to-r from-violet-50 to-violet-100 flex items-center gap-3">
+            <div className="p-2 bg-white rounded-lg border border-violet-200">
+              <FileCheck className="w-5 h-5 text-violet-500" />
             </div>
             <div>
-              <p className="font-bold text-orange-800">
+              <p className="font-bold text-violet-800">
                 Study Schedules Saved Successfully
               </p>
-              <p className="text-orange-700 text-sm mt-1">
+              <p className="text-violet-700 text-sm mt-1">
                 All {selectedDivisions.length} study group schedules have been
                 saved for {branch} - Semester {sem}.
               </p>
@@ -2069,29 +2069,29 @@ Generated on: ${new Date().toLocaleString()}
         )}
 
         {/* Configuration Panel */}
-        <div className="bg-white rounded-2xl p-6 border border-amber-200 shadow-sm mb-8">
+        <div className="bg-white rounded-2xl p-6 border border-indigo-200 shadow-sm mb-8">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-gradient-to-br from-amber-100 to-amber-50 rounded-lg border border-amber-200">
-              <Compass className="w-5 h-5 text-amber-600" />
+            <div className="p-2 bg-gradient-to-br from-indigo-100 to-indigo-50 rounded-lg border border-indigo-200">
+              <Compass className="w-5 h-5 text-indigo-600" />
             </div>
-            <h2 className="text-lg font-bold text-amber-900">
+            <h2 className="text-lg font-bold text-indigo-900">
               Study Section Configuration
             </h2>
           </div>
 
           {/* Telegram Chat IDs Section */}
           {branch && sem && (
-            <div className="mb-6 p-4 bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl border border-orange-200">
+            <div className="mb-6 p-4 bg-gradient-to-r from-violet-50 to-violet-100 rounded-xl border border-violet-200">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-white rounded-lg border border-orange-200">
-                    <MessageSquare className="w-5 h-5 text-orange-600" />
+                  <div className="p-2 bg-white rounded-lg border border-violet-200">
+                    <MessageSquare className="w-5 h-5 text-violet-600" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-orange-900">
+                    <h3 className="font-bold text-violet-900">
                       Study Notifications
                     </h3>
-                    <p className="text-orange-700 text-sm">
+                    <p className="text-violet-700 text-sm">
                       Set up Telegram for schedule updates
                     </p>
                   </div>
@@ -2099,7 +2099,7 @@ Generated on: ${new Date().toLocaleString()}
                 {!isEditingTelegram ? (
                   <button
                     onClick={() => setIsEditingTelegram(true)}
-                    className="px-3 py-1.5 bg-orange-100 text-orange-700 rounded-lg text-xs font-bold hover:bg-orange-200 transition-colors flex items-center gap-2 border border-orange-200"
+                    className="px-3 py-1.5 bg-violet-100 text-violet-700 rounded-lg text-xs font-bold hover:bg-violet-200 transition-colors flex items-center gap-2 border border-violet-200"
                   >
                     <Edit className="w-3 h-3" />
                     {telegramChatIds.length > 0 ? "Edit" : "Add"}
@@ -2111,7 +2111,7 @@ Generated on: ${new Date().toLocaleString()}
                         setIsEditingTelegram(false);
                         fetchTelegramChatIds(); // Reset to saved values
                       }}
-                      className="px-3 py-1.5 border border-amber-300 text-amber-700 rounded-lg text-xs font-bold hover:bg-amber-50 transition-colors"
+                      className="px-3 py-1.5 border border-indigo-300 text-indigo-700 rounded-lg text-xs font-bold hover:bg-indigo-50 transition-colors"
                     >
                       Cancel
                     </button>
@@ -2162,8 +2162,8 @@ Generated on: ${new Date().toLocaleString()}
                     {/* Chat ID Inputs */}
                     <div className="space-y-2 mb-3">
                       {telegramChatIds.length === 0 ? (
-                        <div className="text-center py-4 border-2 border-dashed border-orange-300 rounded-lg bg-white">
-                          <MessageSquare className="w-8 h-8 text-orange-400 mx-auto mb-2" />
+                        <div className="text-center py-4 border-2 border-dashed border-violet-300 rounded-lg bg-white">
+                          <MessageSquare className="w-8 h-8 text-violet-400 mx-auto mb-2" />
                           <p className="text-gray-600">No Chat IDs added yet</p>
                           <p className="text-xs text-gray-500 mt-1">
                             Follow the instructions above to get your Chat ID
@@ -2175,8 +2175,8 @@ Generated on: ${new Date().toLocaleString()}
                             key={index}
                             className="flex items-center gap-2 group"
                           >
-                            <div className="flex-1 flex items-center gap-3 px-3 py-2 border border-orange-300 rounded-lg bg-white">
-                              <div className="w-6 h-6 flex items-center justify-center rounded-full bg-orange-100 text-orange-700 text-xs font-bold">
+                            <div className="flex-1 flex items-center gap-3 px-3 py-2 border border-violet-300 rounded-lg bg-white">
+                              <div className="w-6 h-6 flex items-center justify-center rounded-full bg-violet-100 text-violet-700 text-xs font-bold">
                                 {index + 1}
                               </div>
                               <input
@@ -2193,7 +2193,7 @@ Generated on: ${new Date().toLocaleString()}
                                   chatId.trim() &&
                                   !/^-?\d+$/.test(chatId.trim())
                                     ? "bg-red-100 text-red-700"
-                                    : "bg-orange-100 text-orange-700"
+                                    : "bg-violet-100 text-violet-700"
                                 }`}
                               >
                                 {chatId.trim() && !/^-?\d+$/.test(chatId.trim())
@@ -2220,7 +2220,7 @@ Generated on: ${new Date().toLocaleString()}
                         value={newChatId}
                         onChange={(e) => setNewChatId(e.target.value)}
                         placeholder="Enter new Chat ID..."
-                        className="flex-1 px-4 py-2 border border-orange-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                        className="flex-1 px-4 py-2 border border-violet-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
                         onKeyPress={(e) => {
                           if (e.key === "Enter" && newChatId.trim()) {
                             handleAddChatIdField();
@@ -2230,7 +2230,7 @@ Generated on: ${new Date().toLocaleString()}
                       <button
                         onClick={handleAddChatIdField}
                         disabled={!newChatId.trim()}
-                        className="px-4 py-2 bg-orange-600 text-white rounded-lg font-bold hover:bg-orange-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed border border-orange-700"
+                        className="px-4 py-2 bg-violet-600 text-white rounded-lg font-bold hover:bg-violet-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed border border-violet-700"
                       >
                         <Plus className="w-4 h-4" />
                         Add
@@ -2264,7 +2264,7 @@ Generated on: ${new Date().toLocaleString()}
                           (id) => id.trim() && !/^-?\d+$/.test(id.trim())
                         )
                       }
-                      className="px-4 py-2 bg-orange-600 text-white rounded-lg font-bold hover:bg-orange-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed border border-orange-700"
+                      className="px-4 py-2 bg-violet-600 text-white rounded-lg font-bold hover:bg-violet-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed border border-violet-700"
                     >
                       {isSavingTelegram ? (
                         <>
@@ -2303,35 +2303,35 @@ Generated on: ${new Date().toLocaleString()}
                     <>
                       <div className="flex items-center justify-between mb-3">
                         <div>
-                          <p className="text-sm font-bold text-orange-900 mb-1">
+                          <p className="text-sm font-bold text-violet-900 mb-1">
                             {telegramChatIds.length} Chat ID
                             {telegramChatIds.length !== 1 ? "s" : ""} configured
                           </p>
-                          <p className="text-sm text-orange-700">
+                          <p className="text-sm text-violet-700">
                             These IDs will be used for all {branch} Semester{" "}
                             {sem} study groups
                           </p>
                         </div>
-                        <div className="p-3 bg-white rounded-lg border border-orange-200">
-                          <MessageSquare className="w-6 h-6 text-orange-600" />
+                        <div className="p-3 bg-white rounded-lg border border-violet-200">
+                          <MessageSquare className="w-6 h-6 text-violet-600" />
                         </div>
                       </div>
                       <div className="space-y-2">
                         {telegramChatIds.map((chatId, index) => (
                           <div
                             key={index}
-                            className="px-3 py-3 bg-white border border-orange-200 rounded-lg hover:border-orange-300 transition-colors group"
+                            className="px-3 py-3 bg-white border border-violet-200 rounded-lg hover:border-violet-300 transition-colors group"
                           >
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 flex items-center justify-center rounded-full bg-orange-100 text-orange-700 font-bold">
+                                <div className="w-8 h-8 flex items-center justify-center rounded-full bg-violet-100 text-violet-700 font-bold">
                                   {index + 1}
                                 </div>
                                 <div>
-                                  <div className="font-mono text-orange-800 text-sm">
+                                  <div className="font-mono text-violet-800 text-sm">
                                     {chatId}
                                   </div>
-                                  <div className="text-xs text-orange-600">
+                                  <div className="text-xs text-violet-600">
                                     {/^-?\d+$/.test(chatId.trim())
                                       ? "Valid format"
                                       : "Invalid format"}
@@ -2347,7 +2347,7 @@ Generated on: ${new Date().toLocaleString()}
                                     "success"
                                   );
                                 }}
-                                className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100 border border-orange-200"
+                                className="p-2 text-violet-600 hover:bg-violet-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100 border border-violet-200"
                                 title="Copy to clipboard"
                               >
                                 <Copy className="w-4 h-4" />
@@ -2356,8 +2356,8 @@ Generated on: ${new Date().toLocaleString()}
                           </div>
                         ))}
                       </div>
-                      <div className="mt-3 pt-3 border-t border-orange-200">
-                        <div className="flex items-center justify-between text-xs text-orange-700">
+                      <div className="mt-3 pt-3 border-t border-violet-200">
+                        <div className="flex items-center justify-between text-xs text-violet-700">
                           <span>Last updated: Just now</span>
                           <span>Applied to all {branch} study groups</span>
                         </div>
@@ -2398,7 +2398,7 @@ Generated on: ${new Date().toLocaleString()}
 
                       <button
                         onClick={() => setIsEditingTelegram(true)}
-                        className="px-4 py-2 bg-orange-600 text-white rounded-lg font-bold hover:bg-orange-700 transition-colors border border-orange-700"
+                        className="px-4 py-2 bg-violet-600 text-white rounded-lg font-bold hover:bg-violet-700 transition-colors border border-violet-700"
                       >
                         Add Chat IDs
                       </button>
@@ -2413,18 +2413,18 @@ Generated on: ${new Date().toLocaleString()}
             {/* Semester */}
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                <BookOpen className="w-4 h-4 text-amber-600" />
+                <BookOpen className="w-4 h-4 text-indigo-600" />
                 Semester
               </label>
               <div className="relative">
-                <GraduationCap className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-amber-500" />
+                <GraduationCap className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-indigo-500" />
                 <select
                   value={sem}
                   onChange={(e) => {
                     setSem(Number(e.target.value));
                     setIsInitialLoad(false);
                   }}
-                  className="w-full pl-10 pr-4 py-3 bg-white border border-amber-200 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
+                  className="w-full pl-10 pr-4 py-3 bg-white border border-indigo-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
                 >
                   {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
                     <option key={s} value={s}>
@@ -2463,7 +2463,7 @@ Generated on: ${new Date().toLocaleString()}
             {/* Load Branch Button */}
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                <FolderPlus className="w-4 h-4 text-orange-600" />
+                <FolderPlus className="w-4 h-4 text-violet-600" />
                 Section Actions
               </label>
               <button
@@ -2472,7 +2472,7 @@ Generated on: ${new Date().toLocaleString()}
                 className={`w-full px-4 py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-all border ${
                   fetching || !branch || !sem
                     ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300"
-                    : "bg-gradient-to-r from-amber-600 to-amber-700 text-white hover:from-amber-700 hover:to-amber-800 border-amber-700"
+                    : "bg-gradient-to-r from-indigo-600 to-indigo-700 text-white hover:from-indigo-700 hover:to-indigo-800 border-indigo-700"
                 }`}
               >
                 {fetching ? (
@@ -2500,7 +2500,7 @@ Generated on: ${new Date().toLocaleString()}
               <div className="text-sm text-gray-500">
                 {selectedDivisions.length} selected
                 {fetching && (
-                  <Loader2 className="inline-block ml-2 w-4 h-4 animate-spin text-amber-600" />
+                  <Loader2 className="inline-block ml-2 w-4 h-4 animate-spin text-indigo-600" />
                 )}
               </div>
             </div>
@@ -2517,8 +2517,8 @@ Generated on: ${new Date().toLocaleString()}
                     className={`px-4 py-2 rounded-lg border transition-all duration-200 flex items-center gap-2 ${
                       isSelected
                         ? exists
-                          ? "bg-gradient-to-r from-orange-100 to-orange-50 border-orange-300 text-orange-800 hover:from-orange-200 hover:to-orange-100"
-                          : "bg-gradient-to-r from-amber-100 to-amber-50 border-amber-300 text-amber-800 hover:from-amber-200 hover:to-amber-100"
+                          ? "bg-gradient-to-r from-violet-100 to-violet-50 border-violet-300 text-violet-800 hover:from-violet-200 hover:to-violet-100"
+                          : "bg-gradient-to-r from-indigo-100 to-indigo-50 border-indigo-300 text-indigo-800 hover:from-indigo-200 hover:to-indigo-100"
                         : "bg-gradient-to-r from-gray-100 to-gray-50 border-gray-300 text-gray-700 hover:from-gray-200 hover:to-gray-100"
                     }`}
                     title={`Allowed tutors: ${
@@ -2529,7 +2529,7 @@ Generated on: ${new Date().toLocaleString()}
                   >
                     {division}
                     {isSelected && exists && (
-                      <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                      <div className="w-2 h-2 bg-violet-500 rounded-full"></div>
                     )}
                     {allowedFaculty.length > 0 && (
                       <span className="text-xs bg-violet-100 px-1.5 py-0.5 rounded border border-violet-200 text-violet-700">
@@ -2542,11 +2542,11 @@ Generated on: ${new Date().toLocaleString()}
             </div>
             <div className="flex flex-wrap items-center gap-4 mt-4">
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-gradient-to-r from-amber-100 to-amber-50 border border-amber-300 rounded"></div>
+                <div className="w-3 h-3 bg-gradient-to-r from-indigo-100 to-indigo-50 border border-indigo-300 rounded"></div>
                 <span className="text-sm text-gray-600">Selected (New)</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-300 rounded"></div>
+                <div className="w-3 h-3 bg-gradient-to-r from-violet-100 to-violet-50 border border-violet-300 rounded"></div>
                 <span className="text-sm text-gray-600">
                   Selected (Existing)
                 </span>
@@ -2567,11 +2567,11 @@ Generated on: ${new Date().toLocaleString()}
 
         {/* Legend & Controls */}
         <div className="flex flex-col md:flex-row gap-4 mb-6">
-          <div className="bg-white rounded-xl p-4 border border-amber-200 shadow-sm flex-1">
+          <div className="bg-white rounded-xl p-4 border border-indigo-200 shadow-sm flex-1">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <div className="p-2 bg-gradient-to-br from-amber-100 to-amber-50 rounded-lg border border-amber-200">
-                  <Highlighter className="w-4 h-4 text-amber-600" />
+                <div className="p-2 bg-gradient-to-br from-indigo-100 to-indigo-50 rounded-lg border border-indigo-200">
+                  <Highlighter className="w-4 h-4 text-indigo-600" />
                 </div>
                 <h3 className="text-sm font-bold text-gray-700">
                   Tutor Legend
@@ -2579,7 +2579,7 @@ Generated on: ${new Date().toLocaleString()}
               </div>
               <button
                 onClick={() => setShowFacultyModal(true)}
-                className="px-3 py-1.5 bg-gradient-to-r from-amber-50 to-amber-100 text-amber-700 rounded-lg text-xs font-bold flex items-center gap-2 hover:from-amber-100 hover:to-amber-200 transition-colors border border-amber-200"
+                className="px-3 py-1.5 bg-gradient-to-r from-indigo-50 to-indigo-100 text-indigo-700 rounded-lg text-xs font-bold flex items-center gap-2 hover:from-indigo-100 hover:to-indigo-200 transition-colors border border-indigo-200"
               >
                 <UserPlus className="w-3 h-3" />
                 Add Tutor
@@ -2624,7 +2624,7 @@ Generated on: ${new Date().toLocaleString()}
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-4 border border-amber-200 shadow-sm">
+          <div className="bg-white rounded-xl p-4 border border-indigo-200 shadow-sm">
             <div className="flex items-center gap-2 mb-3">
               <div className="p-2 bg-gradient-to-br from-rose-100 to-rose-50 rounded-lg border border-rose-200">
                 <Eye className="w-4 h-4 text-rose-600" />
@@ -2636,7 +2636,7 @@ Generated on: ${new Date().toLocaleString()}
                 onClick={() => setShowFreeSlots(!showFreeSlots)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 border ${
                   showFreeSlots
-                    ? "bg-gradient-to-r from-amber-100 to-amber-50 text-amber-700 border-amber-300"
+                    ? "bg-gradient-to-r from-indigo-100 to-indigo-50 text-indigo-700 border-indigo-300"
                     : "bg-gradient-to-r from-gray-100 to-gray-50 text-gray-700 border-gray-300"
                 }`}
               >
@@ -2670,10 +2670,10 @@ Generated on: ${new Date().toLocaleString()}
                 return (
                   <div
                     key={division}
-                    className="bg-white rounded-xl border border-amber-200 shadow-sm relative group"
+                    className="bg-white rounded-xl border border-indigo-200 shadow-sm relative group"
                   >
                     {/* Notebook Spine Effect */}
-                    <div className="absolute left-0 top-0 bottom-0 w-2 bg-gradient-to-b from-amber-400 to-amber-300 rounded-l-lg"></div>
+                    <div className="absolute left-0 top-0 bottom-0 w-2 bg-gradient-to-b from-indigo-400 to-indigo-300 rounded-l-lg"></div>
 
                     {/* Empty Warning Badge */}
                     {isEmpty && exists && (
@@ -2689,8 +2689,8 @@ Generated on: ${new Date().toLocaleString()}
                     <div
                       className={`p-4 border-b ml-2 ${
                         exists
-                          ? "bg-gradient-to-r from-orange-50 to-orange-100 border-orange-200"
-                          : "bg-gradient-to-r from-amber-50 to-amber-100 border-amber-200"
+                          ? "bg-gradient-to-r from-violet-50 to-violet-100 border-violet-200"
+                          : "bg-gradient-to-r from-indigo-50 to-indigo-100 border-indigo-200"
                       }`}
                     >
                       <div className="flex items-center justify-between">
@@ -2698,13 +2698,13 @@ Generated on: ${new Date().toLocaleString()}
                           <div
                             className={`p-2 rounded-lg border ${
                               exists
-                                ? "border-orange-200 bg-white"
-                                : "border-amber-200 bg-white"
+                                ? "border-violet-200 bg-white"
+                                : "border-indigo-200 bg-white"
                             }`}
                           >
                             <BookOpen
                               className={`w-5 h-5 ${
-                                exists ? "text-orange-600" : "text-amber-600"
+                                exists ? "text-violet-600" : "text-indigo-600"
                               }`}
                             />
                           </div>
@@ -2716,8 +2716,8 @@ Generated on: ${new Date().toLocaleString()}
                               <div
                                 className={`text-xs px-2 py-1 rounded-full border ${
                                   exists
-                                    ? "bg-orange-100 text-orange-800 border-orange-200"
-                                    : "bg-amber-100 text-amber-800 border-amber-200"
+                                    ? "bg-violet-100 text-violet-800 border-violet-200"
+                                    : "bg-indigo-100 text-indigo-800 border-indigo-200"
                                 }`}
                               >
                                 {exists ? "Existing" : "New"}
@@ -2755,12 +2755,12 @@ Generated on: ${new Date().toLocaleString()}
                           )}
                           <button
                             onClick={() => toggleDivisionCollapse(division)}
-                            className="p-1 hover:bg-white/50 rounded-lg transition-colors border border-amber-200"
+                            className="p-1 hover:bg-white/50 rounded-lg transition-colors border border-indigo-200"
                           >
                             {isCollapsed ? (
-                              <ChevronDown className="w-5 h-5 text-amber-500" />
+                              <ChevronDown className="w-5 h-5 text-indigo-500" />
                             ) : (
-                              <ChevronUp className="w-5 h-5 text-amber-500" />
+                              <ChevronUp className="w-5 h-5 text-indigo-500" />
                             )}
                           </button>
                         </div>
@@ -2786,30 +2786,30 @@ Generated on: ${new Date().toLocaleString()}
                             return (
                               <div
                                 key={day}
-                                className="border border-amber-200 rounded-lg overflow-hidden"
+                                className="border border-indigo-200 rounded-lg overflow-hidden"
                               >
                                 {/* Day Header */}
                                 <div
                                   onClick={() =>
                                     toggleDayCollapse(division, day)
                                   }
-                                  className="p-3 bg-gradient-to-r from-amber-50 to-amber-100 hover:from-amber-100 hover:to-amber-150 cursor-pointer transition-colors flex items-center justify-between"
+                                  className="p-3 bg-gradient-to-r from-indigo-50 to-indigo-100 hover:from-indigo-100 hover:to-indigo-150 cursor-pointer transition-colors flex items-center justify-between"
                                 >
                                   <div className="flex items-center gap-2">
-                                    <Calendar className="w-4 h-4 text-amber-600" />
+                                    <Calendar className="w-4 h-4 text-indigo-600" />
                                     <span className="font-bold text-gray-900">
                                       {day}
                                     </span>
-                                    <span className="text-xs text-amber-600">
+                                    <span className="text-xs text-indigo-600">
                                       ({assignedCount}/{timeSlots.length}{" "}
                                       Lectures)
                                     </span>
                                   </div>
                                   <div className="flex items-center gap-2">
                                     {isDayCollapsed ? (
-                                      <ChevronDown className="w-4 h-4 text-amber-500" />
+                                      <ChevronDown className="w-4 h-4 text-indigo-500" />
                                     ) : (
-                                      <ChevronUp className="w-4 h-4 text-amber-500" />
+                                      <ChevronUp className="w-4 h-4 text-indigo-500" />
                                     )}
                                   </div>
                                 </div>
@@ -2835,9 +2835,9 @@ Generated on: ${new Date().toLocaleString()}
                                         return (
                                           <div
                                             key={slot.value}
-                                            className="flex items-center gap-2 p-2 border border-amber-100 rounded hover:bg-amber-50 transition-colors"
+                                            className="flex items-center gap-2 p-2 border border-indigo-100 rounded hover:bg-indigo-50 transition-colors"
                                           >
-                                            <div className="w-16 text-xs text-amber-700 font-bold">
+                                            <div className="w-16 text-xs text-indigo-700 font-bold">
                                               {slot.label}
                                             </div>
                                             <select
@@ -2850,7 +2850,7 @@ Generated on: ${new Date().toLocaleString()}
                                                   e.target.value
                                                 )
                                               }
-                                              className={`flex-1 px-3 py-1.5 text-sm rounded-lg border ${faculty.color} focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all`}
+                                              className={`flex-1 px-3 py-1.5 text-sm rounded-lg border ${faculty.color} focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all`}
                                             >
                                               {classFacultyOptions.map((f) => {
                                                 // For "free" option, keep as is
@@ -2930,7 +2930,7 @@ Generated on: ${new Date().toLocaleString()}
 
             {/* Statistics */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-              <div className="bg-white rounded-xl p-6 border border-amber-200 shadow-sm">
+              <div className="bg-white rounded-xl p-6 border border-indigo-200 shadow-sm">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600">Study Groups</p>
@@ -2938,13 +2938,13 @@ Generated on: ${new Date().toLocaleString()}
                       {selectedDivisions.length}
                     </p>
                   </div>
-                  <div className="p-3 bg-gradient-to-br from-amber-50 to-amber-100 rounded-lg border border-amber-200">
-                    <Users className="w-6 h-6 text-amber-600" />
+                  <div className="p-3 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg border border-indigo-200">
+                    <Users className="w-6 h-6 text-indigo-600" />
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl p-6 border border-amber-200 shadow-sm">
+              <div className="bg-white rounded-xl p-6 border border-indigo-200 shadow-sm">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600">Assigned Lectures</p>
@@ -2966,7 +2966,7 @@ Generated on: ${new Date().toLocaleString()}
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl p-6 border border-amber-200 shadow-sm">
+              <div className="bg-white rounded-xl p-6 border border-indigo-200 shadow-sm">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600">Available Tutors</p>
@@ -2974,13 +2974,13 @@ Generated on: ${new Date().toLocaleString()}
                       {facultyOptions.length - 1} {/* Subtract "free" option */}
                     </p>
                   </div>
-                  <div className="p-3 bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg border border-orange-200">
-                    <PenTool className="w-6 h-6 text-orange-600" />
+                  <div className="p-3 bg-gradient-to-br from-violet-50 to-violet-100 rounded-lg border border-violet-200">
+                    <PenTool className="w-6 h-6 text-violet-600" />
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl p-6 border border-amber-200 shadow-sm">
+              <div className="bg-white rounded-xl p-6 border border-indigo-200 shadow-sm">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600">Empty Schedules</p>
@@ -3007,7 +3007,7 @@ Generated on: ${new Date().toLocaleString()}
                 className={`px-8 py-3 rounded-lg font-bold flex items-center gap-2 transition-all duration-300 border ${
                   isLoading || selectedDivisions.length === 0
                     ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300"
-                    : "bg-gradient-to-r from-amber-600 to-amber-700 text-white hover:from-amber-700 hover:to-amber-800 shadow-sm hover:shadow-md border-amber-700"
+                    : "bg-gradient-to-r from-indigo-600 to-indigo-700 text-white hover:from-indigo-700 hover:to-indigo-800 shadow-sm hover:shadow-md border-indigo-700"
                 }`}
               >
                 <Save className="w-5 h-5" />
@@ -3026,7 +3026,7 @@ Generated on: ${new Date().toLocaleString()}
                 className={`px-6 py-3 rounded-lg border font-bold flex items-center gap-2 transition-all duration-300 ${
                   selectedDivisions.length === 0
                     ? "border-gray-200 text-gray-400 cursor-not-allowed"
-                    : "border-amber-300 text-amber-700 hover:bg-amber-50"
+                    : "border-indigo-300 text-indigo-700 hover:bg-indigo-50"
                 }`}
               >
                 <Trash2 className="w-5 h-5" />
@@ -3039,7 +3039,7 @@ Generated on: ${new Date().toLocaleString()}
                 className={`px-6 py-3 rounded-lg border font-bold flex items-center gap-2 transition-all duration-300 ${
                   selectedDivisions.length === 0
                     ? "border-gray-200 text-gray-400 cursor-not-allowed"
-                    : "border-amber-300 text-amber-700 hover:bg-amber-50"
+                    : "border-indigo-300 text-indigo-700 hover:bg-indigo-50"
                 }`}
               >
                 <RefreshCw className="w-5 h-5" />
@@ -3050,16 +3050,16 @@ Generated on: ${new Date().toLocaleString()}
         )}
 
         {/* Quick Tips */}
-        <div className="bg-gradient-to-r from-amber-50 to-rose-50 rounded-2xl p-6 border-2 border-amber-200">
+        <div className="bg-gradient-to-r from-indigo-50 to-rose-50 rounded-2xl p-6 border-2 border-indigo-200">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-gradient-to-br from-amber-100 to-amber-50 rounded-lg border border-amber-200">
-              <Info className="w-5 h-5 text-amber-600" />
+            <div className="p-2 bg-gradient-to-br from-indigo-100 to-indigo-50 rounded-lg border border-indigo-200">
+              <Info className="w-5 h-5 text-indigo-600" />
             </div>
-            <h3 className="font-bold text-amber-900">Study Planner Guide</h3>
+            <h3 className="font-bold text-indigo-900">Study Planner Guide</h3>
           </div>
-          <ul className="space-y-2 text-amber-800 text-sm">
+          <ul className="space-y-2 text-indigo-800 text-sm">
             <li className="flex items-start gap-2">
-              <div className="w-2 h-2 bg-amber-400 rounded-full mt-1.5"></div>
+              <div className="w-2 h-2 bg-indigo-400 rounded-full mt-1.5"></div>
               <span>
                 <strong>Study Notifications</strong> - Set multiple Telegram
                 Chat IDs for all {branch} Semester {sem} study groups. These
@@ -3067,14 +3067,14 @@ Generated on: ${new Date().toLocaleString()}
               </span>
             </li>
             <li className="flex items-start gap-2">
-              <div className="w-2 h-2 bg-amber-400 rounded-full mt-1.5"></div>
+              <div className="w-2 h-2 bg-indigo-400 rounded-full mt-1.5"></div>
               <span>
                 <strong>Delete Study Schedule</strong> - Click the trash icon on
                 existing study group cards to permanently remove that schedule.
               </span>
             </li>
             <li className="flex items-start gap-2">
-              <div className="w-2 h-2 bg-amber-400 rounded-full mt-1.5"></div>
+              <div className="w-2 h-2 bg-indigo-400 rounded-full mt-1.5"></div>
               <span>
                 <strong>Empty Schedule Validation</strong> - Study groups with
                 all free Lectures cannot be saved. Assign at least one tutor or
@@ -3082,21 +3082,21 @@ Generated on: ${new Date().toLocaleString()}
               </span>
             </li>
             <li className="flex items-start gap-2">
-              <div className="w-2 h-2 bg-amber-400 rounded-full mt-1.5"></div>
+              <div className="w-2 h-2 bg-indigo-400 rounded-full mt-1.5"></div>
               <span>
                 <strong>Tutor Management</strong> - Use the "Add Tutor" button
                 to add tutors from the database to your dropdown options.
               </span>
             </li>
             <li className="flex items-start gap-2">
-              <div className="w-2 h-2 bg-amber-400 rounded-full mt-1.5"></div>
+              <div className="w-2 h-2 bg-indigo-400 rounded-full mt-1.5"></div>
               <span>
                 <strong>Create New Tutor</strong> - Click "Create New Tutor" in
                 the modal to add a new tutor by entering their ID and Name.
               </span>
             </li>
             <li className="flex items-start gap-2">
-              <div className="w-2 h-2 bg-amber-400 rounded-full mt-1.5"></div>
+              <div className="w-2 h-2 bg-indigo-400 rounded-full mt-1.5"></div>
               <span>
                 <strong>Group-Specific Tutors</strong> - Each study group
                 dropdown only shows tutors assigned to that specific group in

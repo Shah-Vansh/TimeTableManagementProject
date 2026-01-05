@@ -621,7 +621,7 @@ Generated on: ${new Date().toLocaleString()}
      🔹 RENDER
   ======================= */
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-blue-50 p-4 md:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-blue-50 p-4 md:p-6">
       {/* Alert Component */}
       {alert.show && (
         <Alert
@@ -635,7 +635,7 @@ Generated on: ${new Date().toLocaleString()}
       {/* Credentials Modal */}
       {showCredentialsModal && generatedCredentials && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 z-[100]">
-          <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl border border-amber-200">
+          <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl border border-indigo-200">
             <div className="p-6 bg-gradient-to-r from-green-400 to-green-600 text-white">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
@@ -643,7 +643,7 @@ Generated on: ${new Date().toLocaleString()}
                 </div>
                 <div>
                   <h2 className="text-xl font-bold">Study Access Created!</h2>
-                  <p className="text-orange-100 text-sm mt-1">
+                  <p className="text-violet-100 text-sm mt-1">
                     Tutor account created successfully
                   </p>
                 </div>
@@ -651,14 +651,14 @@ Generated on: ${new Date().toLocaleString()}
             </div>
 
             <div className="p-6">
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+              <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 mb-6">
                 <div className="flex gap-3">
-                  <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <AlertCircle className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="font-bold text-amber-900 text-sm">
+                    <p className="font-bold text-indigo-900 text-sm">
                       Important: Save These Credentials
                     </p>
-                    <p className="text-amber-700 text-sm mt-1">
+                    <p className="text-indigo-700 text-sm mt-1">
                       This password will not be shown again. Please save it
                       securely or download the credentials file.
                     </p>
@@ -747,11 +747,11 @@ Generated on: ${new Date().toLocaleString()}
               </div>
             </div>
 
-            <div className="p-6 border-t border-gray-200 bg-amber-50">
+            <div className="p-6 border-t border-gray-200 bg-indigo-50">
               <div className="flex gap-3">
                 <button
                   onClick={downloadCredentials}
-                  className="flex-1 px-4 py-3 bg-white border border-amber-300 text-amber-700 rounded-lg font-medium hover:bg-amber-50 transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-3 bg-white border border-indigo-300 text-indigo-700 rounded-lg font-medium hover:bg-indigo-50 transition-colors flex items-center justify-center gap-2"
                 >
                   <Download className="w-4 h-4" />
                   Download as File
@@ -761,7 +761,7 @@ Generated on: ${new Date().toLocaleString()}
                     setShowCredentialsModal(false);
                     setGeneratedCredentials(null);
                   }}
-                  className="flex-1 px-4 py-3 bg-gradient-to-r from-orange-600 to-orange-700 text-white rounded-lg font-medium hover:from-orange-700 hover:to-orange-800 transition-colors"
+                  className="flex-1 px-4 py-3 bg-gradient-to-r from-violet-600 to-violet-700 text-white rounded-lg font-medium hover:from-violet-700 hover:to-violet-800 transition-colors"
                 >
                   Done
                 </button>
@@ -774,18 +774,18 @@ Generated on: ${new Date().toLocaleString()}
       {/* Create Faculty Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden border border-amber-200">
-            <div className="p-6 border-b border-amber-100 bg-gradient-to-r from-amber-50 to-amber-100">
+          <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden border border-indigo-200">
+            <div className="p-6 border-b border-indigo-100 bg-gradient-to-r from-indigo-50 to-indigo-100">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-white rounded-lg border border-amber-200">
-                    <UserPlus className="w-5 h-5 text-amber-600" />
+                  <div className="p-2 bg-white rounded-lg border border-indigo-200">
+                    <UserPlus className="w-5 h-5 text-indigo-600" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold text-amber-900">
+                    <h2 className="text-xl font-bold text-indigo-900">
                       Add New Tutor
                     </h2>
-                    <p className="text-amber-700 text-sm mt-1">
+                    <p className="text-indigo-700 text-sm mt-1">
                       Enter tutor details to create a new study account
                     </p>
                   </div>
@@ -795,9 +795,9 @@ Generated on: ${new Date().toLocaleString()}
                     setShowCreateModal(false);
                     resetNewFacultyForm();
                   }}
-                  className="p-2 hover:bg-white/50 rounded-lg transition-colors border border-amber-200"
+                  className="p-2 hover:bg-white/50 rounded-lg transition-colors border border-indigo-200"
                 >
-                  <X className="w-5 h-5 text-amber-600" />
+                  <X className="w-5 h-5 text-indigo-600" />
                 </button>
               </div>
             </div>
@@ -820,7 +820,7 @@ Generated on: ${new Date().toLocaleString()}
                     value={newFacultyId}
                     onChange={(e) => setNewFacultyId(e.target.value)}
                     placeholder="e.g., TUT009"
-                    className="w-full px-4 py-2.5 bg-white border border-amber-200 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                    className="w-full px-4 py-2.5 bg-white border border-indigo-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                   />
                   <p className="text-xs text-gray-500 mt-2">
                     Unique identifier for the tutor
@@ -837,7 +837,7 @@ Generated on: ${new Date().toLocaleString()}
                     value={newFacultyName}
                     onChange={(e) => setNewFacultyName(e.target.value)}
                     placeholder="e.g., Dr. Sunil Verma"
-                    className="w-full px-4 py-2.5 bg-white border border-amber-200 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                    className="w-full px-4 py-2.5 bg-white border border-indigo-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                   />
                   <p className="text-xs text-gray-500 mt-2">
                     Full name of the tutor
@@ -851,7 +851,7 @@ Generated on: ${new Date().toLocaleString()}
                     setShowCreateModal(false);
                     resetNewFacultyForm();
                   }}
-                  className="px-4 py-2.5 border border-amber-300 text-amber-700 rounded-lg font-bold hover:bg-amber-50 transition-colors flex-1"
+                  className="px-4 py-2.5 border border-indigo-300 text-indigo-700 rounded-lg font-bold hover:bg-indigo-50 transition-colors flex-1"
                 >
                   Cancel
                 </button>
@@ -867,7 +867,7 @@ Generated on: ${new Date().toLocaleString()}
                     !newFacultyId.trim() ||
                     !newFacultyName.trim()
                       ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                      : "bg-gradient-to-r from-amber-600 to-amber-700 text-white hover:from-amber-700 hover:to-amber-800"
+                      : "bg-gradient-to-r from-indigo-600 to-indigo-700 text-white hover:from-indigo-700 hover:to-indigo-800"
                   }`}
                 >
                   {isCreatingFaculty ? (
@@ -891,22 +891,22 @@ Generated on: ${new Date().toLocaleString()}
       {/* Delete Confirmation Modal */}
       {showDeleteModal && selectedFaculty && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden border border-amber-200">
-            <div className="p-6 border-b border-amber-100 bg-gradient-to-r from-amber-50 to-amber-100">
+          <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden border border-indigo-200">
+            <div className="p-6 border-b border-indigo-100 bg-gradient-to-r from-indigo-50 to-indigo-100">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-white rounded-lg border border-amber-200">
-                    <Archive className="w-5 h-5 text-amber-600" />
+                  <div className="p-2 bg-white rounded-lg border border-indigo-200">
+                    <Archive className="w-5 h-5 text-indigo-600" />
                   </div>
-                  <h2 className="text-xl font-bold text-amber-900">
+                  <h2 className="text-xl font-bold text-indigo-900">
                     Remove Tutor
                   </h2>
                 </div>
                 <button
                   onClick={() => setShowDeleteModal(false)}
-                  className="p-2 hover:bg-white/50 rounded-lg transition-colors border border-amber-200"
+                  className="p-2 hover:bg-white/50 rounded-lg transition-colors border border-indigo-200"
                 >
-                  <X className="w-5 h-5 text-amber-600" />
+                  <X className="w-5 h-5 text-indigo-600" />
                 </button>
               </div>
             </div>
@@ -939,11 +939,11 @@ Generated on: ${new Date().toLocaleString()}
               </div>
             </div>
 
-            <div className="p-6 border-t border-gray-200 bg-amber-50">
+            <div className="p-6 border-t border-gray-200 bg-indigo-50">
               <div className="flex items-center justify-end gap-3">
                 <button
                   onClick={() => setShowDeleteModal(false)}
-                  className="px-4 py-2 border border-amber-300 text-amber-700 rounded-lg font-bold hover:bg-amber-50 transition-colors"
+                  className="px-4 py-2 border border-indigo-300 text-indigo-700 rounded-lg font-bold hover:bg-indigo-50 transition-colors"
                 >
                   Cancel
                 </button>
@@ -972,7 +972,7 @@ Generated on: ${new Date().toLocaleString()}
               Dashboard
             </Link>
             <ChevronRight className="w-4 h-4 mx-2" />
-            <span className="font-bold text-amber-600 flex items-center gap-1">
+            <span className="font-bold text-indigo-600 flex items-center gap-1">
               <PenTool className="w-4 h-4" />
               Study Tutors
             </span>
@@ -984,7 +984,7 @@ Generated on: ${new Date().toLocaleString()}
           <div>
             <div className="flex items-center gap-3 mb-2">
               <div className="p-2.5 bg-white rounded-xl shadow-sm border border-gray-100">
-                <PenTool className="w-6 h-6 text-amber-600" />
+                <PenTool className="w-6 h-6 text-indigo-600" />
               </div>
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">
@@ -999,7 +999,7 @@ Generated on: ${new Date().toLocaleString()}
           <div className="flex items-center gap-3">
             <button
               onClick={handleOpenCreateModal}
-              className="px-4 py-3 bg-gradient-to-r from-amber-600 to-amber-700 text-white rounded-lg font-bold hover:from-amber-700 hover:to-amber-800 transition-colors flex items-center gap-2 border border-amber-700"
+              className="px-4 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-lg font-bold hover:from-indigo-700 hover:to-indigo-800 transition-colors flex items-center gap-2 border border-indigo-700"
             >
               <UserPlus className="w-5 h-5" />
               Add Tutor
@@ -1009,7 +1009,7 @@ Generated on: ${new Date().toLocaleString()}
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-xl p-6 border border-amber-200 shadow-sm">
+          <div className="bg-white rounded-xl p-6 border border-indigo-200 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Total Tutors</p>
@@ -1017,13 +1017,13 @@ Generated on: ${new Date().toLocaleString()}
                   {faculties.length}
                 </p>
               </div>
-              <div className="p-3 bg-gradient-to-br from-amber-50 to-amber-100 rounded-lg border border-amber-200">
-                <Users className="w-6 h-6 text-amber-600" />
+              <div className="p-3 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg border border-indigo-200">
+                <Users className="w-6 h-6 text-indigo-600" />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-6 border border-amber-200 shadow-sm">
+          <div className="bg-white rounded-xl p-6 border border-indigo-200 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Currently Teaching</p>
@@ -1031,13 +1031,13 @@ Generated on: ${new Date().toLocaleString()}
                   {activeFacultiesCount}
                 </p>
               </div>
-              <div className="p-3 bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg border border-orange-200">
-                <BookOpen className="w-6 h-6 text-orange-600" />
+              <div className="p-3 bg-gradient-to-br from-violet-50 to-violet-100 rounded-lg border border-violet-200">
+                <BookOpen className="w-6 h-6 text-violet-600" />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-6 border border-amber-200 shadow-sm">
+          <div className="bg-white rounded-xl p-6 border border-indigo-200 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Weekly Sessions (Avg)</p>
@@ -1051,7 +1051,7 @@ Generated on: ${new Date().toLocaleString()}
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-6 border border-amber-200 shadow-sm">
+          <div className="bg-white rounded-xl p-6 border border-indigo-200 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Available</p>
@@ -1067,24 +1067,24 @@ Generated on: ${new Date().toLocaleString()}
         </div>
 
         {/* Search and Filters */}
-        <div className="bg-white rounded-2xl p-6 border border-amber-200 shadow-sm mb-8">
+        <div className="bg-white rounded-2xl p-6 border border-indigo-200 shadow-sm mb-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-amber-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-indigo-400" />
                 <input
                   type="text"
                   placeholder="Search tutors by name or ID..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-white border border-amber-200 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                  className="w-full pl-10 pr-4 py-3 bg-white border border-indigo-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 />
               </div>
             </div>
 
             <div className="flex items-center gap-2">
-              <div className="p-2 bg-gradient-to-br from-amber-100 to-amber-50 rounded-lg border border-amber-200">
-                <Filter className="w-4 h-4 text-amber-600" />
+              <div className="p-2 bg-gradient-to-br from-indigo-100 to-indigo-50 rounded-lg border border-indigo-200">
+                <Filter className="w-4 h-4 text-indigo-600" />
               </div>
               <span className="text-sm text-gray-700 font-bold">Filter:</span>
               <div className="flex flex-wrap gap-2">
@@ -1094,7 +1094,7 @@ Generated on: ${new Date().toLocaleString()}
                     onClick={() => handleFilterChange(filter.id)}
                     className={`px-3 py-1.5 rounded-lg text-sm font-bold transition-colors border ${
                       activeFilter === filter.id
-                        ? "bg-gradient-to-r from-amber-100 to-amber-50 text-amber-700 border-amber-300"
+                        ? "bg-gradient-to-r from-indigo-100 to-indigo-50 text-indigo-700 border-indigo-300"
                         : "bg-gradient-to-r from-gray-100 to-gray-50 text-gray-700 hover:from-gray-200 hover:to-gray-100 border-gray-200"
                     }`}
                   >
@@ -1111,7 +1111,7 @@ Generated on: ${new Date().toLocaleString()}
           {/* Faculty List */}
           {loading ? (
             <div className="flex flex-col items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-amber-600 mb-4" />
+              <Loader2 className="w-8 h-8 animate-spin text-indigo-600 mb-4" />
               <p className="text-gray-600">Loading tutors...</p>
             </div>
           ) : filteredFaculties.length === 0 ? (
@@ -1132,7 +1132,7 @@ Generated on: ${new Date().toLocaleString()}
                 faculties.length === 0 && (
                   <button
                     onClick={handleOpenCreateModal}
-                    className="mt-4 px-4 py-2 bg-gradient-to-r from-amber-600 to-amber-700 text-white rounded-lg font-bold hover:from-amber-700 hover:to-amber-800 transition-colors inline-flex items-center gap-2 border border-amber-700"
+                    className="mt-4 px-4 py-2 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-lg font-bold hover:from-indigo-700 hover:to-indigo-800 transition-colors inline-flex items-center gap-2 border border-indigo-700"
                   >
                     <Plus className="w-4 h-4" />
                     Add Your First Tutor
@@ -1148,17 +1148,17 @@ Generated on: ${new Date().toLocaleString()}
                   <div
                     key={faculty.id}
                     className={`bg-white rounded-xl border ${
-                      stats.isActive ? "border-orange-200" : "border-amber-200"
-                    } hover:border-amber-300 hover:shadow-md transition-all duration-300 overflow-hidden group relative`}
+                      stats.isActive ? "border-violet-200" : "border-indigo-200"
+                    } hover:border-indigo-300 hover:shadow-md transition-all duration-300 overflow-hidden group relative`}
                   >
                     {/* Notebook Spine Effect */}
-                    <div className="absolute left-0 top-0 bottom-0 w-2 bg-gradient-to-b from-amber-400 to-amber-300 rounded-l-lg"></div>
+                    <div className="absolute left-0 top-0 bottom-0 w-2 bg-gradient-to-b from-indigo-400 to-indigo-300 rounded-l-lg"></div>
 
                     <div
                       className={`p-4 border-b ml-2 ${
                         stats.isActive
-                          ? "bg-gradient-to-r from-orange-50 to-orange-100 border-orange-200"
-                          : "bg-gradient-to-r from-amber-50 to-amber-100 border-amber-200"
+                          ? "bg-gradient-to-r from-violet-50 to-violet-100 border-violet-200"
+                          : "bg-gradient-to-r from-indigo-50 to-indigo-100 border-indigo-200"
                       }`}
                     >
                       <div className="flex items-start justify-between">
@@ -1166,15 +1166,15 @@ Generated on: ${new Date().toLocaleString()}
                           <div
                             className={`w-10 h-10 rounded-full flex items-center justify-center border ${
                               stats.isActive
-                                ? "border-orange-200 bg-gradient-to-br from-orange-100 to-orange-50"
-                                : "border-amber-200 bg-gradient-to-br from-amber-100 to-amber-50"
+                                ? "border-violet-200 bg-gradient-to-br from-violet-100 to-violet-50"
+                                : "border-indigo-200 bg-gradient-to-br from-indigo-100 to-indigo-50"
                             }`}
                           >
                             <PenTool
                               className={`w-5 h-5 ${
                                 stats.isActive
-                                  ? "text-orange-600"
-                                  : "text-amber-600"
+                                  ? "text-violet-600"
+                                  : "text-indigo-600"
                               }`}
                             />
                           </div>
@@ -1197,25 +1197,25 @@ Generated on: ${new Date().toLocaleString()}
                                   : faculty
                               )
                             }
-                            className="p-1.5 hover:bg-white/50 rounded-lg transition-colors border border-amber-200"
+                            className="p-1.5 hover:bg-white/50 rounded-lg transition-colors border border-indigo-200"
                           >
-                            <MoreVertical className="w-5 h-5 text-amber-500" />
+                            <MoreVertical className="w-5 h-5 text-indigo-500" />
                           </button>
 
                           {selectedFaculty?.id === faculty.id && (
-                            <div className="absolute right-0 top-10 w-48 bg-white rounded-lg border border-amber-200 shadow-lg z-10">
+                            <div className="absolute right-0 top-10 w-48 bg-white rounded-lg border border-indigo-200 shadow-lg z-10">
                               <button
                                 onClick={() => handleViewTimetable(faculty)}
-                                className="w-full px-4 py-3 text-left hover:bg-amber-50 flex items-center gap-2 rounded-t-lg border-b border-amber-100"
+                                className="w-full px-4 py-3 text-left hover:bg-indigo-50 flex items-center gap-2 rounded-t-lg border-b border-indigo-100"
                               >
-                                <Calendar className="w-4 h-4 text-amber-600" />
+                                <Calendar className="w-4 h-4 text-indigo-600" />
                                 View Schedule
                               </button>
                               <button
                                 onClick={() => handleEditFaculty(faculty)}
-                                className="w-full px-4 py-3 text-left hover:bg-amber-50 flex items-center gap-2 border-b border-amber-100"
+                                className="w-full px-4 py-3 text-left hover:bg-indigo-50 flex items-center gap-2 border-b border-indigo-100"
                               >
-                                <Edit className="w-4 h-4 text-amber-600" />
+                                <Edit className="w-4 h-4 text-indigo-600" />
                                 Edit Details
                               </button>
                               <button
@@ -1249,7 +1249,7 @@ Generated on: ${new Date().toLocaleString()}
                           <div
                             className={`text-lg font-bold ${
                               stats.weeklyHours > 0
-                                ? "text-orange-600"
+                                ? "text-violet-600"
                                 : "text-gray-400"
                             }`}
                           >
@@ -1264,7 +1264,7 @@ Generated on: ${new Date().toLocaleString()}
                           <div
                             className={`text-xs px-2 py-1 rounded-full font-bold border ${
                               stats.isActive
-                                ? "bg-gradient-to-r from-orange-100 to-orange-50 text-orange-700 border-orange-200"
+                                ? "bg-gradient-to-r from-violet-100 to-violet-50 text-violet-700 border-violet-200"
                                 : "bg-gradient-to-r from-blue-100 to-blue-50 text-blue-700 border-blue-200"
                             }`}
                           >
@@ -1276,7 +1276,7 @@ Generated on: ${new Date().toLocaleString()}
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleViewTimetable(faculty)}
-                          className="flex-1 px-3 py-2 bg-gradient-to-r from-amber-600 to-amber-600 text-white text-sm font-bold rounded-lg hover:from-amber-700 hover:to-amber-800 transition-colors flex items-center justify-center gap-2 border border-amber-700"
+                          className="flex-1 px-3 py-2 bg-gradient-to-r from-indigo-600 to-indigo-600 text-white text-sm font-bold rounded-lg hover:from-indigo-700 hover:to-indigo-800 transition-colors flex items-center justify-center gap-2 border border-indigo-700"
                         >
                           <Calendar className="w-4 h-4" />
                           View Schedule
@@ -1291,8 +1291,8 @@ Generated on: ${new Date().toLocaleString()}
                           }
                           className={`p-2 rounded-lg transition-colors relative group border ${
                             faculty.isAdmin
-                              ? "bg-gradient-to-r from-orange-100 to-orange-50 text-orange-700 hover:from-orange-200 hover:to-orange-100 border-orange-200"
-                              : "bg-gradient-to-r from-amber-100 to-amber-50 text-amber-700 hover:from-amber-200 hover:to-amber-100 border-amber-200"
+                              ? "bg-gradient-to-r from-violet-100 to-violet-50 text-violet-700 hover:from-violet-200 hover:to-violet-100 border-violet-200"
+                              : "bg-gradient-to-r from-indigo-100 to-indigo-50 text-indigo-700 hover:from-indigo-200 hover:to-indigo-100 border-indigo-200"
                           }`}
                           title={
                             faculty.isAdmin
@@ -1306,8 +1306,8 @@ Generated on: ${new Date().toLocaleString()}
                               {/* Admin badge indicator */}
                               <span className="absolute -top-1 -right-1">
                                 <span className="flex h-3 w-3">
-                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
-                                  <span className="relative inline-flex rounded-full h-3 w-3 bg-orange-500"></span>
+                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-violet-400 opacity-75"></span>
+                                  <span className="relative inline-flex rounded-full h-3 w-3 bg-violet-500"></span>
                                 </span>
                               </span>
                             </>
@@ -1349,7 +1349,7 @@ Generated on: ${new Date().toLocaleString()}
             <div className="flex items-center gap-4">
               <button
                 onClick={fetchFaculties}
-                className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-amber-100 to-amber-50 rounded-lg transition-colors border border-amber-200 hover:from-amber-200 hover:to-amber-100"
+                className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-indigo-100 to-indigo-50 rounded-lg transition-colors border border-indigo-200 hover:from-indigo-200 hover:to-indigo-100"
               >
                 <RefreshCw className="w-4 h-4" />
                 Refresh
@@ -1358,51 +1358,51 @@ Generated on: ${new Date().toLocaleString()}
           </div>
         </div>
 
-        <div className="bg-gradient-to-r from-amber-50 to-blue-50 rounded-2xl p-6 border-2 border-amber-200">
+        <div className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-2xl p-6 border-2 border-indigo-200">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-gradient-to-br from-amber-100 to-amber-50 rounded-lg border border-amber-200">
-              <Compass className="w-5 h-5 text-amber-600" />
+            <div className="p-2 bg-gradient-to-br from-indigo-100 to-indigo-50 rounded-lg border border-indigo-200">
+              <Compass className="w-5 h-5 text-indigo-600" />
             </div>
-            <h3 className="font-bold text-amber-900">Tutor Management Guide</h3>
+            <h3 className="font-bold text-indigo-900">Tutor Management Guide</h3>
           </div>
-          <ul className="space-y-2 text-amber-800 text-sm">
+          <ul className="space-y-2 text-indigo-800 text-sm">
             <li className="flex items-start gap-2">
-              <div className="w-2 h-2 bg-amber-400 rounded-full mt-1.5"></div>
+              <div className="w-2 h-2 bg-indigo-400 rounded-full mt-1.5"></div>
               <span>
                 <strong>Currently Teaching</strong>: Tutors with assigned
                 sessions in their schedule
               </span>
             </li>
             <li className="flex items-start gap-2">
-              <div className="w-2 h-2 bg-amber-400 rounded-full mt-1.5"></div>
+              <div className="w-2 h-2 bg-indigo-400 rounded-full mt-1.5"></div>
               <span>
                 <strong>Available</strong>: Tutors with no sessions assigned
                 (can be assigned to new study groups)
               </span>
             </li>
             <li className="flex items-start gap-2">
-              <div className="w-2 h-2 bg-amber-400 rounded-full mt-1.5"></div>
+              <div className="w-2 h-2 bg-indigo-400 rounded-full mt-1.5"></div>
               <span>
                 <strong>Use the search bar</strong> to quickly find tutors by
                 name or ID
               </span>
             </li>
             <li className="flex items-start gap-2">
-              <div className="w-2 h-2 bg-amber-400 rounded-full mt-1.5"></div>
+              <div className="w-2 h-2 bg-indigo-400 rounded-full mt-1.5"></div>
               <span>
                 <strong>Filter options</strong> help you view only active or
                 available tutors
               </span>
             </li>
             <li className="flex items-start gap-2">
-              <div className="w-2 h-2 bg-amber-400 rounded-full mt-1.5"></div>
+              <div className="w-2 h-2 bg-indigo-400 rounded-full mt-1.5"></div>
               <span>
                 <strong>Click "Add Tutor"</strong> to create new tutor accounts
                 with auto-generated study access
               </span>
             </li>
             <li className="flex items-start gap-2">
-              <div className="w-2 h-2 bg-amber-400 rounded-full mt-1.5"></div>
+              <div className="w-2 h-2 bg-indigo-400 rounded-full mt-1.5"></div>
               <span>
                 <strong>Key Icon</strong>: Click to grant/revoke admin
                 privileges for study management

@@ -63,16 +63,16 @@ const Alert = ({ main, info, type, onClose }) => {
         badge: "bg-rose-100 text-rose-800 border-rose-200",
       },
       warning: {
-        bg: "bg-gradient-to-r from-amber-50 to-amber-100/50",
-        border: "border-2 border-amber-200",
-        iconBg: "bg-gradient-to-br from-amber-100 to-amber-200",
-        iconColor: "text-amber-600",
-        textMain: "text-amber-800",
-        textInfo: "text-amber-700",
-        button: "text-amber-400 hover:text-amber-600",
-        shadow: "shadow-amber-100/50",
-        accent: "from-amber-300 to-amber-400",
-        badge: "bg-amber-100 text-amber-800 border-amber-200",
+        bg: "bg-gradient-to-r from-indigo-50 to-indigo-100/50",
+        border: "border-2 border-indigo-200",
+        iconBg: "bg-gradient-to-br from-indigo-100 to-indigo-200",
+        iconColor: "text-indigo-600",
+        textMain: "text-indigo-800",
+        textInfo: "text-indigo-700",
+        button: "text-indigo-400 hover:text-indigo-600",
+        shadow: "shadow-indigo-100/50",
+        accent: "from-indigo-300 to-indigo-400",
+        badge: "bg-indigo-100 text-indigo-800 border-indigo-200",
       },
     };
     return colorMap[type] || colorMap.success;
@@ -278,7 +278,7 @@ export default function AuthPage() {
     const labels = ["Very Weak", "Weak", "Fair", "Good", "Strong"];
     const colors = [
       "bg-gradient-to-r from-rose-500 to-rose-600",
-      "bg-gradient-to-r from-amber-500 to-amber-600",
+      "bg-gradient-to-r from-indigo-500 to-indigo-600",
       "bg-gradient-to-r from-yellow-500 to-yellow-600",
       "bg-gradient-to-r from-blue-500 to-blue-600",
       "bg-gradient-to-r from-emerald-500 to-emerald-600",
@@ -294,15 +294,15 @@ export default function AuthPage() {
   const passwordStrength = getPasswordStrength(formData.password);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-blue-50">
       {/* Decorative Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 right-10 w-72 h-72 bg-gradient-to-br from-amber-100 to-transparent rounded-full opacity-40"></div>
+        <div className="absolute top-20 right-10 w-72 h-72 bg-gradient-to-br from-indigo-100 to-transparent rounded-full opacity-40"></div>
         <div className="absolute bottom-20 left-10 w-96 h-96 bg-gradient-to-tr from-blue-100 to-transparent rounded-full opacity-30"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-64 bg-gradient-to-r from-transparent via-amber-50/20 to-transparent"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-64 bg-gradient-to-r from-transparent via-indigo-50/20 to-transparent"></div>
 
         {/* Stationery Elements */}
-        <div className="absolute top-40 left-20 w-24 h-24 border-4 border-amber-200/40 border-dashed rounded-lg rotate-12"></div>
+        <div className="absolute top-40 left-20 w-24 h-24 border-4 border-indigo-200/40 border-dashed rounded-lg rotate-12"></div>
         <div className="absolute bottom-40 right-20 w-16 h-16 border-2 border-blue-200/40 border-dotted rounded-full"></div>
         <div className="absolute top-60 right-40 w-8 h-32 bg-gradient-to-b from-emerald-200/30 to-transparent transform rotate-45"></div>
       </div>
@@ -318,17 +318,17 @@ export default function AuthPage() {
 
       <div className="relative z-10 min-h-screen flex flex-col md:flex-row">
         {/* Left Panel - Brand & Features */}
-        <div className="md:w-1/2 p-8 md:p-12 lg:p-20 flex flex-col justify-between bg-gradient-to-br from-amber-600 to-amber-700 text-white">
+        <div className="md:w-1/2 p-8 md:p-12 lg:p-20 flex flex-col justify-between bg-gradient-to-br from-indigo-600 to-indigo-700 text-white">
           <div>
             {/* Breadcrumb */}
             <div className="mb-8">
-              <div className="flex items-center text-sm text-amber-100/80 mb-4">
+              <div className="flex items-center text-sm text-indigo-100/80 mb-4">
                 <span className="hover:text-white cursor-pointer flex items-center gap-1">
                   <Bookmark className="w-3 h-3" />
                   Study Planner Organizer
                 </span>
-                <ChevronRight className="w-4 h-4 mx-2 text-amber-200/60" />
-                <span className="font-medium text-amber-100">
+                <ChevronRight className="w-4 h-4 mx-2 text-indigo-200/60" />
+                <span className="font-medium text-indigo-100">
                   {isLogin ? "Tutor Login" : "Create Tutor Account"}
                 </span>
               </div>
@@ -337,19 +337,19 @@ export default function AuthPage() {
             {/* Hero Section */}
             <div className="mb-12">
               <div className="flex items-center gap-3 mb-6">
-                <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl border border-amber-300/30 relative overflow-hidden">
+                <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl border border-indigo-300/30 relative overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/10 to-transparent"></div>
                   <BookOpen className="w-8 h-8 relative z-10" />
                 </div>
                 <div>
                   <h1 className="text-4xl font-bold mb-2">Study Planner Portal</h1>
-                  <p className="text-amber-100/90 text-lg">
+                  <p className="text-indigo-100/90 text-lg">
                     Manage your teaching schedule like a professional organizer
                   </p>
                 </div>
               </div>
 
-              <div className="inline-flex items-center px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm mb-8 border border-amber-300/30">
+              <div className="inline-flex items-center px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm mb-8 border border-indigo-300/30">
                 <Zap className="w-4 h-4 mr-2" />
                 Trusted by 500+ tutors & educational institutions
               </div>
@@ -358,42 +358,42 @@ export default function AuthPage() {
             {/* Features */}
             <div className="space-y-8">
               <div className="flex items-start gap-4">
-                <div className="p-2 bg-white/20 rounded-lg mt-1 border border-amber-300/30">
+                <div className="p-2 bg-white/20 rounded-lg mt-1 border border-indigo-300/30">
                   <CalendarDays className="w-5 h-5" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-lg mb-2">
                     Schedule Management
                   </h3>
-                  <p className="text-amber-100/90">
+                  <p className="text-indigo-100/90">
                     Organize your teaching schedule across multiple study groups
                   </p>
                 </div>
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="p-2 bg-white/20 rounded-lg mt-1 border border-amber-300/30">
+                <div className="p-2 bg-white/20 rounded-lg mt-1 border border-indigo-300/30">
                   <Users className="w-5 h-5" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-lg mb-2">
                     Study Group Coordination
                   </h3>
-                  <p className="text-amber-100/90">
+                  <p className="text-indigo-100/90">
                     Manage multiple study groups like separate notebook sections
                   </p>
                 </div>
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="p-2 bg-white/20 rounded-lg mt-1 border border-amber-300/30">
+                <div className="p-2 bg-white/20 rounded-lg mt-1 border border-indigo-300/30">
                   <Shield className="w-5 h-5" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-lg mb-2">
                     Secure & Organized
                   </h3>
-                  <p className="text-amber-100/90">
+                  <p className="text-indigo-100/90">
                     Your teaching data is protected and perfectly organized
                   </p>
                 </div>
@@ -402,8 +402,8 @@ export default function AuthPage() {
           </div>
 
           {/* Footer */}
-          <div className="mt-12 pt-8 border-t border-amber-500/30">
-            <p className="text-amber-100/80 text-sm">
+          <div className="mt-12 pt-8 border-t border-indigo-500/30">
+            <p className="text-indigo-100/80 text-sm">
               © 2024 Study Planner Organizer. All rights reserved.
             </p>
           </div>
@@ -414,7 +414,7 @@ export default function AuthPage() {
           <div className="w-full max-w-md">
             {/* Form Header */}
             <div className="text-center mb-10">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl shadow-lg mb-6 border border-amber-300 relative overflow-hidden">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-2xl shadow-lg mb-6 border border-indigo-300 relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/10 to-transparent"></div>
                 <Lock className="w-8 h-8 text-white relative z-10" />
               </div>
@@ -434,7 +434,7 @@ export default function AuthPage() {
               {!isLogin && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                    <User className="w-4 h-4 text-amber-600" />
+                    <User className="w-4 h-4 text-indigo-600" />
                     Full Name
                   </label>
                   <div className="relative">
@@ -444,7 +444,7 @@ export default function AuthPage() {
                       value={formData.name}
                       onChange={handleChange}
                       placeholder="Enter your full name"
-                      className={`w-full px-4 py-3 pl-11 bg-white border border-gray-300 text-gray-900 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all shadow-sm ${
+                      className={`w-full px-4 py-3 pl-11 bg-white border border-gray-300 text-gray-900 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all shadow-sm ${
                         formErrors.name
                           ? "border-rose-300 focus:ring-rose-500 focus:border-rose-500"
                           : ""
@@ -464,7 +464,7 @@ export default function AuthPage() {
               {/* Username Field */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                  <User className="w-4 h-4 text-amber-600" />
+                  <User className="w-4 h-4 text-indigo-600" />
                   Username
                 </label>
                 <div className="relative">
@@ -474,7 +474,7 @@ export default function AuthPage() {
                     value={formData.username}
                     onChange={handleChange}
                     placeholder="Enter your username"
-                    className={`w-full px-4 py-3 pl-11 bg-white border border-gray-300 text-gray-900 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all shadow-sm ${
+                    className={`w-full px-4 py-3 pl-11 bg-white border border-gray-300 text-gray-900 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all shadow-sm ${
                       formErrors.username
                         ? "border-rose-300 focus:ring-rose-500 focus:border-rose-500"
                         : ""
@@ -494,7 +494,7 @@ export default function AuthPage() {
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label className="block text-sm font-medium text-gray-700 flex items-center gap-2">
-                    <Lock className="w-4 h-4 text-amber-600" />
+                    <Lock className="w-4 h-4 text-indigo-600" />
                     Password
                   </label>
                   {!isLogin && formData.password && (
@@ -514,7 +514,7 @@ export default function AuthPage() {
                         ? "Enter your password"
                         : "Create a strong password"
                     }
-                    className={`w-full px-4 py-3 pl-11 pr-11 bg-white border border-gray-300 text-gray-900 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all shadow-sm ${
+                    className={`w-full px-4 py-3 pl-11 pr-11 bg-white border border-gray-300 text-gray-900 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all shadow-sm ${
                       formErrors.password
                         ? "border-rose-300 focus:ring-rose-500 focus:border-rose-500"
                         : ""
@@ -524,7 +524,7 @@ export default function AuthPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-3.5 text-gray-400 hover:text-amber-600 transition-colors"
+                    className="absolute right-3 top-3.5 text-gray-400 hover:text-indigo-600 transition-colors"
                   >
                     {showPassword ? (
                       <EyeOff className="w-5 h-5" />
@@ -609,7 +609,7 @@ export default function AuthPage() {
               {!isLogin && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                    <Lock className="w-4 h-4 text-amber-600" />
+                    <Lock className="w-4 h-4 text-indigo-600" />
                     Confirm Password
                   </label>
                   <div className="relative">
@@ -619,7 +619,7 @@ export default function AuthPage() {
                       value={formData.confirmPassword}
                       onChange={handleChange}
                       placeholder="Confirm your password"
-                      className={`w-full px-4 py-3 pl-11 pr-11 bg-white border border-gray-300 text-gray-900 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all shadow-sm ${
+                      className={`w-full px-4 py-3 pl-11 pr-11 bg-white border border-gray-300 text-gray-900 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all shadow-sm ${
                         formErrors.confirmPassword
                           ? "border-rose-300 focus:ring-rose-500 focus:border-rose-500"
                           : ""
@@ -631,7 +631,7 @@ export default function AuthPage() {
                       onClick={() =>
                         setShowConfirmPassword(!showConfirmPassword)
                       }
-                      className="absolute right-3 top-3.5 text-gray-400 hover:text-amber-600 transition-colors"
+                      className="absolute right-3 top-3.5 text-gray-400 hover:text-indigo-600 transition-colors"
                     >
                       {showConfirmPassword ? (
                         <EyeOff className="w-5 h-5" />
@@ -655,8 +655,8 @@ export default function AuthPage() {
                 disabled={isLoading}
                 className={`w-full py-3 px-4 rounded-lg font-medium flex items-center justify-center gap-2 transition-all duration-300 shadow-sm hover:shadow-md group ${
                   isLoading
-                    ? "bg-gradient-to-r from-amber-100 to-amber-50 text-amber-400 cursor-not-allowed border border-amber-200"
-                    : "bg-gradient-to-r from-amber-600 to-amber-700 text-white hover:from-amber-700 hover:to-amber-800"
+                    ? "bg-gradient-to-r from-indigo-100 to-indigo-50 text-indigo-400 cursor-not-allowed border border-indigo-200"
+                    : "bg-gradient-to-r from-indigo-600 to-indigo-700 text-white hover:from-indigo-700 hover:to-indigo-800"
                 }`}
               >
                 {isLoading ? (
@@ -681,7 +681,7 @@ export default function AuthPage() {
                   <button
                     type="button"
                     onClick={handleToggleMode}
-                    className="ml-2 text-amber-600 hover:text-amber-800 font-semibold transition-colors hover:underline"
+                    className="ml-2 text-indigo-600 hover:text-indigo-800 font-semibold transition-colors hover:underline"
                   >
                     {isLogin ? "Create an account" : "Sign in here"}
                   </button>
@@ -698,27 +698,27 @@ export default function AuthPage() {
             </div>
 
             {/* Demo Credentials */}
-            <div className="mt-8 p-4 bg-gradient-to-r from-amber-50 to-amber-100/50 rounded-xl border-2 border-amber-200">
+            <div className="mt-8 p-4 bg-gradient-to-r from-indigo-50 to-indigo-100/50 rounded-xl border-2 border-indigo-200">
               <div className="flex items-center gap-2 mb-2">
-                <div className="p-1.5 bg-gradient-to-br from-amber-100 to-amber-200 rounded-lg border border-amber-300">
-                  <Shield className="w-4 h-4 text-amber-600" />
+                <div className="p-1.5 bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-lg border border-indigo-300">
+                  <Shield className="w-4 h-4 text-indigo-600" />
                 </div>
-                <p className="text-sm font-medium text-amber-900">
+                <p className="text-sm font-medium text-indigo-900">
                   Demo Credentials
                 </p>
               </div>
-              <div className="space-y-2 text-xs text-amber-800/90">
+              <div className="space-y-2 text-xs text-indigo-800/90">
                 <p className="flex items-center gap-1">
                   <span className="font-medium">Username:</span> 
-                  <span className="font-mono bg-white/50 px-2 py-0.5 rounded border border-amber-300">ABC</span>
+                  <span className="font-mono bg-white/50 px-2 py-0.5 rounded border border-indigo-300">ABC</span>
                 </p>
                 <p className="flex items-center gap-1">
                   <span className="font-medium">Password:</span>
-                  <span className="font-mono bg-white/50 px-2 py-0.5 rounded border border-amber-300">ojqR@b7Z3qg4</span>
+                  <span className="font-mono bg-white/50 px-2 py-0.5 rounded border border-indigo-300">ojqR@b7Z3qg4</span>
                 </p>
               </div>
-              <div className="mt-3 pt-3 border-t border-amber-300/50">
-                <p className="text-xs text-amber-700/80">
+              <div className="mt-3 pt-3 border-t border-indigo-300/50">
+                <p className="text-xs text-indigo-700/80">
                   Use these credentials to explore the Study Planner Organizer
                 </p>
               </div>

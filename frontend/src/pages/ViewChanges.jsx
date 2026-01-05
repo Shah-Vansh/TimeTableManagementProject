@@ -55,14 +55,14 @@ export default function ViewChanges() {
 
   // Grouping options
   const GROUP_OPTIONS = [
-    { id: "date", label: "Group by Date", icon: CalendarIcon, color: "amber" },
+    { id: "date", label: "Group by Date", icon: CalendarIcon, color: "indigo" },
     { id: "class", label: "Group by Class", icon: Folder, color: "blue" },
   ];
 
   const DATE_OPTIONS = [
     { id: "all", label: "All Dates", color: "gray" },
     { id: "today", label: "Today", color: "emerald" },
-    { id: "yesterday", label: "Yesterday", color: "amber" },
+    { id: "yesterday", label: "Yesterday", color: "indigo" },
     { id: "tomorrow", label: "Tomorrow", color: "blue" },
     { id: "specific", label: "Specific Date", color: "violet" },
   ];
@@ -437,12 +437,12 @@ export default function ViewChanges() {
 
   const getColorClasses = (color) => {
     const colorMap = {
-      amber: {
-        bg: "bg-amber-50",
-        border: "border-amber-200",
-        text: "text-amber-700",
-        light: "bg-gradient-to-r from-amber-100 to-amber-50",
-        ribbon: "bg-gradient-to-r from-amber-400 to-amber-300",
+      indigo: {
+        bg: "bg-indigo-50",
+        border: "border-indigo-200",
+        text: "text-indigo-700",
+        light: "bg-gradient-to-r from-indigo-100 to-indigo-50",
+        ribbon: "bg-gradient-to-r from-indigo-400 to-indigo-300",
       },
       blue: {
         bg: "bg-blue-50",
@@ -473,19 +473,19 @@ export default function ViewChanges() {
         ribbon: "bg-gradient-to-r from-gray-400 to-gray-300",
       },
     };
-    return colorMap[color] || colorMap.amber;
+    return colorMap[color] || colorMap.indigo;
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-blue-50">
       {/* Decorative Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 right-10 w-72 h-72 bg-gradient-to-br from-amber-100 to-transparent rounded-full opacity-40"></div>
+        <div className="absolute top-20 right-10 w-72 h-72 bg-gradient-to-br from-indigo-100 to-transparent rounded-full opacity-40"></div>
         <div className="absolute bottom-20 left-10 w-96 h-96 bg-gradient-to-tr from-blue-100 to-transparent rounded-full opacity-30"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-64 bg-gradient-to-r from-transparent via-amber-50/20 to-transparent"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-64 bg-gradient-to-r from-transparent via-indigo-50/20 to-transparent"></div>
 
         {/* Stationery Elements */}
-        <div className="absolute top-40 left-20 w-24 h-24 border-4 border-amber-200/40 border-dashed rounded-lg rotate-12"></div>
+        <div className="absolute top-40 left-20 w-24 h-24 border-4 border-indigo-200/40 border-dashed rounded-lg rotate-12"></div>
         <div className="absolute bottom-40 right-20 w-16 h-16 border-2 border-blue-200/40 border-dotted rounded-full"></div>
         <div className="absolute top-60 right-40 w-8 h-32 bg-gradient-to-b from-emerald-200/30 to-transparent transform rotate-45"></div>
       </div>
@@ -518,7 +518,7 @@ export default function ViewChanges() {
                 Study Planner
               </span>
               <ChevronRight className="w-4 h-4 mx-2" />
-              <span className="font-medium text-amber-600 flex items-center gap-1">
+              <span className="font-medium text-indigo-600 flex items-center gap-1">
                 <ClipboardList className="w-4 h-4" />
                 Schedule Updates
               </span>
@@ -530,9 +530,9 @@ export default function ViewChanges() {
             <div>
               <div className="flex items-center gap-3 mb-3">
                 <div className="p-2.5 bg-white rounded-xl shadow-sm border border-gray-100 relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-amber-100 to-transparent opacity-60"></div>
+                  <div className="absolute inset-0 bg-gradient-to-br from-indigo-100 to-transparent opacity-60"></div>
                   <div className="relative">
-                    <Bell className="w-6 h-6 text-amber-600" />
+                    <Bell className="w-6 h-6 text-indigo-600" />
                   </div>
                 </div>
                 <div>
@@ -545,15 +545,15 @@ export default function ViewChanges() {
                 </div>
               </div>
             </div>
-            <div className="p-2.5 bg-gradient-to-br from-amber-100 to-amber-50 rounded-xl border border-amber-200">
-              <AlertTriangle className="w-6 h-6 text-amber-600" />
+            <div className="p-2.5 bg-gradient-to-br from-indigo-100 to-indigo-50 rounded-xl border border-indigo-200">
+              <AlertTriangle className="w-6 h-6 text-indigo-600" />
             </div>
           </div>
 
           {/* Stats Overview */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-300 relative overflow-hidden group">
-              <div className="absolute -right-6 -top-6 w-24 h-24 bg-gradient-to-br from-amber-100 to-transparent rounded-full opacity-60 group-hover:opacity-80 transition-opacity"></div>
+              <div className="absolute -right-6 -top-6 w-24 h-24 bg-gradient-to-br from-indigo-100 to-transparent rounded-full opacity-60 group-hover:opacity-80 transition-opacity"></div>
               <div className="relative">
                 <div className="flex items-center justify-between">
                   <div>
@@ -561,13 +561,13 @@ export default function ViewChanges() {
                     <p className="text-2xl font-bold text-gray-900 mb-2">
                       {allChanges.length}
                     </p>
-                    <div className="flex items-center text-xs text-amber-600">
+                    <div className="flex items-center text-xs text-indigo-600">
                       <TrendingUp className="w-3 h-3 mr-1" />
                       <span>Active adjustments</span>
                     </div>
                   </div>
-                  <div className="p-3 bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl border border-amber-200">
-                    <Bell className="w-6 h-6 text-amber-600" />
+                  <div className="p-3 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-xl border border-indigo-200">
+                    <Bell className="w-6 h-6 text-indigo-600" />
                   </div>
                 </div>
               </div>
@@ -644,13 +644,13 @@ export default function ViewChanges() {
           </div>
 
           {/* Main Content Card */}
-          <div className="bg-white rounded-2xl border-2 border-amber-200 shadow-sm overflow-hidden mb-8">
+          <div className="bg-white rounded-2xl border-2 border-indigo-200 shadow-sm overflow-hidden mb-8">
             {/* Header */}
-            <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-amber-50 to-amber-100/50">
+            <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-indigo-50 to-indigo-100/50">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                    <Highlighter className="w-5 h-5 text-amber-600" />
+                    <Highlighter className="w-5 h-5 text-indigo-600" />
                     Study Schedule Adjustments
                   </h2>
                   <p className="text-sm text-gray-600 mt-1">
@@ -661,7 +661,7 @@ export default function ViewChanges() {
                 <button
                   onClick={fetchChanges}
                   disabled={isLoading}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-amber-600 to-amber-700 text-white rounded-lg hover:from-amber-700 hover:to-amber-800 transition-all duration-300 shadow-sm hover:shadow-md group"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-lg hover:from-indigo-700 hover:to-indigo-800 transition-all duration-300 shadow-sm hover:shadow-md group"
                 >
                   {isLoading ? (
                     <RefreshCw className="w-4 h-4 animate-spin group-hover:rotate-180 transition-transform" />
@@ -679,7 +679,7 @@ export default function ViewChanges() {
                 {/* Grouping Options */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
-                    <Layers className="w-4 h-4 text-amber-600" />
+                    <Layers className="w-4 h-4 text-indigo-600" />
                     Organize By
                   </label>
                   <div className="flex flex-wrap gap-3">
@@ -739,7 +739,7 @@ export default function ViewChanges() {
                           onChange={(date) => setSpecificDate(date)}
                           dateFormat="dd/MM/yyyy"
                           placeholderText="Select a date"
-                          className="w-full pl-10 pr-3 py-2.5 bg-white border border-gray-300 text-gray-900 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all shadow-sm"
+                          className="w-full pl-10 pr-3 py-2.5 bg-white border border-gray-300 text-gray-900 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all shadow-sm"
                           isClearable
                           clearButtonClassName="text-gray-400 hover:text-gray-600"
                           showPopperArrow={false}
@@ -764,7 +764,7 @@ export default function ViewChanges() {
                     placeholder="Search by tutor, study group, date, or notes..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-3 py-2.5 bg-white border border-gray-300 text-gray-900 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all shadow-sm"
+                    className="w-full pl-10 pr-3 py-2.5 bg-white border border-gray-300 text-gray-900 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all shadow-sm"
                   />
                 </div>
               </div>
@@ -790,8 +790,8 @@ export default function ViewChanges() {
                 <div className="flex items-center justify-center py-12">
                   <div className="text-center">
                     <div className="relative inline-block">
-                      <div className="w-16 h-16 border-4 border-amber-200 border-t-amber-600 rounded-full animate-spin"></div>
-                      <RefreshCw className="w-8 h-8 text-amber-600 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 animate-spin" />
+                      <div className="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+                      <RefreshCw className="w-8 h-8 text-indigo-600 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 animate-spin" />
                     </div>
                     <p className="text-gray-600 mt-4">
                       Loading schedule updates...
@@ -809,13 +809,13 @@ export default function ViewChanges() {
                             ? getDateDisplay(groupKey)
                             : getClassDisplay(groupKey);
                         const colors = getColorClasses(
-                          groupBy === "date" ? "amber" : "blue"
+                          groupBy === "date" ? "indigo" : "blue"
                         );
 
                         return (
                           <div
                             key={groupKey}
-                            className={`border-2 ${colors.border} rounded-xl overflow-hidden group hover:border-amber-400 transition-all duration-300`}
+                            className={`border-2 ${colors.border} rounded-xl overflow-hidden group hover:border-indigo-400 transition-all duration-300`}
                           >
                             {/* Notebook Spine Effect */}
                             <div
@@ -832,7 +832,7 @@ export default function ViewChanges() {
                               <div className="flex items-center gap-4 relative">
                                 <div className="p-2.5 bg-white rounded-lg border border-gray-200 shadow-sm">
                                   {groupBy === "date" ? (
-                                    <Calendar className="w-5 h-5 text-amber-600" />
+                                    <Calendar className="w-5 h-5 text-indigo-600" />
                                   ) : (
                                     <Folder className="w-5 h-5 text-blue-600" />
                                   )}
@@ -855,9 +855,9 @@ export default function ViewChanges() {
                                   {groupChanges.length} updates
                                 </span>
                                 {isExpanded ? (
-                                  <ChevronUp className="w-5 h-5 text-gray-500 group-hover:text-amber-600 transition-colors" />
+                                  <ChevronUp className="w-5 h-5 text-gray-500 group-hover:text-indigo-600 transition-colors" />
                                 ) : (
-                                  <ChevronDown className="w-5 h-5 text-gray-500 group-hover:text-amber-600 transition-colors" />
+                                  <ChevronDown className="w-5 h-5 text-gray-500 group-hover:text-indigo-600 transition-colors" />
                                 )}
                               </div>
                             </button>
@@ -880,7 +880,7 @@ export default function ViewChanges() {
                                     return (
                                       <div
                                         key={index}
-                                        className="p-6 border-2 border-gray-200 rounded-xl hover:border-amber-300 transition-all duration-300 relative overflow-hidden group/item"
+                                        className="p-6 border-2 border-gray-200 rounded-xl hover:border-indigo-300 transition-all duration-300 relative overflow-hidden group/item"
                                       >
                                         {/* Subtle notebook lines background */}
                                         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/5 to-transparent"></div>
@@ -889,8 +889,8 @@ export default function ViewChanges() {
                                           {/* Left Column - Tutor & Date Info */}
                                           <div className="space-y-4">
                                             <div className="flex items-center gap-3">
-                                              <div className="p-2.5 bg-gradient-to-br from-amber-100 to-amber-50 rounded-lg border border-amber-200">
-                                                <User className="w-4 h-4 text-amber-600" />
+                                              <div className="p-2.5 bg-gradient-to-br from-indigo-100 to-indigo-50 rounded-lg border border-indigo-200">
+                                                <User className="w-4 h-4 text-indigo-600" />
                                               </div>
                                               <div>
                                                 <p className="text-xs text-gray-500">
@@ -985,9 +985,9 @@ export default function ViewChanges() {
 
                                         {/* Additional Note */}
                                         <div className="mt-6 pt-6 border-t border-gray-100">
-                                          <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-amber-50 to-amber-100/30 rounded-lg border border-amber-200">
-                                            <AlertTriangle className="w-4 h-4 text-amber-500" />
-                                            <p className="text-sm text-amber-700">
+                                          <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-indigo-50 to-indigo-100/30 rounded-lg border border-indigo-200">
+                                            <AlertTriangle className="w-4 h-4 text-indigo-500" />
+                                            <p className="text-sm text-indigo-700">
                                               Temporary schedule adjustment
                                               overriding regular study planner
                                             </p>
@@ -1005,11 +1005,11 @@ export default function ViewChanges() {
                     )
                   ) : (
                     /* Empty State */
-                    <div className="text-center py-16 bg-gradient-to-br from-amber-50/50 to-blue-50/50 rounded-2xl border-2 border-dashed border-amber-200 relative overflow-hidden">
+                    <div className="text-center py-16 bg-gradient-to-br from-indigo-50/50 to-blue-50/50 rounded-2xl border-2 border-dashed border-indigo-200 relative overflow-hidden">
                       <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/20 to-transparent"></div>
                       <div className="relative">
-                        <div className="inline-block p-6 bg-gradient-to-br from-amber-100 to-amber-50 rounded-2xl mb-6 border border-amber-200">
-                          <Bell className="w-16 h-16 text-amber-500" />
+                        <div className="inline-block p-6 bg-gradient-to-br from-indigo-100 to-indigo-50 rounded-2xl mb-6 border border-indigo-200">
+                          <Bell className="w-16 h-16 text-indigo-500" />
                         </div>
                         <h3 className="text-2xl font-bold text-gray-900 mb-3">
                           No Schedule Updates Found
@@ -1022,7 +1022,7 @@ export default function ViewChanges() {
                         {(searchTerm || dateFilter !== "all") && (
                           <button
                             onClick={handleClearFilters}
-                            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-600 to-amber-700 text-white rounded-lg hover:from-amber-700 hover:to-amber-800 transition-all duration-300 shadow-sm hover:shadow-md group"
+                            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-lg hover:from-indigo-700 hover:to-indigo-800 transition-all duration-300 shadow-sm hover:shadow-md group"
                           >
                             <X className="w-5 h-5 group-hover:rotate-90 transition-transform" />
                             Clear Filters
@@ -1037,30 +1037,30 @@ export default function ViewChanges() {
           </div>
 
           {/* Info Card */}
-          <div className="bg-gradient-to-r from-amber-50 to-blue-50 rounded-2xl p-8 border-2 border-amber-200 relative overflow-hidden">
+          <div className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-2xl p-8 border-2 border-indigo-200 relative overflow-hidden">
             <div className="absolute top-4 right-4">
-              <Bookmark className="w-8 h-8 text-amber-400/40" />
+              <Bookmark className="w-8 h-8 text-indigo-400/40" />
             </div>
             <div className="relative">
-              <h3 className="font-bold text-amber-900 mb-6 flex items-center gap-3 text-lg">
-                <div className="p-2 bg-gradient-to-br from-amber-100 to-amber-200 rounded-lg">
-                  <Info className="w-5 h-5 text-amber-700" />
+              <h3 className="font-bold text-indigo-900 mb-6 flex items-center gap-3 text-lg">
+                <div className="p-2 bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-lg">
+                  <Info className="w-5 h-5 text-indigo-700" />
                 </div>
                 About Schedule Updates
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center">
-                      <span className="text-xs font-bold text-amber-700">
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-indigo-100 to-indigo-200 flex items-center justify-center">
+                      <span className="text-xs font-bold text-indigo-700">
                         1
                       </span>
                     </div>
-                    <h4 className="font-semibold text-amber-800">
+                    <h4 className="font-semibold text-indigo-800">
                       Temporary Adjustments
                     </h4>
                   </div>
-                  <p className="text-amber-700 text-sm leading-relaxed">
+                  <p className="text-indigo-700 text-sm leading-relaxed">
                     These are temporary changes to your study planner that
                     override the regular schedule for specific dates only.
                   </p>

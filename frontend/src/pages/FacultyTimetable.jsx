@@ -242,9 +242,9 @@ export default function FacultyTimetable() {
   ======================= */
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-rose-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-rose-50 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-amber-600 mx-auto mb-4" />
+          <Loader2 className="w-12 h-12 animate-spin text-indigo-600 mx-auto mb-4" />
           <p className="text-gray-600">Loading faculty timetable...</p>
         </div>
       </div>
@@ -256,7 +256,7 @@ export default function FacultyTimetable() {
   ======================= */
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-rose-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-rose-50 flex items-center justify-center">
         {/* Alert Component */}
       {alert && (
         <Alert
@@ -274,14 +274,14 @@ export default function FacultyTimetable() {
             <div className="flex flex-col gap-3">
               <button
                 onClick={() => fetchFacultyTimetable()}
-                className="px-4 py-3 bg-gradient-to-r from-amber-600 to-amber-700 text-white rounded-lg font-medium hover:from-amber-700 hover:to-amber-800 transition-all duration-300 flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
+                className="px-4 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-lg font-medium hover:from-indigo-700 hover:to-indigo-800 transition-all duration-300 flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
               >
                 <RefreshCw className="w-5 h-5" />
                 Try Again
               </button>
               <button
                 onClick={() => navigate("/faculties")}
-                className="px-4 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-amber-50 transition-colors flex items-center justify-center gap-2 shadow-sm hover:shadow"
+                className="px-4 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-indigo-50 transition-colors flex items-center justify-center gap-2 shadow-sm hover:shadow"
               >
                 <ChevronLeft className="w-5 h-5" />
                 Back to Faculty List
@@ -300,13 +300,13 @@ export default function FacultyTimetable() {
      🔹 RENDER MAIN CONTENT
   ======================= */
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-rose-50 p-4 md:p-6 print:p-0">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-rose-50 p-4 md:p-6 print:p-0">
       {/* Decorative Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none print:hidden">
-        <div className="absolute top-20 right-10 w-72 h-72 bg-gradient-to-br from-amber-100 to-transparent rounded-full opacity-40"></div>
+        <div className="absolute top-20 right-10 w-72 h-72 bg-gradient-to-br from-indigo-100 to-transparent rounded-full opacity-40"></div>
         <div className="absolute bottom-20 left-10 w-96 h-96 bg-gradient-to-tr from-rose-100 to-transparent rounded-full opacity-30"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-64 bg-gradient-to-r from-transparent via-amber-50/20 to-transparent"></div>
-        <div className="absolute top-40 left-20 w-24 h-24 border-4 border-amber-200/40 border-dashed rounded-lg rotate-12"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-64 bg-gradient-to-r from-transparent via-indigo-50/20 to-transparent"></div>
+        <div className="absolute top-40 left-20 w-24 h-24 border-4 border-indigo-200/40 border-dashed rounded-lg rotate-12"></div>
         <div className="absolute bottom-40 right-20 w-16 h-16 border-2 border-rose-200/40 border-dotted rounded-full"></div>
       </div>
 
@@ -330,7 +330,7 @@ export default function FacultyTimetable() {
               Faculties
             </button>
             <ChevronRight className="w-4 h-4 mx-2" />
-            <span className="font-medium text-amber-600 flex items-center gap-1">
+            <span className="font-medium text-indigo-600 flex items-center gap-1">
               <ClipboardList className="w-4 h-4" />
               {faculty?.name || "Faculty Timetable"}
             </span>
@@ -343,15 +343,15 @@ export default function FacultyTimetable() {
             <div className="flex items-center gap-3 mb-2">
               <button
                 onClick={() => navigate("/faculties")}
-                className="p-2 hover:bg-amber-50 rounded-lg transition-colors print:hidden border border-amber-200"
+                className="p-2 hover:bg-indigo-50 rounded-lg transition-colors print:hidden border border-indigo-200"
               >
-                <ArrowLeft className="w-5 h-5 text-amber-600" />
+                <ArrowLeft className="w-5 h-5 text-indigo-600" />
               </button>
               <div className="flex items-center gap-4">
                 <div className="p-2.5 bg-white rounded-xl shadow-sm border border-gray-100 relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-amber-100 to-transparent opacity-60"></div>
+                  <div className="absolute inset-0 bg-gradient-to-br from-indigo-100 to-transparent opacity-60"></div>
                   <div className="relative">
-                    <BookOpen className="w-6 h-6 text-amber-600" />
+                    <BookOpen className="w-6 h-6 text-indigo-600" />
                   </div>
                 </div>
                 <div>
@@ -359,7 +359,7 @@ export default function FacultyTimetable() {
                     {faculty?.name}'s Timetable
                   </h1>
                   <p className="text-gray-600 mt-1 print:text-sm flex items-center gap-2">
-                    <PenTool className="w-4 h-4 text-amber-500" />
+                    <PenTool className="w-4 h-4 text-indigo-500" />
                     Faculty ID: <span className="font-mono font-medium ml-1">{faculty?.id || faculty?._id?.substring(0, 8) || "N/A"}</span>
                   </p>
                 </div>
@@ -371,21 +371,21 @@ export default function FacultyTimetable() {
             <button
               onClick={() => fetchFacultyTimetable(false)}
               disabled={isRefreshing}
-              className="p-2 hover:bg-amber-50 rounded-lg transition-colors border border-amber-200"
+              className="p-2 hover:bg-indigo-50 rounded-lg transition-colors border border-indigo-200"
               title="Refresh"
             >
-              <RefreshCw className={`w-5 h-5 text-amber-600 ${isRefreshing ? "animate-spin" : ""}`} />
+              <RefreshCw className={`w-5 h-5 text-indigo-600 ${isRefreshing ? "animate-spin" : ""}`} />
             </button>
             <button
               onClick={handlePrint}
-              className="px-4 py-2 border border-amber-200 text-amber-700 rounded-lg font-medium hover:bg-amber-50 transition-colors flex items-center gap-2 shadow-sm hover:shadow"
+              className="px-4 py-2 border border-indigo-200 text-indigo-700 rounded-lg font-medium hover:bg-indigo-50 transition-colors flex items-center gap-2 shadow-sm hover:shadow"
             >
               <Printer className="w-4 h-4" />
               Print
             </button>
             <button
               onClick={handleDownload}
-              className="px-4 py-2 bg-gradient-to-r from-amber-600 to-amber-700 text-white rounded-lg font-medium hover:from-amber-700 hover:to-amber-800 transition-all duration-300 flex items-center gap-2 shadow-sm hover:shadow-md"
+              className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-lg font-medium hover:from-indigo-700 hover:to-indigo-800 transition-all duration-300 flex items-center gap-2 shadow-sm hover:shadow-md"
             >
               <Download className="w-4 h-4" />
               Download
@@ -406,8 +406,8 @@ export default function FacultyTimetable() {
 
         {/* Statistics Cards */}
         <div className="print:hidden grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-xl p-6 border border-amber-200 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow duration-300">
-            <div className="absolute -right-6 -top-6 w-24 h-24 bg-gradient-to-br from-amber-100 to-transparent rounded-full opacity-60 group-hover:opacity-80 transition-opacity"></div>
+          <div className="bg-white rounded-xl p-6 border border-indigo-200 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow duration-300">
+            <div className="absolute -right-6 -top-6 w-24 h-24 bg-gradient-to-br from-indigo-100 to-transparent rounded-full opacity-60 group-hover:opacity-80 transition-opacity"></div>
             <div className="relative">
               <div className="flex items-center justify-between">
                 <div>
@@ -419,8 +419,8 @@ export default function FacultyTimetable() {
                     {statistics.totalLectures}
                   </p>
                 </div>
-                <div className="p-3 bg-gradient-to-br from-amber-50 to-amber-100 rounded-lg border border-amber-200">
-                  <Building className="w-6 h-6 text-amber-600" />
+                <div className="p-3 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg border border-indigo-200">
+                  <Building className="w-6 h-6 text-indigo-600" />
                 </div>
               </div>
             </div>
@@ -488,13 +488,13 @@ export default function FacultyTimetable() {
         </div>
 
         {/* View Mode Toggle */}
-        <div className="print:hidden bg-white rounded-xl p-4 border border-amber-200 shadow-sm mb-6 relative overflow-hidden">
-          <div className="absolute -right-6 -top-6 w-24 h-24 bg-gradient-to-br from-amber-100 to-transparent rounded-full opacity-40"></div>
+        <div className="print:hidden bg-white rounded-xl p-4 border border-indigo-200 shadow-sm mb-6 relative overflow-hidden">
+          <div className="absolute -right-6 -top-6 w-24 h-24 bg-gradient-to-br from-indigo-100 to-transparent rounded-full opacity-40"></div>
           <div className="relative flex items-center justify-between">
             <div>
               <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                <div className="p-1.5 bg-gradient-to-br from-amber-100 to-amber-200 rounded-lg">
-                  <Compass className="w-4 h-4 text-amber-700" />
+                <div className="p-1.5 bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-lg">
+                  <Compass className="w-4 h-4 text-indigo-700" />
                 </div>
                 Timetable View
               </h2>
@@ -504,13 +504,13 @@ export default function FacultyTimetable() {
             </div>
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-600 mr-2">View:</span>
-              <div className="flex bg-gradient-to-r from-amber-100 to-amber-50 rounded-lg p-1 border border-amber-200">
+              <div className="flex bg-gradient-to-r from-indigo-100 to-indigo-50 rounded-lg p-1 border border-indigo-200">
                 <button
                   onClick={() => setViewMode("weekly")}
                   className={`px-3 py-1.5 rounded-md flex items-center gap-2 transition-all ${
                     viewMode === "weekly"
-                      ? "bg-white shadow-sm text-amber-600 border border-amber-200"
-                      : "text-amber-700 hover:text-amber-900 hover:bg-amber-50/50"
+                      ? "bg-white shadow-sm text-indigo-600 border border-indigo-200"
+                      : "text-indigo-700 hover:text-indigo-900 hover:bg-indigo-50/50"
                   }`}
                 >
                   <Grid className="w-4 h-4" />
@@ -520,8 +520,8 @@ export default function FacultyTimetable() {
                   onClick={() => setViewMode("detailed")}
                   className={`px-3 py-1.5 rounded-md flex items-center gap-2 transition-all ${
                     viewMode === "detailed"
-                      ? "bg-white shadow-sm text-amber-600 border border-amber-200"
-                      : "text-amber-700 hover:text-amber-900 hover:bg-amber-50/50"
+                      ? "bg-white shadow-sm text-indigo-600 border border-indigo-200"
+                      : "text-indigo-700 hover:text-indigo-900 hover:bg-indigo-50/50"
                   }`}
                 >
                   <BarChart3 className="w-4 h-4" />
@@ -541,7 +541,7 @@ export default function FacultyTimetable() {
                 onClick={() => setShowEmptySlots(!showEmptySlots)}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-2 transition-all shadow-sm hover:shadow ${
                   showEmptySlots
-                    ? "bg-gradient-to-r from-amber-100 to-amber-50 text-amber-700 border border-amber-200"
+                    ? "bg-gradient-to-r from-indigo-100 to-indigo-50 text-indigo-700 border border-indigo-200"
                     : "bg-gradient-to-r from-rose-100 to-rose-50 text-rose-700 border border-rose-200"
                 }`}
               >
@@ -570,11 +570,11 @@ export default function FacultyTimetable() {
 
         {/* Detailed Assignments View */}
         {viewMode === "detailed" && allAssignments.length > 0 && (
-          <div className="bg-white rounded-2xl border border-amber-200 shadow-sm overflow-hidden mb-8">
-            <div className="p-6 border-b border-amber-200">
+          <div className="bg-white rounded-2xl border border-indigo-200 shadow-sm overflow-hidden mb-8">
+            <div className="p-6 border-b border-indigo-200">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-gradient-to-br from-amber-100 to-amber-200 rounded-lg">
-                  <Layers className="w-5 h-5 text-amber-700" />
+                <div className="p-2 bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-lg">
+                  <Layers className="w-5 h-5 text-indigo-700" />
                 </div>
                 <div>
                   <h2 className="text-lg font-semibold text-gray-900">Detailed Class Assignments</h2>
@@ -587,33 +587,33 @@ export default function FacultyTimetable() {
 
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gradient-to-r from-amber-50 to-amber-100 border-b border-amber-200">
+                <thead className="bg-gradient-to-r from-indigo-50 to-indigo-100 border-b border-indigo-200">
                   <tr>
-                    <th className="text-left py-3 px-6 text-sm font-medium text-amber-800 uppercase tracking-wider">
+                    <th className="text-left py-3 px-6 text-sm font-medium text-indigo-800 uppercase tracking-wider">
                       <div className="flex items-center gap-2">
                         <CalendarDays className="w-4 h-4" />
                         Day
                       </div>
                     </th>
-                    <th className="text-left py-3 px-6 text-sm font-medium text-amber-800 uppercase tracking-wider">
+                    <th className="text-left py-3 px-6 text-sm font-medium text-indigo-800 uppercase tracking-wider">
                       <div className="flex items-center gap-2">
                         <Clock className="w-4 h-4" />
                         Time
                       </div>
                     </th>
-                    <th className="text-left py-3 px-6 text-sm font-medium text-amber-800 uppercase tracking-wider">
+                    <th className="text-left py-3 px-6 text-sm font-medium text-indigo-800 uppercase tracking-wider">
                       <div className="flex items-center gap-2">
                         <Building className="w-4 h-4" />
                         Branch
                       </div>
                     </th>
-                    <th className="text-left py-3 px-6 text-sm font-medium text-amber-800 uppercase tracking-wider">
+                    <th className="text-left py-3 px-6 text-sm font-medium text-indigo-800 uppercase tracking-wider">
                       <div className="flex items-center gap-2">
                         <Layers className="w-4 h-4" />
                         Division
                       </div>
                     </th>
-                    <th className="text-left py-3 px-6 text-sm font-medium text-amber-800 uppercase tracking-wider">
+                    <th className="text-left py-3 px-6 text-sm font-medium text-indigo-800 uppercase tracking-wider">
                       <div className="flex items-center gap-2">
                         <GraduationCap className="w-4 h-4" />
                         Semester
@@ -621,13 +621,13 @@ export default function FacultyTimetable() {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-amber-100">
+                <tbody className="divide-y divide-indigo-100">
                   {allAssignments.map((assignment, index) => (
-                    <tr key={index} className="hover:bg-amber-50/50 transition-colors">
+                    <tr key={index} className="hover:bg-indigo-50/50 transition-colors">
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-2">
-                          <div className="p-1.5 bg-gradient-to-br from-amber-100 to-amber-50 rounded-lg border border-amber-200">
-                            <Calendar className="w-4 h-4 text-amber-600" />
+                          <div className="p-1.5 bg-gradient-to-br from-indigo-100 to-indigo-50 rounded-lg border border-indigo-200">
+                            <Calendar className="w-4 h-4 text-indigo-600" />
                           </div>
                           <span className="font-medium text-gray-900">{assignment.day}</span>
                         </div>
@@ -644,7 +644,7 @@ export default function FacultyTimetable() {
                         </div>
                       </td>
                       <td className="py-4 px-6">
-                        <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-gradient-to-r from-amber-100 to-amber-50 text-amber-700 border border-amber-200">
+                        <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-gradient-to-r from-indigo-100 to-indigo-50 text-indigo-700 border border-indigo-200">
                           {assignment.branch}
                         </span>
                       </td>
@@ -667,11 +667,11 @@ export default function FacultyTimetable() {
         )}
 
         {viewMode === "detailed" && allAssignments.length === 0 && (
-          <div className="bg-white rounded-2xl border-2 border-dashed border-amber-200 shadow-sm overflow-hidden mb-8 p-12 text-center relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-amber-50/50 to-transparent"></div>
+          <div className="bg-white rounded-2xl border-2 border-dashed border-indigo-200 shadow-sm overflow-hidden mb-8 p-12 text-center relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/50 to-transparent"></div>
             <div className="relative">
-              <div className="inline-block p-6 bg-gradient-to-br from-amber-100 to-amber-50 rounded-2xl mb-6 border border-amber-200">
-                <BookOpen className="w-16 h-16 text-amber-500" />
+              <div className="inline-block p-6 bg-gradient-to-br from-indigo-100 to-indigo-50 rounded-2xl mb-6 border border-indigo-200">
+                <BookOpen className="w-16 h-16 text-indigo-500" />
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">No Lectures Assigned</h3>
               <p className="text-gray-600">
@@ -682,31 +682,31 @@ export default function FacultyTimetable() {
         )}
 
         {/* Legend and Notes */}
-        <div className="print:hidden bg-gradient-to-r from-amber-50 to-rose-50 rounded-2xl p-8 border-2 border-amber-200 relative overflow-hidden">
+        <div className="print:hidden bg-gradient-to-r from-indigo-50 to-rose-50 rounded-2xl p-8 border-2 border-indigo-200 relative overflow-hidden">
           <div className="absolute top-4 right-4">
-            <Book className="w-8 h-8 text-amber-400/40" />
+            <Book className="w-8 h-8 text-indigo-400/40" />
           </div>
           <div className="relative">
-            <h3 className="font-bold text-amber-900 mb-6 flex items-center gap-3 text-lg">
-              <div className="p-2 bg-gradient-to-br from-amber-100 to-amber-200 rounded-lg">
-                <Compass className="w-5 h-5 text-amber-700" />
+            <h3 className="font-bold text-indigo-900 mb-6 flex items-center gap-3 text-lg">
+              <div className="p-2 bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-lg">
+                <Compass className="w-5 h-5 text-indigo-700" />
               </div>
               Timetable Guide
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-4">
                 <div>
-                  <h4 className="font-semibold text-amber-800 mb-3 flex items-center gap-2">
+                  <h4 className="font-semibold text-indigo-800 mb-3 flex items-center gap-2">
                     <Info className="w-5 h-5" />
                     Timetable Legend
                   </h4>
-                  <ul className="space-y-3 text-amber-700">
+                  <ul className="space-y-3 text-indigo-700">
                     <li className="flex items-center gap-3">
                       <div className="w-3 h-3 rounded-full bg-gradient-to-r from-gray-100 to-gray-200 border border-gray-300"></div>
                       <span className="text-sm"><strong>Free Period</strong> - No teaching assignment</span>
                     </li>
                     <li className="flex items-center gap-3">
-                      <div className="w-3 h-3 rounded-full bg-gradient-to-r from-amber-100 to-amber-200 border border-amber-300"></div>
+                      <div className="w-3 h-3 rounded-full bg-gradient-to-r from-indigo-100 to-indigo-200 border border-indigo-300"></div>
                       <span className="text-sm"><strong>Colored Cells</strong> - Different branches have different colors</span>
                     </li>
                     <li className="flex items-center gap-3">
@@ -726,7 +726,7 @@ export default function FacultyTimetable() {
                   <div className="flex flex-wrap gap-3">
                     <button
                       onClick={() => window.print()}
-                      className="px-4 py-2 bg-gradient-to-r from-amber-100 to-amber-50 text-amber-700 rounded-lg text-sm font-medium border border-amber-200 hover:from-amber-200 hover:to-amber-100 transition-all duration-300 shadow-sm hover:shadow"
+                      className="px-4 py-2 bg-gradient-to-r from-indigo-100 to-indigo-50 text-indigo-700 rounded-lg text-sm font-medium border border-indigo-200 hover:from-indigo-200 hover:to-indigo-100 transition-all duration-300 shadow-sm hover:shadow"
                     >
                       Print Timetable
                     </button>

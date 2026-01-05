@@ -894,10 +894,10 @@ Status: Successfully Completed`;
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-blue-50 p-4 md:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-blue-50 p-4 md:p-6">
       {/* Decorative Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-amber-100 to-transparent rounded-full opacity-20"></div>
+        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-indigo-100 to-transparent rounded-full opacity-20"></div>
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-blue-100 to-transparent rounded-full opacity-10"></div>
       </div>
 
@@ -942,7 +942,7 @@ Status: Successfully Completed`;
       {/* Multi-class Toast Notification for Rearrangements */}
       {showClassToast && classToastMessages.length > 0 && (
         <div className="fixed top-4 right-4 z-50 animate-slide-in">
-          <div className="bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-xl shadow-lg border border-amber-500 overflow-hidden max-w-md">
+          <div className="bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-xl shadow-lg border border-indigo-500 overflow-hidden max-w-md">
             <div className="flex items-start p-4">
               <div className="flex-shrink-0 mt-0.5">
                 <Bell className="w-5 h-5" />
@@ -953,11 +953,11 @@ Status: Successfully Completed`;
                     Session Reschedule ({currentToastIndex + 1}/
                     {classToastMessages.length})
                   </p>
-                  <span className="px-2 py-0.5 bg-amber-500 text-white rounded text-xs font-bold">
+                  <span className="px-2 py-0.5 bg-indigo-500 text-white rounded text-xs font-bold">
                     {classToastMessages[currentToastIndex].class}
                   </span>
                 </div>
-                <div className="text-amber-100 text-sm mt-1 whitespace-pre-line font-mono">
+                <div className="text-indigo-100 text-sm mt-1 whitespace-pre-line font-mono">
                   {formatMessage(classToastMessages[currentToastIndex].message)}
                 </div>
               </div>
@@ -965,7 +965,7 @@ Status: Successfully Completed`;
                 <button
                   id="class-toast-copy-btn"
                   onClick={copyClassMessage}
-                  className="flex items-center gap-1 px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-white rounded-lg text-sm font-bold transition-colors border border-amber-600"
+                  className="flex items-center gap-1 px-3 py-1.5 bg-indigo-500 hover:bg-indigo-400 text-white rounded-lg text-sm font-bold transition-colors border border-indigo-600"
                 >
                   <Copy className="w-4 h-4" />
                   <span>Copy</span>
@@ -974,14 +974,14 @@ Status: Successfully Completed`;
                   {currentToastIndex > 0 && (
                     <button
                       onClick={goToPrevClassToast}
-                      className="p-1 hover:bg-amber-500 rounded-lg transition-colors border border-amber-600"
+                      className="p-1 hover:bg-indigo-500 rounded-lg transition-colors border border-indigo-600"
                     >
                       <ChevronRight className="w-4 h-4 rotate-180" />
                     </button>
                   )}
                   <button
                     onClick={goToNextClassToast}
-                    className="p-1 hover:bg-amber-500 rounded-lg transition-colors border border-amber-600"
+                    className="p-1 hover:bg-indigo-500 rounded-lg transition-colors border border-indigo-600"
                   >
                     {currentToastIndex < classToastMessages.length - 1 ? (
                       <ChevronRight className="w-4 h-4" />
@@ -992,7 +992,7 @@ Status: Successfully Completed`;
                 </div>
               </div>
             </div>
-            <div className="h-1 bg-amber-500">
+            <div className="h-1 bg-indigo-500">
               <div className="h-full bg-white animate-progress"></div>
             </div>
           </div>
@@ -1025,7 +1025,7 @@ Status: Successfully Completed`;
               Study Planner
             </span>
             <ChevronRight className="w-4 h-4 mx-2" />
-            <span className="font-bold text-amber-600 flex items-center gap-1">
+            <span className="font-bold text-indigo-600 flex items-center gap-1">
               <Scissors className="w-4 h-4" />
               Study Session Management
             </span>
@@ -1036,8 +1036,8 @@ Status: Successfully Completed`;
         <div className="flex items-start justify-between mb-8">
           <div>
             <div className="flex items-center gap-3 mb-3">
-              <div className="p-2.5 bg-white rounded-xl shadow-sm border border-amber-100">
-                <Scissors className="w-6 h-6 text-amber-600" />
+              <div className="p-2.5 bg-white rounded-xl shadow-sm border border-indigo-100">
+                <Scissors className="w-6 h-6 text-indigo-600" />
               </div>
               <div>
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -1050,23 +1050,23 @@ Status: Successfully Completed`;
               </div>
             </div>
           </div>
-          <div className="p-3 bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl border border-amber-200">
-            <Clock className="w-6 h-6 text-amber-600" />
+          <div className="p-3 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-xl border border-indigo-200">
+            <Clock className="w-6 h-6 text-indigo-600" />
           </div>
         </div>
 
         {/* Main Form Card */}
-        <div className="bg-white rounded-2xl border border-amber-200 shadow-sm overflow-hidden mb-8">
-          <div className="p-6 border-b border-amber-100 bg-gradient-to-r from-amber-50 to-amber-100">
+        <div className="bg-white rounded-2xl border border-indigo-200 shadow-sm overflow-hidden mb-8">
+          <div className="p-6 border-b border-indigo-100 bg-gradient-to-r from-indigo-50 to-indigo-100">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-white rounded-lg border border-amber-200">
-                <Compass className="w-5 h-5 text-amber-600" />
+              <div className="p-2 bg-white rounded-lg border border-indigo-200">
+                <Compass className="w-5 h-5 text-indigo-600" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-amber-900">
+                <h2 className="text-lg font-bold text-indigo-900">
                   Session Details
                 </h2>
-                <p className="text-sm text-amber-700 mt-1">
+                <p className="text-sm text-indigo-700 mt-1">
                   Select the study session you want to manage. Date and day are
                   auto-synced.
                 </p>
@@ -1079,9 +1079,9 @@ Status: Successfully Completed`;
               {/* Date Selection - UPDATED with minDate */}
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                  <CalendarDays className="w-4 h-4 text-amber-500" />
+                  <CalendarDays className="w-4 h-4 text-indigo-500" />
                   Date
-                  <span className="ml-auto text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded">
+                  <span className="ml-auto text-xs bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded">
                     Auto-sync
                   </span>
                 </label>
@@ -1110,7 +1110,7 @@ Status: Successfully Completed`;
                   minDate={new Date()} // Add this line to prevent past dates
                   dateFormat="dd/MM/yyyy"
                   placeholderText="DD/MM/YYYY"
-                  className="w-135 px-4 py-3 bg-white border border-amber-200 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
+                  className="w-135 px-4 py-3 bg-white border border-indigo-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
                   required
                 />
                 <p className="text-xs text-gray-500 mt-1">
@@ -1121,9 +1121,9 @@ Status: Successfully Completed`;
               {/* Day Selection - Also updated to prevent selecting days in the past */}
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-amber-500" />
+                  <Calendar className="w-4 h-4 text-indigo-500" />
                   Day
-                  <span className="ml-auto text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded">
+                  <span className="ml-auto text-xs bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded">
                     Auto-sync
                   </span>
                 </label>
@@ -1132,7 +1132,7 @@ Status: Successfully Completed`;
                   value={formData.day}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-3 bg-white border border-amber-200 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
+                  className="w-full px-4 py-3 bg-white border border-indigo-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
                 >
                   <option value="" className="text-gray-500">
                     Select Day
@@ -1243,7 +1243,7 @@ Status: Successfully Completed`;
               {/* Time Slot Selection - Changed to dropdown */}
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-orange-500" />
+                  <Clock className="w-4 h-4 text-violet-500" />
                   Study Session
                 </label>
                 <select
@@ -1251,7 +1251,7 @@ Status: Successfully Completed`;
                   value={formData.lec_no}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-3 bg-white border border-orange-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+                  className="w-full px-4 py-3 bg-white border border-violet-200 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition-all"
                 >
                   <option value="" className="text-gray-500">
                     Select Study Session
@@ -1266,7 +1266,7 @@ Status: Successfully Completed`;
             </div>
 
             {/* Action Buttons */}
-            <div className="mt-8 pt-6 border-t border-amber-200">
+            <div className="mt-8 pt-6 border-t border-indigo-200">
               <div className="flex flex-wrap gap-4 justify-center">
                 <button
                   type="button"
@@ -1302,10 +1302,10 @@ Status: Successfully Completed`;
                   }
                   className={`px-6 py-3 rounded-lg font-bold flex items-center gap-2 transition-all duration-300 border ${
                     isFetchingOptions
-                      ? "bg-amber-100 text-amber-400 cursor-not-allowed border-amber-300"
+                      ? "bg-indigo-100 text-indigo-400 cursor-not-allowed border-indigo-300"
                       : formData.lec_no === "" || isNaN(formData.lec_no)
                       ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300"
-                      : "bg-gradient-to-r from-amber-600 to-orange-600 text-white hover:from-amber-700 hover:to-orange-700 shadow-sm hover:shadow-md border-amber-700"
+                      : "bg-gradient-to-r from-indigo-600 to-violet-600 text-white hover:from-indigo-700 hover:to-violet-700 shadow-sm hover:shadow-md border-indigo-700"
                   }`}
                 >
                   {isFetchingOptions ? (
@@ -1352,10 +1352,10 @@ Status: Successfully Completed`;
                   }
                   className={`px-6 py-3 rounded-lg font-bold flex items-center gap-2 transition-all duration-300 border ${
                     isLoading && isRearranging
-                      ? "bg-orange-100 text-orange-400 cursor-not-allowed border-orange-300"
+                      ? "bg-violet-100 text-violet-400 cursor-not-allowed border-violet-300"
                       : formData.lec_no === "" || isNaN(formData.lec_no)
                       ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300"
-                      : "bg-gradient-to-r from-orange-600 to-orange-700 text-white hover:from-orange-700 hover:to-orange-800 shadow-sm hover:shadow-md border-orange-700"
+                      : "bg-gradient-to-r from-violet-600 to-violet-700 text-white hover:from-violet-700 hover:to-violet-800 shadow-sm hover:shadow-md border-violet-700"
                   }`}
                 >
                   {isLoading && isRearranging ? (
@@ -1371,7 +1371,7 @@ Status: Successfully Completed`;
                 <button
                   type="button"
                   onClick={handleReset}
-                  className="px-6 py-3 rounded-lg border border-amber-300 text-amber-700 font-bold flex items-center gap-2 hover:bg-amber-50 transition-all duration-300"
+                  className="px-6 py-3 rounded-lg border border-indigo-300 text-indigo-700 font-bold flex items-center gap-2 hover:bg-indigo-50 transition-all duration-300"
                 >
                   <RefreshCw className="w-5 h-5" />
                   Reset Form
@@ -1383,8 +1383,8 @@ Status: Successfully Completed`;
 
         {/* Available Faculty Selection */}
         {availableFaculty.length > 0 && (
-          <div className="bg-white rounded-2xl border border-amber-200 shadow-sm overflow-hidden mb-8">
-            <div className="p-6 border-b border-amber-100 bg-gradient-to-r from-violet-50 to-violet-100">
+          <div className="bg-white rounded-2xl border border-indigo-200 shadow-sm overflow-hidden mb-8">
+            <div className="p-6 border-b border-indigo-100 bg-gradient-to-r from-violet-50 to-violet-100">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-white rounded-lg border border-violet-200">
@@ -1411,7 +1411,7 @@ Status: Successfully Completed`;
                     className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 ml-2 ${
                       selectedFaculty?.faculty_id === faculty.faculty_id
                         ? "border-violet-500 bg-violet-50 shadow-md"
-                        : "border-amber-200 bg-amber-50 hover:border-violet-300 hover:bg-violet-50"
+                        : "border-indigo-200 bg-indigo-50 hover:border-violet-300 hover:bg-violet-50"
                     }`}
                   >
                     <div className="flex items-center justify-between">
@@ -1420,7 +1420,7 @@ Status: Successfully Completed`;
                           className={`p-2 rounded-lg border ${
                             selectedFaculty?.faculty_id === faculty.faculty_id
                               ? "bg-violet-100 border-violet-200"
-                              : "bg-white border-amber-200"
+                              : "bg-white border-indigo-200"
                           }`}
                         >
                           <UserCheck
@@ -1494,18 +1494,18 @@ Status: Successfully Completed`;
 
         {/* Rearrange Options Selection */}
         {rearrangeOptions.length > 0 && (
-          <div className="bg-white rounded-2xl border border-amber-200 shadow-sm overflow-hidden mb-8">
-            <div className="p-6 border-b border-amber-100 bg-gradient-to-r from-amber-50 to-orange-100">
+          <div className="bg-white rounded-2xl border border-indigo-200 shadow-sm overflow-hidden mb-8">
+            <div className="p-6 border-b border-indigo-100 bg-gradient-to-r from-indigo-50 to-violet-100">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-white rounded-lg border border-amber-200">
-                    <GitBranch className="w-5 h-5 text-amber-600" />
+                  <div className="p-2 bg-white rounded-lg border border-indigo-200">
+                    <GitBranch className="w-5 h-5 text-indigo-600" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-bold text-amber-900">
+                    <h2 className="text-lg font-bold text-indigo-900">
                       Reschedule Options ({rearrangeOptions.length})
                     </h2>
-                    <p className="text-sm text-amber-700">
+                    <p className="text-sm text-indigo-700">
                       Select a swap option to execute the reschedule
                     </p>
                   </div>
@@ -1521,18 +1521,18 @@ Status: Successfully Completed`;
                     onClick={() => setSelectedOption(option)}
                     className={`p-5 rounded-xl border-2 cursor-pointer transition-all duration-300 ml-2 ${
                       selectedOption?.option_id === option.option_id
-                        ? "border-amber-500 bg-amber-50 shadow-md"
-                        : "border-amber-200 bg-amber-50 hover:border-amber-300 hover:bg-amber-50"
+                        ? "border-indigo-500 bg-indigo-50 shadow-md"
+                        : "border-indigo-200 bg-indigo-50 hover:border-indigo-300 hover:bg-indigo-50"
                     }`}
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-3">
-                          <span className="px-2 py-1 bg-amber-100 text-amber-800 rounded-md text-xs font-bold border border-amber-200">
+                          <span className="px-2 py-1 bg-indigo-100 text-indigo-800 rounded-md text-xs font-bold border border-indigo-200">
                             Option {index + 1}
                           </span>
                           {selectedOption?.option_id === option.option_id && (
-                            <div className="w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center">
+                            <div className="w-5 h-5 bg-indigo-500 rounded-full flex items-center justify-center">
                               <Check className="w-3 h-3 text-white" />
                             </div>
                           )}
@@ -1540,7 +1540,7 @@ Status: Successfully Completed`;
 
                         <div className="space-y-3">
                           {/* Primary Faculty */}
-                          <div className="bg-white rounded-lg p-3 border border-amber-200">
+                          <div className="bg-white rounded-lg p-3 border border-indigo-200">
                             <div className="flex items-center gap-2 mb-2">
                               <UserCheck className="w-4 h-4 text-blue-600" />
                               <span className="text-xs font-bold text-gray-600">
@@ -1566,7 +1566,7 @@ Status: Successfully Completed`;
                           </div>
 
                           {/* Secondary Faculty */}
-                          <div className="bg-white rounded-lg p-3 border border-amber-200">
+                          <div className="bg-white rounded-lg p-3 border border-indigo-200">
                             <div className="flex items-center gap-2 mb-2">
                               <UserCircle className="w-4 h-4 text-violet-600" />
                               <span className="text-xs font-bold text-gray-600">
@@ -1589,9 +1589,9 @@ Status: Successfully Completed`;
                         </div>
 
                         {/* Description */}
-                        <div className="mt-3 p-3 bg-amber-50 rounded-lg border border-amber-200">
+                        <div className="mt-3 p-3 bg-indigo-50 rounded-lg border border-indigo-200">
                           <p className="text-sm text-gray-700">
-                            <Info className="w-4 h-4 inline mr-1 text-amber-500" />
+                            <Info className="w-4 h-4 inline mr-1 text-indigo-500" />
                             {option.description}
                           </p>
                         </div>
@@ -1602,19 +1602,19 @@ Status: Successfully Completed`;
               </div>
 
               {selectedOption && (
-                <div className="bg-gradient-to-r from-amber-50 to-orange-100 rounded-xl p-4 border border-amber-200 ml-2">
+                <div className="bg-gradient-to-r from-indigo-50 to-violet-100 rounded-xl p-4 border border-indigo-200 ml-2">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-bold text-amber-900">
+                      <p className="text-sm font-bold text-indigo-900">
                         Selected Reschedule
                       </p>
-                      <p className="text-lg font-bold text-amber-900">
+                      <p className="text-lg font-bold text-indigo-900">
                         {selectedOption.primary_faculty.name}
                       </p>
-                      <p className="text-sm text-amber-700">
+                      <p className="text-sm text-indigo-700">
                         will be assigned to {formData.class}
                       </p>
-                      <p className="text-xs text-amber-600 mt-1">
+                      <p className="text-xs text-indigo-600 mt-1">
                         Note: Two study groups will be affected by this
                         reschedule
                       </p>
@@ -1624,8 +1624,8 @@ Status: Successfully Completed`;
                       disabled={isExecutingSwap}
                       className={`px-6 py-3 rounded-lg font-bold flex items-center gap-2 transition-all duration-300 border ${
                         isExecutingSwap
-                          ? "bg-amber-200 text-amber-400 cursor-not-allowed border-amber-300"
-                          : "bg-gradient-to-r from-amber-600 to-orange-600 text-white hover:from-amber-700 hover:to-orange-700 shadow-sm hover:shadow-md border-amber-700"
+                          ? "bg-indigo-200 text-indigo-400 cursor-not-allowed border-indigo-300"
+                          : "bg-gradient-to-r from-indigo-600 to-violet-600 text-white hover:from-indigo-700 hover:to-violet-700 shadow-sm hover:shadow-md border-indigo-700"
                       }`}
                     >
                       {isExecutingSwap ? (
@@ -1698,30 +1698,30 @@ Status: Successfully Completed`;
             </ul>
           </div>
 
-          <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-6 border border-amber-200">
+          <div className="bg-gradient-to-br from-indigo-50 to-violet-50 rounded-2xl p-6 border border-indigo-200">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-amber-100 rounded-lg border border-amber-200">
-                <GitBranch className="w-5 h-5 text-amber-600" />
+              <div className="p-2 bg-indigo-100 rounded-lg border border-indigo-200">
+                <GitBranch className="w-5 h-5 text-indigo-600" />
               </div>
-              <h3 className="font-bold text-amber-900">Reschedule Options</h3>
+              <h3 className="font-bold text-indigo-900">Reschedule Options</h3>
             </div>
-            <p className="text-amber-800 text-sm mb-4">
+            <p className="text-indigo-800 text-sm mb-4">
               View all possible session swaps and choose the best reschedule
               option.
             </p>
-            <ul className="space-y-2 text-amber-700 text-sm">
+            <ul className="space-y-2 text-indigo-700 text-sm">
               <li className="flex items-start gap-2">
-                <div className="w-2 h-2 bg-amber-400 rounded-full mt-1.5"></div>
+                <div className="w-2 h-2 bg-indigo-400 rounded-full mt-1.5"></div>
                 <span>Multiple swap options</span>
               </li>
               <li className="flex items-start gap-2">
-                <div className="w-2 h-2 bg-amber-400 rounded-full mt-1.5"></div>
+                <div className="w-2 h-2 bg-indigo-400 rounded-full mt-1.5"></div>
                 <span>
                   Separate notifications for each affected study group
                 </span>
               </li>
               <li className="flex items-start gap-2">
-                <div className="w-2 h-2 bg-amber-400 rounded-full mt-1.5"></div>
+                <div className="w-2 h-2 bg-indigo-400 rounded-full mt-1.5"></div>
                 <span>Manual approval before execution</span>
               </li>
             </ul>
@@ -1730,18 +1730,18 @@ Status: Successfully Completed`;
 
         {/* Result Display */}
         {result && (
-          <div className="bg-white rounded-2xl border border-amber-200 shadow-sm mb-8 overflow-hidden">
-            <div className="p-6 border-b border-amber-100 bg-gradient-to-r from-amber-50 to-amber-100">
+          <div className="bg-white rounded-2xl border border-indigo-200 shadow-sm mb-8 overflow-hidden">
+            <div className="p-6 border-b border-indigo-100 bg-gradient-to-r from-indigo-50 to-indigo-100">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-white rounded-lg border border-amber-200">
+                  <div className="p-2 bg-white rounded-lg border border-indigo-200">
                     <CheckCircle className="w-5 h-5 text-emerald-600" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-bold text-amber-900">
+                    <h2 className="text-lg font-bold text-indigo-900">
                       Assignment Result
                     </h2>
-                    <p className="text-sm text-amber-700">
+                    <p className="text-sm text-indigo-700">
                       Study session successfully managed
                     </p>
                   </div>
@@ -1750,7 +1750,7 @@ Status: Successfully Completed`;
                   <span
                     className={`px-3 py-1 rounded-full text-xs font-bold border ${
                       result.type === "rearranged"
-                        ? "bg-amber-100 text-amber-800 border-amber-200"
+                        ? "bg-indigo-100 text-indigo-800 border-indigo-200"
                         : result.type === "direct"
                         ? "bg-emerald-100 text-emerald-800 border-emerald-200"
                         : "bg-blue-100 text-blue-800 border-blue-200"
@@ -1765,7 +1765,7 @@ Status: Successfully Completed`;
                   <button
                     id="copy-toast-btn"
                     onClick={copyToClipboard}
-                    className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-amber-100 to-amber-50 hover:from-amber-200 hover:to-amber-100 text-amber-700 rounded-lg text-sm font-bold transition-colors border border-amber-200"
+                    className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-indigo-100 to-indigo-50 hover:from-indigo-200 hover:to-indigo-100 text-indigo-700 rounded-lg text-sm font-bold transition-colors border border-indigo-200"
                   >
                     <Copy className="w-4 h-4" />
                     <span>Copy Result</span>
@@ -1835,18 +1835,18 @@ Status: Successfully Completed`;
               {result.type === "rearranged" && result.affected_classes && (
                 <div className="mb-6">
                   <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-                    <Bell className="w-4 h-4 text-amber-500" />
+                    <Bell className="w-4 h-4 text-indigo-500" />
                     Affected Study Groups ({result.affected_classes.length})
                   </h3>
                   <div className="space-y-4">
                     {result.affected_classes.map((cls, index) => (
                       <div
                         key={index}
-                        className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-4 border border-amber-200"
+                        className="bg-gradient-to-r from-indigo-50 to-violet-50 rounded-xl p-4 border border-indigo-200"
                       >
                         <div className="flex items-center justify-between mb-3">
                           <div>
-                            <span className="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-bold border border-amber-200">
+                            <span className="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-xs font-bold border border-indigo-200">
                               {index === 0 ? "Target Group" : "Occupied Group"}
                             </span>
                             <p className="font-bold text-gray-900 mt-2">
@@ -1860,7 +1860,7 @@ Status: Successfully Completed`;
                             </p>
                           </div>
                         </div>
-                        <div className="bg-white rounded-lg p-3 border border-amber-100">
+                        <div className="bg-white rounded-lg p-3 border border-indigo-100">
                           <div className="whitespace-pre-line font-mono text-sm text-gray-700">
                             {formatMessage(cls.message)}
                           </div>
