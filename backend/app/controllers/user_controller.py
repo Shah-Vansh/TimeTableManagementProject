@@ -5,8 +5,6 @@ from datetime import datetime, timedelta
 import os
 from app.database.mongo import db
 
-# user_bp = Blueprint("user", __name__)
-
 # MongoDB collection
 faculty_collection = db["faculty_timetable"]
 

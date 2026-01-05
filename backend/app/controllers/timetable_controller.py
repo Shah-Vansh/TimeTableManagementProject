@@ -16,7 +16,6 @@ DAYS_MAP = {
     "Thursday": "thu",
     "Friday": "fri",
     "Saturday": "sat"
-    #"Sunday": "sun"
 }
 
 ALLOWED_BRANCHES = ["CSE", "CSE(AIML)", "DS"]
@@ -27,9 +26,6 @@ TIME_SLOT_INDEX = {
     "Time Slot 3": 2,
     "Time Slot 4": 3,
     "Time Slot 5": 4
-    # "Time Slot 6": 5,
-    # "Time Slot 7": 6,
-    # "Time Slot 8": 7,
 }
 
 TOTAL_SLOTS = 5
@@ -40,9 +36,6 @@ TIME_SLOT_KEYS = [
     "Time Slot 3",
     "Time Slot 4",
     "Time Slot 5"
-    # "Time Slot 6",
-    # "Time Slot 7",
-    # "Time Slot 8",
 ]
 
 
@@ -276,7 +269,6 @@ def save_timetable():
 # ----- / READ Functions /------
 
 # GET: /api/timetable/fetchtimetable/   
-
 def fetch_timetable():
     try:
         sem = request.args.get("sem")
@@ -353,7 +345,6 @@ def fetch_timetable():
     
     
 # GET: /api/timetable/
-    
 def get_all_timetables():
     docs = db.classwise_faculty.find()
 
@@ -378,16 +369,15 @@ def get_all_timetables():
 # ----- / DELETE Functions /------
 
 # DELETE: /api/timetable/
-
 def delete_timetable():
     try:
         sem = request.form.get("sem")
         branch = request.form.get("branch")
         class_name = request.form.get("class")
 
-        # ===============================
-        # 🔹 BASIC VALIDATION
-        # ===============================
+        
+        #  BASIC VALIDATION
+        
         if not sem or not branch or not class_name:
             return jsonify({"error": "Missing sem, branch or class"}), 400
 
@@ -404,9 +394,9 @@ def delete_timetable():
         classwise_col = db.classwise_faculty
         faculty_tt_col = db.faculty_timetable
 
-        # ===============================
-        # 🔹 CHECK IF TIMETABLE EXISTS
-        # ===============================
+        
+        # CHECK IF TIMETABLE EXISTS
+        
         class_doc = classwise_col.find_one({"_id": class_id})
         if not class_doc:
             return jsonify({"error": "Timetable not found"}), 404
@@ -414,9 +404,9 @@ def delete_timetable():
         allowed_faculty = class_doc.get("allowed_faculty", [])
         lecture_prefix = f"{branch}-{class_name}-Sem{sem}-"
 
-        # ===============================
-        # 🔹 REMOVE LECTURES FROM FACULTY TIMETABLES
-        # ===============================
+        
+        # REMOVE LECTURES FROM FACULTY TIMETABLES
+        
         faculty_updated = []
         
         for faculty_id in allowed_faculty:
@@ -453,9 +443,9 @@ def delete_timetable():
                 )
                 faculty_updated.append(faculty_id)
 
-        # ===============================
-        # 🔹 DELETE CLASSWISE FACULTY DOCUMENT
-        # ===============================
+        
+        # DELETE CLASSWISE FACULTY DOCUMENT
+        
         classwise_col.delete_one({"_id": class_id})
 
         return jsonify({

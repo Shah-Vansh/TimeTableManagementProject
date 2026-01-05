@@ -88,6 +88,9 @@ export default function ReplaceLecture() {
     lec_no: "",
   });
 
+  //token declared
+  const token = localStorage.getItem("token");
+
   const [isLoading, setIsLoading] = useState(false);
   const [isRearranging, setIsRearranging] = useState(false);
   const [isFetchingFaculty, setIsFetchingFaculty] = useState(false);
@@ -259,7 +262,11 @@ export default function ReplaceLecture() {
     setShowAlert(false);
 
     try {
-      const response = await api.post("/api/get-available-faculty", formData);
+      const response = await api.post("/api/get-available-faculty",formData,{
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (response.data.success) {
         setAvailableFaculty(response.data.available_faculty);
@@ -341,7 +348,11 @@ export default function ReplaceLecture() {
     setShowAlert(false);
 
     try {
-      const response = await api.post("/api/get-rearrange-options", formData);
+      const response = await api.post("/api/get-rearrange-options",formData,{
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (response.data.success) {
         setRearrangeOptions(response.data.options);
@@ -415,7 +426,14 @@ export default function ReplaceLecture() {
         ...formData,
         primary_faculty_id: selectedOption.primary_faculty.id,
         secondary_faculty_id: selectedOption.secondary_faculty.id,
-      });
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
 
       if (response.data.success) {
         setResult(response.data);
@@ -515,6 +533,11 @@ export default function ReplaceLecture() {
       const response = await api.post("/api/assign-faculty", {
         ...formData,
         faculty_id: selectedFaculty.faculty_id,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (response.data.success) {
@@ -609,7 +632,11 @@ export default function ReplaceLecture() {
       const endpoint = isRearrange
         ? "/api/rearrange-lecture"
         : "/api/replace-lecture";
-      const response = await api.post(endpoint, formData);
+      const response = await api.post(endpoint,formData,{
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (response.data.success) {
         setResult(response.data);

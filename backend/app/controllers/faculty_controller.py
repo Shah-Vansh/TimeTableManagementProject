@@ -7,6 +7,9 @@ import secrets
 import string
 
 
+# ===============================
+# =          HELPERS            =
+# ===============================
 
 def generate_strong_password(length=12):
     """
@@ -81,6 +84,12 @@ def get_all_faculties():
             'error': 'Failed to fetch faculties'
         }), 500
 
+
+# ===============================
+# =      MAIN CONTROLLER        =
+# ===============================
+
+# ----- / CREATE Functions /------
 
 # POST: /api/faculties
 def create_faculty():
@@ -189,6 +198,9 @@ def create_faculty():
         }), 500
 
 
+# ----- / READ Functions /------
+
+
 # GET: /api/faculties/<faculty_id>
 def get_faculty(faculty_id):
     """
@@ -221,6 +233,10 @@ def get_faculty(faculty_id):
             'success': False,
             'error': 'Failed to fetch faculty'
         }), 500
+
+
+# ----- / UPDATE Functions /------
+
 
 # PUT: /api/faculties/<faculty_id>
 def update_faculty(faculty_id):
@@ -289,6 +305,10 @@ def update_faculty(faculty_id):
             'success': False,
             'error': 'Failed to update faculty'
         }), 500
+
+
+
+# ----- / DELETE Functions /------
 
 
 # DELETE: /api/faculties/<faculty_id>

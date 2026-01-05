@@ -189,18 +189,17 @@ export default function PreviewTimetable() {
       // Fetch timetable for each division
       for (const division of divisions) {
         try {
-          const response = await api.get("/api//timetable/fetchtimetable",{
+          const response = await api.get("/api/timetable/fetchtimetable",{
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          },
-         {
             params: {
               sem: sem,
               branch: branch,
               class: division,
             },
-          });
+          },
+        );
 
           const fetchedSchedule = response.data.schedule;
 
@@ -279,14 +278,13 @@ export default function PreviewTimetable() {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      },
-      {
         params: {
           sem: sem,
           branch: branch,
           class: division,
         },
-      });
+      },
+    );
 
       const fetchedSchedule = response.data.schedule;
 

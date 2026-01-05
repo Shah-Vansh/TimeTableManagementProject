@@ -560,7 +560,10 @@ Generated on: ${new Date().toLocaleString()}
       // Fetch faculty data for each class
       const fetchPromises = classes.map(async (className) => {
         try {
-          const response = await api.get("/api/classwise-faculty", {
+          const response = await api.get("/classwise-faculty", {
+            headers:{
+              Authorization: `Bearer ${token}`
+            },
             params: {
               sem: sem,
               branch: branch,

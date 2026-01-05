@@ -65,6 +65,9 @@ export default function ViewChanges() {
     { id: "specific", label: "Specific Date", color: "violet" },
   ];
 
+  //token declared
+  const token = localStorage.getItem("token");
+
   // Show alert message
   const showAlert = (main, info, type) => {
     setAlert({ main, info, type });
@@ -77,7 +80,11 @@ export default function ViewChanges() {
     setSuccess("");
 
     try {
-      const response = await api.get("/api/fetch-all-changes");
+      const response = await api.get("/fetch-all-changes",{
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (response.data.changes) {
         setChanges(response.data.changes);
@@ -190,7 +197,10 @@ export default function ViewChanges() {
     setDeletingId(change._id || change.faculty + change.date + change.timeSlotKey);
     
     try {
-      const response = await api.delete("/api/delete-temp-change", {
+      const response = await api.delete("/delete-temp-change", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
         data: {
           faculty_id: change.faculty,
           date: change.date,
