@@ -103,7 +103,7 @@ def save_timetable():
         is_new = existing_class is None
 
         
-        # 1️. GET OLD AND NEW FACULTY LISTS
+        # 1. GET OLD AND NEW FACULTY LISTS
         old_faculty = set(existing_class.get("allowed_faculty", [])) if existing_class else set()
         
         new_faculty = set()
@@ -118,7 +118,7 @@ def save_timetable():
         active_faculty = new_faculty
 
         
-        # 2️. BUILD NEW FACULTY TABLES
+        # 2. BUILD NEW FACULTY TABLES
         faculty_tables = defaultdict(lambda: {
             "mon": ["free"] * TOTAL_SLOTS,
             "tue": ["free"] * TOTAL_SLOTS,
@@ -146,7 +146,7 @@ def save_timetable():
                 )
 
         
-        # 3️. REMOVE OLD LECTURES FOR REMOVED FACULTY (only for edits)
+        # 3. REMOVE OLD LECTURES FOR REMOVED FACULTY (only for edits)
         if not is_new:
             for faculty_id in removed_faculty:
                 existing = faculty_tt_col.find_one({"_id": faculty_id})
@@ -178,7 +178,7 @@ def save_timetable():
                 )
 
         
-        # 4️. UPDATE ACTIVE FACULTY TIMETABLES
+        # 4. UPDATE ACTIVE FACULTY TIMETABLES
         for faculty_id in active_faculty:
             existing = faculty_tt_col.find_one({"_id": faculty_id}) or {}
             existing_tt = existing.get("timetable", {})
@@ -237,7 +237,7 @@ def save_timetable():
             )
 
         
-        # 5️. UPDATE/INSERT CLASSWISE FACULTY
+        # 5. UPDATE/INSERT CLASSWISE FACULTY
         classwise_col.update_one(
             {"_id": class_id},
             {

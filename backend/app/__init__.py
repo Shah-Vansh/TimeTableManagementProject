@@ -22,8 +22,6 @@ def create_app():
     from app.routes.timetable_routes import timetable_bp
     from app.routes.faculty_routes import faculty_bp
     from app.routes.swap_routes import swap_bp
-    #from app.controllers.replace_lecture_controller import replace_lecture_bp
-    #from app.controllers.rearrange_lecture_controller import rearrange_lecture_bp
     from app.routes.telegram_routes import telegram_bp
 
     # register blueprints

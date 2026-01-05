@@ -101,7 +101,7 @@ export default function TimeTable() {
   ];
 
   /* =======================
-     🔹 STATE
+            STATE
   ======================= */
   const [sem, setSem] = useState(location.state?.sem || 1);
   const [branch, setBranch] = useState(location.state?.branch || "CSE");
@@ -195,7 +195,7 @@ export default function TimeTable() {
   const [schedule, setSchedule] = useState(() => initializeSchedule([]));
 
   /* =======================
-     🔹 FETCH TELEGRAM CHAT IDs FOR BRANCH
+   FETCH TELEGRAM CHAT IDs FOR BRANCH
   ======================= */
   const fetchTelegramChatIds = async () => {
     try {
@@ -226,7 +226,7 @@ export default function TimeTable() {
   };
 
   /* =======================
-     🔹 UPDATE TELEGRAM CHAT IDs FOR BRANCH
+   UPDATE TELEGRAM CHAT IDs FOR BRANCH
   ======================= */
   const handleUpdateTelegramChatIds = async () => {
     // Validate each chat ID
@@ -307,7 +307,7 @@ export default function TimeTable() {
   };
 
   /* =======================
-     🔹 FETCH ALL FACULTIES FROM DATABASE
+   FETCH ALL FACULTIES FROM DATABASE
   ======================= */
   const fetchAllFaculties = async () => {
     setIsLoadingAllFaculties(true);
@@ -421,7 +421,7 @@ export default function TimeTable() {
   };
 
   /* =======================
-     🔹 CREATE NEW FACULTY
+      CREATE NEW FACULTY
   ======================= */
   const handleCreateNewFaculty = async () => {
     // Validate inputs
@@ -575,7 +575,7 @@ Generated on: ${new Date().toLocaleString()}
   };
 
   /* =======================
-     🔹 FETCH ALLOWED FACULTY FOR EACH CLASS
+   FETCH ALLOWED FACULTY FOR EACH CLASS
   ======================= */
   const fetchAllowedFacultyForClasses = async (classes) => {
     if (!classes || classes.length === 0) return {};
@@ -681,7 +681,7 @@ Generated on: ${new Date().toLocaleString()}
   };
 
   /* =======================
-     🔹 FETCH ALL CLASSES FOR BRANCH
+   FETCH ALL CLASSES FOR BRANCH
   ======================= */
   const fetchAllClassesForBranch = async () => {
     if (!branch || !sem) return;
@@ -806,7 +806,7 @@ Generated on: ${new Date().toLocaleString()}
   };
 
   /* =======================
-     🔹 FETCH TIMETABLES FOR SELECTED DIVISIONS
+   FETCH TIMETABLES FOR SELECTED DIVISIONS
   ======================= */
   const fetchTimetables = async () => {
     if (selectedDivisions.length === 0) {
@@ -893,12 +893,12 @@ Generated on: ${new Date().toLocaleString()}
   };
 
   /* =======================
-     🔹 ADD FACULTIES TO LEGEND AND DROPDOWNS
+   ADD FACULTIES TO LEGEND AND DROPDOWNS
   ======================= */
   const handleAddFaculties = () => {
     if (selectedFacultiesToAdd.length === 0) return;
 
-    // 1️⃣ Add to Faculty Legend
+    // 1 Add to Faculty Legend
     const updatedFacultyOptions = [...facultyOptions];
 
     selectedFacultiesToAdd.forEach((faculty, idx) => {
@@ -926,7 +926,7 @@ Generated on: ${new Date().toLocaleString()}
 
     setFacultyOptions(updatedFacultyOptions);
 
-    // 2️⃣ 🔥 ALSO add to classFacultyMap for selected divisions
+    // 2  ALSO add to classFacultyMap for selected divisions
     setClassFacultyMap((prev) => {
       const updated = { ...prev };
 
@@ -946,7 +946,7 @@ Generated on: ${new Date().toLocaleString()}
       return updated;
     });
 
-    // 3️⃣ Reset modal
+    // 3 Reset modal
     setSelectedFacultiesToAdd([]);
     setShowFacultyModal(false);
     setSearchQuery("");
@@ -960,7 +960,7 @@ Generated on: ${new Date().toLocaleString()}
   };
 
   /* =======================
-     🔹 HANDLE DIVISION SELECTION
+   HANDLE DIVISION SELECTION
   ======================= */
   const handleDivisionToggle = (division) => {
     setSelectedDivisions((prev) => {
@@ -1000,7 +1000,7 @@ Generated on: ${new Date().toLocaleString()}
   };
 
   /* =======================
-     🔹 DELETE TIMETABLE FOR A CLASS
+   DELETE TIMETABLE FOR A CLASS
   ======================= */
   const handleDeleteTimetable = async () => {
     if (!divisionToDelete) return;
@@ -1067,7 +1067,7 @@ Generated on: ${new Date().toLocaleString()}
   };
 
   /* =======================
-     🔹 CHECK IF CLASS HAS ALL FREE LECTURES
+   CHECK IF CLASS HAS ALL FREE LECTURES
   ======================= */
   const hasAllFreeLectures = (division) => {
     if (!schedule[division]) return true;
@@ -1084,7 +1084,7 @@ Generated on: ${new Date().toLocaleString()}
   };
 
   /* =======================
-     🔹 EFFECTS
+          EFFECTS
   ======================= */
   useEffect(() => {
     // On initial load, if we have branch and sem from location state, load all classes
@@ -1122,7 +1122,7 @@ Generated on: ${new Date().toLocaleString()}
   }, [showFacultyModal]);
 
   /* =======================
-     🔹 HANDLERS
+         HANDLERS
   ======================= */
   const handleFacultyChange = (division, day, timeSlot, value) => {
     setSchedule((prev) => ({
@@ -1173,7 +1173,7 @@ Generated on: ${new Date().toLocaleString()}
   );
 
   /* =======================
-   🔹 SAVE TIMETABLES FOR ALL DIVISIONS
+   SAVE TIMETABLES FOR ALL DIVISIONS
 ======================= */
   const handleSubmit = async () => {
     if (selectedDivisions.length === 0) {
@@ -1397,7 +1397,7 @@ Generated on: ${new Date().toLocaleString()}
   };
 
   /* =======================
-     🔹 RENDER
+           RENDER
   ======================= */
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-violet-50 p-4 md:p-6">

@@ -98,7 +98,7 @@ export default function PreviewTimetable() {
   };
 
   /* =======================
-     🔹 STATE
+            STATE
   ======================= */
   const [sem, setSem] = useState(location.state?.sem || 1);
   const [branch, setBranch] = useState(location.state?.branch || "CSE");
@@ -131,7 +131,7 @@ export default function PreviewTimetable() {
   };
 
   /* =======================
-   🔹 UPDATE OVERALL STATISTICS
+    UPDATE OVERALL STATISTICS
 ======================= */
   const updateOverallStatistics = () => {
     let totalAssignedSlots = 0;
@@ -170,7 +170,7 @@ export default function PreviewTimetable() {
   };
 
   /* =======================
-   🔹 FETCH ALL DIVISIONS TIMETABLE
+   FETCH ALL DIVISIONS TIMETABLE
 ======================= */
   const fetchAllDivisionsTimetable = async () => {
     if (!branch.trim()) {
@@ -287,7 +287,7 @@ export default function PreviewTimetable() {
   };
 
   /* =======================
-   🔹 FETCH SINGLE DIVISION TIMETABLE
+   FETCH SINGLE DIVISION TIMETABLE
 ======================= */
   const fetchSingleDivisionTimetable = async (division) => {
     try {
@@ -339,7 +339,7 @@ export default function PreviewTimetable() {
   };
 
   /* =======================
-     🔹 EXPORT FUNCTIONS
+      EXPORT FUNCTIONS
   ======================= */
   const exportAllToText = () => {
     if (Object.keys(allSchedules).length === 0) return;
@@ -424,7 +424,7 @@ export default function PreviewTimetable() {
   };
 
   /* =======================
-     🔹 TOGGLE DIVISION SELECTION
+     TOGGLE DIVISION SELECTION
   ======================= */
   const toggleDivisionSelection = (division) => {
     if (selectedDivisions.includes(division)) {
@@ -461,7 +461,7 @@ export default function PreviewTimetable() {
   };
 
   /* =======================
-     🔹 FILTERED SCHEDULE
+      FILTERED SCHEDULE
   ======================= */
   const getFilteredSchedule = (schedule) => {
     if (!schedule) return null;
@@ -492,7 +492,7 @@ export default function PreviewTimetable() {
   };
 
   /* =======================
-     🔹 INITIAL LOAD
+       INITIAL LOAD
   ======================= */
   useEffect(() => {
     if (branch.trim()) {
@@ -501,7 +501,7 @@ export default function PreviewTimetable() {
   }, [sem, branch]);
 
   /* =======================
-     🔹 RENDER DIVISION TIMETABLE
+   RENDER DIVISION TIMETABLE
   ======================= */
   const renderDivisionTimetable = (division, schedule) => {
     const filteredSchedule = getFilteredSchedule(schedule);
@@ -674,7 +674,7 @@ export default function PreviewTimetable() {
   };
 
   /* =======================
-     🔹 RENDER
+            RENDER
   ======================= */
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-rose-50 p-4 md:p-6 print:p-0">

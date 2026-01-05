@@ -31,11 +31,6 @@ def assignfaculty():
 def replace():
     return replace_lecture()
 
-# @swap_bp.route("/replacetimetable", methods=["OPTIONS"])
-# @token_required
-# def replaceauto():
-#     return replace_lecture()
-
 @swap_bp.route("/get-rearrange-options", methods=["POST"])
 @token_required
 def getreaarange():
@@ -50,19 +45,6 @@ def executereaarange():
 @token_required
 def reaarange():
     return rearrange_lecture()
-
-# @swap_bp.route("/rearrangetimetable", methods=["OPTIONS"])
-# @token_required
-# def reaarangeauto():
-#     return rearrange_lecture()
-
-# @swap_bp.route("/update-allowed-faculty", methods=["GET"])
-# def updateallowed():
-#     return update_allowed_faculty()
-
-# @swap_bp.route("/delete-allowed-faculty", methods=["DELETE"])
-# def deleteallowed():
-#     return delete_allowed_faculty()
 
 @swap_bp.route("/fetch-all-changes", methods=["GET"])
 @token_required

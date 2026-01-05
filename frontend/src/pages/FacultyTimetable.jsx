@@ -69,7 +69,7 @@ export default function FacultyTimetable() {
   };
   
   /* =======================
-     🔹 FETCH FACULTY TIMETABLE
+     FETCH FACULTY TIMETABLE
   ======================= */
   const fetchFacultyTimetable = async (showLoading = true) => {
     if (showLoading) setLoading(true);
@@ -106,7 +106,7 @@ export default function FacultyTimetable() {
   const token = localStorage.getItem("token");
 
   /* =======================
-     🔹 INITIAL LOAD
+        INITIAL LOAD
   ======================= */
   useEffect(() => {
     if (facultyId) {
@@ -115,7 +115,7 @@ export default function FacultyTimetable() {
   }, [facultyId]);
 
   /* =======================
-     🔹 CALCULATE STATISTICS
+      CALCULATE STATISTICS
   ======================= */
   const calculateStatistics = () => {
     if (!faculty?.timetable) {
@@ -165,7 +165,7 @@ export default function FacultyTimetable() {
 
   
   /* =======================
-     🔹 GET ALL ASSIGNMENTS
+      GET ALL ASSIGNMENTS
   ======================= */
   const getAllAssignments = () => {
     if (!faculty?.timetable) return [];
@@ -211,14 +211,14 @@ export default function FacultyTimetable() {
   };
 
   /* =======================
-     🔹 HANDLE PRINT
+        HANDLE PRINT
   ======================= */
   const handlePrint = () => {
     window.print();
   };
 
   /* =======================
-     🔹 HANDLE DOWNLOAD
+       HANDLE DOWNLOAD
   ======================= */
   const handleDownload = () => {
     const data = {
@@ -238,7 +238,7 @@ export default function FacultyTimetable() {
   };
 
   /* =======================
-     🔹 RENDER LOADING
+        RENDER LOADING
   ======================= */
   if (loading) {
     return (
@@ -252,7 +252,7 @@ export default function FacultyTimetable() {
   }
 
   /* =======================
-     🔹 RENDER ERROR
+        RENDER ERROR
   ======================= */
   if (error) {
     return (
@@ -297,7 +297,7 @@ export default function FacultyTimetable() {
   const allAssignments = getAllAssignments();
 
   /* =======================
-     🔹 RENDER MAIN CONTENT
+     RENDER MAIN CONTENT
   ======================= */
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-rose-50 p-4 md:p-6 print:p-0">

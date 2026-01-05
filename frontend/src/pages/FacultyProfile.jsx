@@ -44,7 +44,7 @@ export default function FacultyProfile() {
   const navigate = useNavigate();
 
   /* =======================
-     🔹 STATE
+           STATE
   ======================= */
   const [faculty, setFaculty] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -80,7 +80,7 @@ export default function FacultyProfile() {
   const token = localStorage.getItem("token");
 
   /* =======================
-     🔹 UTILITIES
+          UTILITIES
   ======================= */
   const showAlert = (main, info, type) => {
     setAlert({ main, info, type });
@@ -88,7 +88,7 @@ export default function FacultyProfile() {
   };
 
   /* =======================
-     🔹 FETCH FACULTY DATA
+      FETCH FACULTY DATA
   ======================= */
   const fetchFacultyData = async (showLoading = true) => {
     if (showLoading) setIsLoading(true);
@@ -129,7 +129,7 @@ export default function FacultyProfile() {
   };
 
   /* =======================
-     🔹 CALCULATE STATISTICS
+     CALCULATE STATISTICS
   ======================= */
   const calculateStatistics = (timetable) => {
     let totalLectures = 0;
@@ -168,7 +168,7 @@ export default function FacultyProfile() {
   };
 
   /* =======================
-     🔹 HANDLE PASSWORD CHANGE
+     HANDLE PASSWORD CHANGE
   ======================= */
   const handleChangePassword = async () => {
     const { currentPassword, newPassword, confirmPassword } = passwordForm;
@@ -249,7 +249,7 @@ export default function FacultyProfile() {
   };
 
   /* =======================
-     🔹 HANDLE TELEGRAM CHAT ID UPDATE
+    HANDLE TELEGRAM CHAT ID UPDATE
   ======================= */
   const handleUpdateTelegram = async () => {
     const { chatId } = telegramForm;
@@ -318,7 +318,7 @@ export default function FacultyProfile() {
   };
 
   /* =======================
-     🔹 HANDLE LOGOUT
+        HANDLE LOGOUT
   ======================= */
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -328,7 +328,7 @@ export default function FacultyProfile() {
   };
 
   /* =======================
-     🔹 EXPORT FUNCTIONS
+       EXPORT FUNCTIONS
   ======================= */
   const exportTimetable = () => {
     if (!faculty) return;
@@ -405,14 +405,14 @@ export default function FacultyProfile() {
   };
 
   /* =======================
-     🔹 EFFECTS
+           EFFECTS
   ======================= */
   useEffect(() => {
     fetchFacultyData();
   }, [facultyId]);
 
   /* =======================
-     🔹 RENDER LOADING
+       RENDER LOADING
   ======================= */
   if (isLoading) {
     return (
@@ -449,7 +449,7 @@ export default function FacultyProfile() {
   }
 
   /* =======================
-     🔹 RENDER PROFILE
+       RENDER PROFILE
   ======================= */
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-rose-50 p-4 md:p-6 print:p-0">

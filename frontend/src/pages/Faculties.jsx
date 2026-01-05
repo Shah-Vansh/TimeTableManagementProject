@@ -107,7 +107,7 @@ export default function Faculties() {
   };
 
   /* =======================
-     🔹 CALCULATE FACULTY STATUS
+     CALCULATE FACULTY STATUS
   ======================= */
   const isFacultyActive = (faculty) => {
     if (!faculty || !faculty.timetable) return false;
@@ -125,7 +125,7 @@ export default function Faculties() {
   };
 
   /* =======================
-     🔹 UPDATE FILTER COUNTS
+     UPDATE FILTER COUNTS
   ======================= */
   const updateFilterCounts = (facultyList) => {
     if (!facultyList || facultyList.length === 0) {
@@ -156,7 +156,7 @@ export default function Faculties() {
   };
 
   /* =======================
-     🔹 APPLY FILTERS
+     APPLY FILTERS
   ======================= */
   const applyFilters = () => {
     let result = [...faculties];
@@ -183,7 +183,7 @@ export default function Faculties() {
   };
 
   /* =======================
-     🔹 FETCH ALL FACULTIES
+     FETCH ALL FACULTIES
   ======================= */
   const fetchFaculties = async () => {
     setLoading(true);
@@ -214,7 +214,7 @@ export default function Faculties() {
   };
 
   /* =======================
-     🔹 FETCH ALL FACULTIES FOR MODAL
+     FETCH ALL FACULTIES FOR MODAL
   ======================= */
   const fetchAllFacultiesForModal = async () => {
     try {
@@ -240,14 +240,14 @@ export default function Faculties() {
   };
 
   /* =======================
-     🔹 HANDLE FILTER CHANGE
+     HANDLE FILTER CHANGE
   ======================= */
   const handleFilterChange = (filterId) => {
     setActiveFilter(filterId);
   };
 
   /* =======================
-     🔹 CREATE NEW FACULTY
+     CREATE NEW FACULTY
   ======================= */
   const handleCreateNewFaculty = async () => {
     if (!newFacultyId.trim()) {
@@ -467,7 +467,7 @@ Generated on: ${new Date().toLocaleString()}
   };
 
   /* =======================
-     🔹 DELETE FACULTY
+     DELETE FACULTY
   ======================= */
   const handleDeleteFaculty = async () => {
     if (!selectedFaculty) return;
@@ -509,7 +509,7 @@ Generated on: ${new Date().toLocaleString()}
   };
 
   /* =======================
-     🔹 HANDLE SEARCH AND FILTER CHANGES
+     HANDLE SEARCH AND FILTER CHANGES
   ======================= */
   useEffect(() => {
     applyFilters();
@@ -527,14 +527,14 @@ Generated on: ${new Date().toLocaleString()}
   }, [selectedFaculty]);
 
   /* =======================
-     🔹 INITIAL LOAD
+     INITIAL LOAD
   ======================= */
   useEffect(() => {
     fetchFaculties();
   }, []);
 
   /* =======================
-     🔹 VIEW FACULTY TIMETABLE
+     VIEW FACULTY TIMETABLE
   ======================= */
   const handleViewTimetable = (faculty) => {
     navigate(`/faculty/${faculty.id}`, {
@@ -546,7 +546,7 @@ Generated on: ${new Date().toLocaleString()}
   };
 
   /* =======================
-     🔹 CALCULATE FACULTY STATS
+     CALCULATE FACULTY STATS
   ======================= */
   const calculateFacultyStats = (faculty) => {
     if (!faculty || !faculty.timetable) {
@@ -600,7 +600,7 @@ Generated on: ${new Date().toLocaleString()}
   const availableFacultiesCount = faculties.length - activeFacultiesCount;
 
   /* =======================
-     🔹 RESET NEW FACULTY FORM
+     RESET NEW FACULTY FORM
   ======================= */
   const resetNewFacultyForm = () => {
     setNewFacultyId("");
@@ -609,7 +609,7 @@ Generated on: ${new Date().toLocaleString()}
   };
 
   /* =======================
-     🔹 OPEN CREATE MODAL
+     OPEN CREATE MODAL
   ======================= */
   const handleOpenCreateModal = () => {
     setShowCreateModal(true);
@@ -618,7 +618,7 @@ Generated on: ${new Date().toLocaleString()}
   };
 
   /* =======================
-     🔹 RENDER
+     RENDER
   ======================= */
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-blue-50 p-4 md:p-6">
