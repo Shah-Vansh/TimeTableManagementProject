@@ -10,6 +10,9 @@ def token_required(f):
     def decorated(*args, **kwargs):
         token = request.headers.get("Authorization")
 
+        if request.method == 'OPTIONS':
+            return '', 200
+
         if not token:
             return jsonify({"message": "Token is missing"}), 401
 
