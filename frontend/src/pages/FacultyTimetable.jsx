@@ -537,7 +537,7 @@ export default function FacultyTimetable() {
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4 print:hidden">
               <h3 className="text-lg font-semibold text-gray-900">Weekly Schedule</h3>
-              <button
+              {/* <button
                 onClick={() => setShowEmptySlots(!showEmptySlots)}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-2 transition-all shadow-sm hover:shadow ${
                   showEmptySlots
@@ -556,7 +556,7 @@ export default function FacultyTimetable() {
                     Show All Slots
                   </>
                 )}
-              </button>
+              </button> */}
             </div>
             <TimetableTable
               timetable={faculty.timetable}

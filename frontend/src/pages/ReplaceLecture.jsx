@@ -1278,10 +1278,10 @@ Status: Successfully Completed`;
                   }
                   className={`px-6 py-3 rounded-lg font-bold flex items-center gap-2 transition-all duration-300 border ${
                     isFetchingFaculty
-                      ? "bg-violet-100 text-violet-400 cursor-not-allowed border-violet-300"
+                      ? "bg-purple-100 text-purple-400 cursor-not-allowed border-violet-300"
                       : formData.lec_no === "" || isNaN(formData.lec_no)
                       ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300"
-                      : "bg-gradient-to-r from-violet-600 to-violet-700 text-white hover:from-violet-700 hover:to-violet-800 shadow-sm hover:shadow-md border-violet-700"
+                      : "bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800 shadow-sm hover:shadow-md border-purple-700"
                   }`}
                 >
                   {isFetchingFaculty ? (
@@ -1302,10 +1302,10 @@ Status: Successfully Completed`;
                   }
                   className={`px-6 py-3 rounded-lg font-bold flex items-center gap-2 transition-all duration-300 border ${
                     isFetchingOptions
-                      ? "bg-indigo-100 text-indigo-400 cursor-not-allowed border-indigo-300"
+                      ? "bg-indigo-100 text-orange-400 cursor-not-allowed border-orange-300"
                       : formData.lec_no === "" || isNaN(formData.lec_no)
                       ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300"
-                      : "bg-gradient-to-r from-indigo-600 to-violet-600 text-white hover:from-indigo-700 hover:to-violet-700 shadow-sm hover:shadow-md border-indigo-700"
+                      : "bg-gradient-to-r from-orange-600 to-orange-600 text-white hover:from-orange-700 hover:to-orange-700 shadow-sm hover:shadow-md border-orange-700"
                   }`}
                 >
                   {isFetchingOptions ? (
@@ -1352,10 +1352,10 @@ Status: Successfully Completed`;
                   }
                   className={`px-6 py-3 rounded-lg font-bold flex items-center gap-2 transition-all duration-300 border ${
                     isLoading && isRearranging
-                      ? "bg-violet-100 text-violet-400 cursor-not-allowed border-violet-300"
+                      ? "bg-violet-100 text-amber-400 cursor-not-allowed border-amber-300"
                       : formData.lec_no === "" || isNaN(formData.lec_no)
                       ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300"
-                      : "bg-gradient-to-r from-violet-600 to-violet-700 text-white hover:from-violet-700 hover:to-violet-800 shadow-sm hover:shadow-md border-violet-700"
+                      : "bg-gradient-to-r from-amber-600 to-amber-700 text-white hover:from-amber-700 hover:to-amber-800 shadow-sm hover:shadow-md border-amber-700"
                   }`}
                 >
                   {isLoading && isRearranging ? (
