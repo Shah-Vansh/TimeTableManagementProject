@@ -236,6 +236,21 @@ def save_timetable():
                 upsert=True
             )
 
+        # CALCULATE AVG LECTURES PER DAY (INTEGER)
+        total_lectures = 0
+        total_days = 0
+
+        for day_name in schedule:
+            day_slots = schedule[day_name]
+            lecture_count = sum(
+                1 for val in day_slots.values() if val != "free"
+            )
+            total_lectures += lecture_count
+            total_days += 1   # Mon–Sat always counted
+
+        avg_lectures_per_day = (
+            total_lectures // total_days
+        ) if total_days > 0 else 0
         
         # 5. UPDATE/INSERT CLASSWISE FACULTY
         classwise_col.update_one(
@@ -245,10 +260,11 @@ def save_timetable():
                     "sem": sem,
                     "branch": branch,
                     "class": class_name,
-                    "allowed_faculty": list(new_faculty)
+                    "allowed_faculty": list(new_faculty),
+                    "avg_lectures_per_day": avg_lectures_per_day
                 }
             },
-            upsert=True  # This allows both insert and update
+            upsert=True
         )
 
         action = "created" if is_new else "updated"
@@ -355,16 +371,16 @@ def get_all_timetables():
             "sem": d["sem"],
             "branch": d["branch"],
             "class": d["class"],
-            "allowed_faculty": d["allowed_faculty"],
+            "allowed_faculty": d.get("allowed_faculty", []),
             "periods_per_day": 8,
+            "avg_lectures": d.get("avg_lectures_per_day", 0),
             "status": "active",
             "createdBy": "Admin",
             "updatedAt": datetime.utcnow().isoformat(),
             "color": "blue"
         })
 
-    return jsonify(result)    
-
+    return jsonify(result)   
 
 # ----- / DELETE Functions /------
 
