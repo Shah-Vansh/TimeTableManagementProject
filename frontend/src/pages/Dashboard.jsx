@@ -70,10 +70,11 @@ function Dashboard() {
   };
 
   const token = localStorage.getItem("token");
-  // Aggregate timetables by branch
+
   // Aggregate timetables by branch
   const aggregateByBranch = (timetables) => {
     const branchMap = {};
+    const allFacultySet = new Set(); // Track all unique faculties across all branches
 
     timetables.forEach((timetable) => {
       const key = `${timetable.sem}-${timetable.branch}`;
@@ -85,13 +86,15 @@ function Dashboard() {
           classes: [],
           totalClasses: 0,
           facultyCount: 0,
-          totalPeriods: 0,
+          totalAvgLectures: 0, // Changed from totalPeriods
+          avgLecturesPerDay: 0, // New: average lectures per day for this branch
           timetables: [],
           updatedAt: new Date(timetable.updatedAt),
           status: timetable.status || "active",
           color: timetable.color || "rose",
           createdBy: timetable.createdBy,
-          allFaculties: [], // Store all faculty arrays
+          allFaculties: [], // Store all faculty arrays for this branch
+          avgLecturesArray: [], // New: store individual class avg lectures
         };
       }
 
@@ -101,20 +104,42 @@ function Dashboard() {
       }
 
       branchMap[key].totalClasses++;
-      branchMap[key].totalPeriods += timetable.periods_per_day || 0;
       branchMap[key].timetables.push(timetable);
 
-      // Collect all faculties
+      // Get avg lectures for this class (skip if null/undefined/0)
+      const classAvgLectures =
+        timetable.avg_lectures || timetable.avgLectures || 0;
+      if (classAvgLectures > 0) {
+        branchMap[key].avgLecturesArray.push(classAvgLectures);
+        branchMap[key].totalAvgLectures += classAvgLectures;
+      }
+
+      // Collect all faculties for this branch
       if (
         timetable.allowed_faculty &&
         Array.isArray(timetable.allowed_faculty)
       ) {
-        branchMap[key].allFaculties.push(...timetable.allowed_faculty);
+        timetable.allowed_faculty.forEach((faculty) => {
+          branchMap[key].allFaculties.push(faculty);
+          allFacultySet.add(faculty); // Add to global set
+        });
       }
 
-      // Calculate unique faculty count
+      // Calculate unique faculty count for this branch
       const uniqueFaculties = new Set(branchMap[key].allFaculties);
       branchMap[key].facultyCount = uniqueFaculties.size;
+
+      // Calculate average lectures per day for the branch
+      if (branchMap[key].avgLecturesArray.length > 0) {
+        branchMap[key].avgLecturesPerDay = Math.round(
+          branchMap[key].avgLecturesArray.reduce(
+            (sum, lectures) => sum + lectures,
+            0
+          ) / branchMap[key].avgLecturesArray.length
+        );
+      } else {
+        branchMap[key].avgLecturesPerDay = 0;
+      }
 
       // Use the latest updatedAt
       if (new Date(timetable.updatedAt) > new Date(branchMap[key].updatedAt)) {
@@ -122,12 +147,37 @@ function Dashboard() {
       }
     });
 
-    // Remove the allFaculties property before returning
-    return Object.values(branchMap).map((branchInfo) => {
-      const { allFaculties, ...rest } = branchInfo;
+    // Convert to array and remove temporary properties
+    const result = Object.values(branchMap).map((branchInfo) => {
+      const { allFaculties, avgLecturesArray, ...rest } = branchInfo;
       return rest;
     });
+
+    return result;
   };
+
+  // Calculate total unique tutors across all branches
+  const calculateTotalUniqueTutors = () => {
+    const allTutorsSet = new Set();
+
+    allTimetables.forEach((timetable) => {
+      if (
+        timetable.allowed_faculty &&
+        Array.isArray(timetable.allowed_faculty)
+      ) {
+        timetable.allowed_faculty.forEach((faculty) => {
+          if (faculty) {
+            // Ensure faculty is not null/undefined
+            allTutorsSet.add(faculty);
+          }
+        });
+      }
+    });
+
+    return allTutorsSet.size;
+  };
+
+  const totalUniqueTutors = calculateTotalUniqueTutors();
 
   const getRandomCoverColor = () => {
     const colors = [
@@ -158,6 +208,8 @@ function Dashboard() {
         status: t.status || "active",
         color: t.color || "yellow",
         updatedAt: new Date(t.updatedAt),
+        // Handle both field names from backend
+        avgLectures: t.avg_lectures || t.avgLectures || 0,
       }));
 
       setAllTimetables(enriched);
@@ -170,11 +222,7 @@ function Dashboard() {
         err.response?.data?.error ||
         err.message ||
         "Something went wrong";
-      showAlert(
-        "Failed to fetch timetables",
-        message,
-        "error"
-      );
+      showAlert("Failed to fetch timetables", message, "error");
     }
   };
 
@@ -182,18 +230,17 @@ function Dashboard() {
     fetchTimetables();
   }, []);
 
-
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (activeDropdown && !event.target.closest('button')) {
+      if (activeDropdown && !event.target.closest("button")) {
         setActiveDropdown(null);
       }
     };
-  
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [activeDropdown]);
-  
+
   // Filter branch data
   const filteredBranchData = branchData.filter((b) => {
     const matchesSearch =
@@ -259,11 +306,7 @@ function Dashboard() {
         err.response?.data?.error ||
         err.message ||
         "Something went wrong";
-      showAlert(
-        "Failed to delete timetables",
-        message,
-        "error"
-      );
+      showAlert("Failed to delete timetables", message, "error");
     }
   };
 
@@ -485,14 +528,21 @@ function Dashboard() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600 mb-1">
-                      Active Planners
+                      Avg Lectures/Day
                     </p>
                     <p className="text-2xl font-bold text-gray-900 mb-2">
-                      {branchData.filter((b) => b.status === "active").length}
+                      {branchData.length > 0
+                        ? Math.round(
+                            branchData.reduce(
+                              (acc, b) => acc + b.avgLecturesPerDay,
+                              0
+                            ) / branchData.length
+                          )
+                        : 0}
                     </p>
                     <div className="flex items-center text-xs text-emerald-600">
-                      <BookmarkCheck className="w-3 h-3 mr-1" />
-                      <span>Study schedules</span>
+                      <Clock className="w-3 h-3 mr-1" />
+                      <span>Across all sections</span>
                     </div>
                   </div>
                   <div className="p-3 bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl border border-emerald-200">
@@ -509,7 +559,7 @@ function Dashboard() {
                   <div>
                     <p className="text-sm text-gray-600 mb-1">Tutors</p>
                     <p className="text-2xl font-bold text-gray-900 mb-2">
-                      {branchData.reduce((acc, b) => acc + b.facultyCount, 0)}
+                      {calculateTotalUniqueTutors()}
                     </p>
                     <div className="flex items-center text-xs text-violet-600">
                       <GraduationCap className="w-3 h-3 mr-1" />
@@ -597,6 +647,7 @@ function Dashboard() {
           </div>
 
           {/* Branch Grid/List View */}
+          {/* Branch Grid/List View */}
           {sortedBranchData.length > 0 ? (
             viewMode === "grid" ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -605,7 +656,19 @@ function Dashboard() {
                   return (
                     <div
                       key={`${branchInfo.sem}-${branchInfo.branch}`}
-                      className={`bg-white rounded-xl border-2 ${colors.border} hover:border-indigo-400 transition-all duration-300 overflow-hidden group hover:shadow-lg relative`}
+                      className={`bg-white rounded-xl border-2 ${colors.border} hover:border-indigo-400 transition-all duration-300 overflow-hidden group hover:shadow-lg relative cursor-pointer`}
+                      onClick={(e) => {
+                        // Prevent navigation if clicking on dropdown or its buttons
+                        if (
+                          e.target.closest("button") ||
+                          e.target.closest(".dropdown-container") ||
+                          activeDropdown ===
+                            `${branchInfo.sem}-${branchInfo.branch}`
+                        ) {
+                          return;
+                        }
+                        handleViewBranchDetails(branchInfo);
+                      }}
                     >
                       {/* Notebook Spine Effect */}
                       <div
@@ -642,16 +705,17 @@ function Dashboard() {
                               </div>
                             </div>
 
-                            <div className="relative">
+                            <div className="relative dropdown-container">
                               <button
-                                onClick={() =>
+                                onClick={(e) => {
+                                  e.stopPropagation();
                                   setActiveDropdown(
                                     activeDropdown ===
                                       `${branchInfo.sem}-${branchInfo.branch}`
                                       ? null
                                       : `${branchInfo.sem}-${branchInfo.branch}`
-                                  )
-                                }
+                                  );
+                                }}
                                 className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200"
                               >
                                 <MoreVertical className="w-5 h-5 text-gray-400" />
@@ -660,25 +724,30 @@ function Dashboard() {
                                 `${branchInfo.sem}-${branchInfo.branch}` && (
                                 <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
                                   <button
-                                    onClick={() =>
-                                      handleViewBranchDetails(branchInfo)
-                                    }
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleViewBranchDetails(branchInfo);
+                                      setActiveDropdown(null);
+                                    }}
                                     className="flex items-center w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors border-b border-gray-100"
                                   >
                                     <Eye className="w-4 h-4 mr-3 text-gray-500" />
                                     Preview Planner
                                   </button>
                                   <button
-                                    onClick={() =>
-                                      handleEditBranchTimetable(branchInfo)
-                                    }
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleEditBranchTimetable(branchInfo);
+                                      setActiveDropdown(null);
+                                    }}
                                     className="flex items-center w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors border-b border-gray-100"
                                   >
                                     <Edit className="w-4 h-4 mr-3 text-gray-500" />
                                     Edit Section
                                   </button>
                                   <button
-                                    onClick={() => {
+                                    onClick={(e) => {
+                                      e.stopPropagation();
                                       deleteBranchTimetable(branchInfo);
                                       setActiveDropdown(null);
                                     }}
@@ -753,10 +822,10 @@ function Dashboard() {
                             <div className="flex items-center justify-between">
                               <span className="text-sm text-gray-600 flex items-center gap-1">
                                 <Clock className="w-3 h-3" />
-                                Study Hours/Day
+                                Avg Lectures/Day
                               </span>
                               <span className="font-medium text-gray-900">
-                                {branchInfo.totalPeriods}
+                                {branchInfo.avgLecturesPerDay}
                               </span>
                             </div>
                           </div>
@@ -781,7 +850,7 @@ function Dashboard() {
                 })}
               </div>
             ) : (
-              /* List View */
+              /* List View - Add similar functionality if needed */
               <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
                 <div className="overflow-x-auto">
                   <table className="w-full">
@@ -797,7 +866,7 @@ function Dashboard() {
                           Tutors
                         </th>
                         <th className="py-4 px-6 text-left text-xs font-semibold text-indigo-800 uppercase tracking-wider">
-                          Hours/Day
+                          Lectures/Day
                         </th>
                         <th className="py-4 px-6 text-left text-xs font-semibold text-indigo-800 uppercase tracking-wider">
                           Status
@@ -816,7 +885,8 @@ function Dashboard() {
                         return (
                           <tr
                             key={`${branchInfo.sem}-${branchInfo.branch}`}
-                            className="hover:bg-indigo-50/50 transition-colors"
+                            className="hover:bg-indigo-50/50 transition-colors cursor-pointer"
+                            onClick={() => handleViewBranchDetails(branchInfo)}
                           >
                             <td className="py-4 px-6">
                               <div className="flex items-center gap-3">
@@ -869,7 +939,7 @@ function Dashboard() {
                             <td className="py-4 px-6">
                               <div className="flex items-center gap-2">
                                 <Clock className="w-4 h-4 text-gray-400" />
-                                <span>{branchInfo.totalPeriods}</span>
+                                <span>{branchInfo.avgLecturesPerDay}</span>
                               </div>
                             </td>
                             <td className="py-4 px-6">
@@ -986,14 +1056,16 @@ function Dashboard() {
                 </div>
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-rose-100 to-rose-200 flex items-center justify-center">
-                      <span className="text-xs font-bold text-rose-700">2</span>
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-violet-100 to-violet-200 flex items-center justify-center">
+                      <span className="text-xs font-bold text-violet-700">
+                        2
+                      </span>
                     </div>
-                    <h4 className="font-semibold text-rose-800">
+                    <h4 className="font-semibold text-violet-800">
                       Edit Section
                     </h4>
                   </div>
-                  <p className="text-rose-700 text-sm leading-relaxed">
+                  <p className="text-violet-700 text-sm leading-relaxed">
                     Click the edit button to open the planner editor with all
                     existing study groups for that section pre-loaded.
                   </p>

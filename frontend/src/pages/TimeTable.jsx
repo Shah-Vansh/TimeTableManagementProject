@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import {
   Save,
@@ -100,6 +100,278 @@ export default function TimeTable() {
     },
   ];
 
+  // Add this function inside your TimeTable component
+  // Replace the SearchableFacultySelect function with this improved version
+  const SearchableFacultySelect = ({
+    value,
+    onChange,
+    division,
+    disabled,
+    onEnterPress,
+  }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const [search, setSearch] = useState("");
+    const [filteredOptions, setFilteredOptions] = useState([]);
+    const dropdownRef = useRef(null);
+    const inputRef = useRef(null);
+
+    // Get faculty options for this class
+    const facultyOptions = React.useMemo(() => {
+      return getFacultyOptionsForClass(division);
+    }, [division]);
+
+    // Filter options based on faculty ID only
+    useEffect(() => {
+      if (search.trim() === "") {
+        setFilteredOptions(facultyOptions);
+      } else {
+        const searchLower = search.toLowerCase();
+        const filtered = facultyOptions.filter((option) => {
+          const valueStr = option.value || "";
+          return valueStr.toLowerCase().includes(searchLower);
+        });
+        setFilteredOptions(filtered);
+      }
+    }, [search, facultyOptions]);
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+      const handleClickOutside = (event) => {
+        if (
+          dropdownRef.current &&
+          !dropdownRef.current.contains(event.target)
+        ) {
+          setIsOpen(false);
+          setSearch("");
+        }
+      };
+      document.addEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    // Handle keyboard navigation
+    const handleKeyDown = (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+
+        // If dropdown is open and we have search results
+        if (isOpen && filteredOptions.length > 0) {
+          // Select the first matching option
+          handleSelect(filteredOptions[0]);
+        } else if (isOpen && filteredOptions.length === 0 && search) {
+          // Try to find a close match
+          const match = facultyOptions.find((opt) =>
+            opt.value.toLowerCase().startsWith(search.toLowerCase())
+          );
+          if (match) {
+            handleSelect(match);
+          } else {
+            // No match found, close dropdown
+            setIsOpen(false);
+            setSearch("");
+          }
+        } else {
+          // Dropdown is closed, press Enter to move to next field
+          if (onEnterPress) {
+            onEnterPress(); // Call parent function to move to next field
+          } else {
+            // Fallback: Just blur the current input
+            inputRef.current?.blur();
+          }
+        }
+      } else if (e.key === "Escape") {
+        setIsOpen(false);
+        setSearch("");
+      } else if (e.key === "Tab") {
+        // Handle Tab navigation normally
+        setIsOpen(false);
+        setSearch("");
+      }
+    };
+
+    const handleSelect = (option) => {
+      // Pass the option.value (faculty ID) to onChange
+      onChange(option.value);
+      setSearch("");
+      setIsOpen(false);
+
+      // After selecting, focus might move automatically due to React re-render
+      // We'll let the parent handle focus management if needed
+    };
+
+    const handleInputChange = (e) => {
+      const newValue = e.target.value;
+      setSearch(newValue);
+
+      // If user types a value that matches a faculty ID exactly, select it
+      if (newValue.trim() !== "") {
+        const exactMatch = facultyOptions.find(
+          (option) =>
+            option.value.toLowerCase() === newValue.toLowerCase().trim()
+        );
+        if (exactMatch) {
+          handleSelect(exactMatch);
+          return;
+        }
+      }
+
+      if (!isOpen) setIsOpen(true);
+    };
+
+    const handleInputFocus = () => {
+      setIsOpen(true);
+      setSearch("");
+    };
+
+    const handleBlur = () => {
+      // Delay closing to allow click events on dropdown items
+      setTimeout(() => {
+        setIsOpen(false);
+        setSearch("");
+      }, 200);
+    };
+
+    // Get current option and display value
+    const currentOption =
+      facultyOptions.find((opt) => opt.value === value) || facultyOptions[0];
+    // For display, show ID only (or "Free Period" for free option)
+    const displayValue =
+      currentOption.value === "free" ? "Free Period" : currentOption.value;
+
+    return (
+      <div className="relative flex-1" ref={dropdownRef}>
+        <div className="relative">
+          <input
+            ref={inputRef}
+            type="text"
+            value={isOpen ? search : displayValue}
+            onChange={handleInputChange}
+            onFocus={handleInputFocus}
+            onBlur={handleBlur}
+            onKeyDown={handleKeyDown}
+            placeholder="Type faculty ID..."
+            disabled={disabled}
+            className={`w-full px-3 py-1.5 text-sm rounded-lg border focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all ${
+              currentOption.color || "border-gray-300"
+            } ${disabled ? "bg-gray-100 cursor-not-allowed" : "bg-white"}`}
+          />
+          <button
+            type="button"
+            onClick={() => {
+              if (!isOpen) {
+                setIsOpen(true);
+                setSearch("");
+                inputRef.current?.focus();
+              } else {
+                setIsOpen(false);
+                setSearch("");
+              }
+            }}
+            disabled={disabled}
+            className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-100 rounded"
+          >
+            <ChevronDown
+              className={`w-4 h-4 text-gray-500 transition-transform ${
+                isOpen ? "rotate-180" : ""
+              }`}
+            />
+          </button>
+        </div>
+
+        {isOpen && !disabled && (
+          <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+            {/* Search header */}
+            <div className="sticky top-0 bg-white border-b border-gray-100 p-2">
+              <div className="flex items-center gap-2 text-xs text-gray-500">
+                <Search className="w-3 h-3" />
+                <span className="flex-1">
+                  {search
+                    ? `Searching ID: "${search}"`
+                    : "Type faculty ID to filter..."}
+                </span>
+                <span className="text-xs bg-gray-100 px-2 py-1 rounded">
+                  {filteredOptions.length} found
+                </span>
+              </div>
+            </div>
+
+            {filteredOptions.length === 0 ? (
+              <div className="p-4 text-center">
+                <div className="text-gray-500 text-sm mb-2">
+                  No matching faculty ID
+                </div>
+                <div className="text-xs text-gray-400">Try a different ID</div>
+              </div>
+            ) : (
+              <div className="py-1">
+                {filteredOptions.map((option) => {
+                  const isSelected = option.value === value;
+                  // Show only ID (or "Free Period" for free option)
+                  const displayText =
+                    option.value === "free" ? "Free Period" : option.value;
+
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onMouseDown={(e) => {
+                        e.preventDefault(); // Prevent input blur
+                        e.stopPropagation(); // Stop event propagation
+                      }}
+                      onClick={() => handleSelect(option)}
+                      className={`w-full px-3 py-2 text-left hover:bg-indigo-50 flex items-center justify-between border-b border-gray-50 last:border-b-0 ${
+                        isSelected ? "bg-indigo-50" : ""
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`w-3 h-3 rounded-full ${
+                            isSelected
+                              ? "bg-indigo-500"
+                              : "border border-gray-300"
+                          }`}
+                        ></div>
+                        <div
+                          className={`font-medium ${
+                            option.textColor || "text-gray-700"
+                          }`}
+                        >
+                          {displayText}
+                        </div>
+                      </div>
+                      {isSelected && (
+                        <Check className="w-4 h-4 text-indigo-600 flex-shrink-0" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Instructions footer */}
+            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-100 p-2">
+              <div className="flex items-center justify-between text-xs text-gray-500">
+                <div className="flex items-center gap-1">
+                  <kbd className="px-1.5 py-0.5 bg-gray-200 rounded text-xs">
+                    Enter
+                  </kbd>
+                  <span>to move to next</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <kbd className="px-1.5 py-0.5 bg-gray-200 rounded text-xs">
+                    ↓
+                  </kbd>
+                  <span>to select</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   /* =======================
             STATE
   ======================= */
@@ -156,19 +428,21 @@ export default function TimeTable() {
 
   // Faculty color mapping for consistent styling
   const facultyColors = [
-    "border-indigo-200 bg-indigo-50 text-indigo-700",
-    "border-violet-200 bg-violet-50 text-violet-700",
-    "border-violet-200 bg-violet-50 text-violet-700",
-    "border-violet-200 bg-violet-50 text-violet-700",
-    "border-violet-200 bg-violet-50 text-violet-700",
-    "border-cyan-200 bg-cyan-50 text-cyan-700",
-    "border-pink-200 bg-pink-50 text-pink-700",
-    "border-indigo-200 bg-indigo-50 text-indigo-700",
-    "border-lime-200 bg-lime-50 text-lime-700",
-    "border-violet-200 bg-violet-50 text-violet-700",
-    "border-teal-200 bg-teal-50 text-teal-700",
-    "border-sky-200 bg-sky-50 text-sky-700",
-    "border-fuchsia-200 bg-fuchsia-50 text-fuchsia-700",
+    // Cool → Warm → Cool → Warm pattern
+    "border-indigo-200 bg-indigo-50 text-indigo-700", // blue
+    "border-amber-200 bg-amber-50 text-amber-700", // yellow
+    "border-teal-200 bg-teal-50 text-teal-700", // teal
+    "border-rose-200 bg-rose-50 text-rose-700", // red
+    "border-sky-200 bg-sky-50 text-sky-700", // light blue
+    "border-orange-200 bg-orange-50 text-orange-700", // orange
+    "border-emerald-200 bg-emerald-50 text-emerald-700", // green
+    "border-fuchsia-200 bg-fuchsia-50 text-fuchsia-700", // magenta
+    "border-cyan-200 bg-cyan-50 text-cyan-700", // cyan
+    "border-lime-200 bg-lime-50 text-lime-700", // lime
+    "border-violet-200 bg-violet-50 text-violet-700", // violet
+    "border-pink-200 bg-pink-50 text-pink-700", // pink
+    "border-blue-200 bg-blue-50 text-blue-700", // blue
+    "border-purple-200 bg-purple-50 text-purple-700", // purple
   ];
 
   // Show alert message
@@ -277,11 +551,7 @@ export default function TimeTable() {
         error.response?.data?.error ||
         error.message ||
         "Something went wrong";
-      showAlert(
-        "Update failed",
-        message || "Please try again",
-        "error"
-      );
+      showAlert("Update failed", message || "Please try again", "error");
     } finally {
       setIsSavingTelegram(false);
     }
@@ -312,7 +582,7 @@ export default function TimeTable() {
   const fetchAllFaculties = async () => {
     setIsLoadingAllFaculties(true);
     try {
-      const response = await api.get("/api/faculties",{
+      const response = await api.get("/api/faculties", {
         headers: {
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${token}`,
@@ -348,11 +618,7 @@ export default function TimeTable() {
         error.response?.data?.error ||
         error.message ||
         "Something went wrong";
-      showAlert(
-        "Failed to fetch faculties",
-        message,
-        "error"
-      );
+      showAlert("Failed to fetch faculties", message, "error");
 
       // Fallback to sample data for demo
       const sampleFaculties = [
@@ -541,7 +807,7 @@ export default function TimeTable() {
         err.response?.data?.error ||
         err.message ||
         "Something went wrong";
-      showAlert("Failed to copy to clipboard",message,"error");
+      showAlert("Failed to copy to clipboard", message, "error");
     }
   };
 
@@ -587,8 +853,8 @@ Generated on: ${new Date().toLocaleString()}
       const fetchPromises = classes.map(async (className) => {
         try {
           const response = await api.get("/api/timetable/classwise-faculty", {
-            headers:{
-              Authorization: `Bearer ${token}`
+            headers: {
+              Authorization: `Bearer ${token}`,
             },
             params: {
               sem: sem,
@@ -609,7 +875,11 @@ Generated on: ${new Date().toLocaleString()}
             error.response?.data?.error ||
             error.message ||
             "Something went wrong";
-          showAlert(`No faculty data found for class ${className}:`, message, "error");
+          showAlert(
+            `No faculty data found for class ${className}:`,
+            message,
+            "error"
+          );
           return {
             class: className,
             faculty: [],
@@ -709,10 +979,15 @@ Generated on: ${new Date().toLocaleString()}
         (t) => t.branch === branch && t.sem === sem
       );
 
-      // Extract unique classes from these timetables
+      // Extract unique classes from these timetables and sort them
       const existingClasses = [
         ...new Set(branchTimetables.map((t) => t.class)),
-      ];
+      ].sort((a, b) => {
+        // Sort by division number (extract number from string like "D1", "D10")
+        const numA = parseInt(a.replace(/\D/g, "")) || 0;
+        const numB = parseInt(b.replace(/\D/g, "")) || 0;
+        return numA - numB;
+      });
 
       // Update selected divisions with existing classes
       if (existingClasses.length > 0) {
@@ -721,8 +996,9 @@ Generated on: ${new Date().toLocaleString()}
         // Fetch allowed faculty for these classes
         const facultyMap = await fetchAllowedFacultyForClasses(existingClasses);
 
-        // Also fetch schedule data for each class
-        const fetchPromises = existingClasses.map(async (division) => {
+        // Also fetch schedule data for each class IN ORDER
+        const results = [];
+        for (const division of existingClasses) {
           try {
             const response = await api.get("/api/timetable/fetchtimetable", {
               headers: {
@@ -734,16 +1010,20 @@ Generated on: ${new Date().toLocaleString()}
                 class: division,
               },
             });
-            return { division, data: response.data.schedule, exists: true };
+            results.push({
+              division,
+              data: response.data.schedule,
+              exists: true,
+            });
           } catch (error) {
             if (error.response && error.response.status === 404) {
-              return { division, data: null, exists: false };
+              results.push({ division, data: null, exists: false });
+            } else {
+              console.error(`Error fetching ${division}:`, error);
+              results.push({ division, data: null, exists: false });
             }
-            throw error;
           }
-        });
-
-        const results = await Promise.all(fetchPromises);
+        }
 
         // Update existing timetables state
         const fetchedTimetables = {};
@@ -794,11 +1074,7 @@ Generated on: ${new Date().toLocaleString()}
         error.response?.data?.error ||
         error.message ||
         "Something went wrong";
-      showAlert(
-        "Failed to fetch study planner data",
-        message,
-        "error"
-      );
+      showAlert("Failed to fetch study planner data", message, "error");
     } finally {
       setFetching(false);
       setIsInitialLoad(false);
@@ -825,19 +1101,16 @@ Generated on: ${new Date().toLocaleString()}
       // Fetch timetables for each selected division
       const fetchPromises = selectedDivisions.map(async (division) => {
         try {
-          const response = await api.get(
-            "/api/timetable/fetchtimetable",
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-              params: {
-                sem: sem,
-                branch: branch,
-                class: division,
-              },
+          const response = await api.get("/api/timetable/fetchtimetable", {
+            headers: {
+              Authorization: `Bearer ${token}`,
             },
-          );
+            params: {
+              sem: sem,
+              branch: branch,
+              class: division,
+            },
+          });
 
           return { division, data: response.data.schedule, exists: true };
         } catch (error) {
@@ -1448,8 +1721,8 @@ Generated on: ${new Date().toLocaleString()}
               </h3>
               <p className="text-gray-600 text-center mb-6">
                 This will permanently remove the study schedule for{" "}
-                <span className="font-semibold text-indigo-700">{branch}</span> -
-                Semester{" "}
+                <span className="font-semibold text-indigo-700">{branch}</span>{" "}
+                - Semester{" "}
                 <span className="font-semibold text-indigo-700">{sem}</span>,
                 Study Group{" "}
                 <span className="font-semibold text-indigo-700">
@@ -2504,42 +2777,52 @@ Generated on: ${new Date().toLocaleString()}
                 )}
               </div>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {divisionOptions.map((division) => {
-                const isSelected = selectedDivisions.includes(division);
-                const exists = existingTimetables[division];
-                const allowedFaculty = classFacultyMap[division] || [];
 
-                return (
-                  <button
-                    key={division}
-                    onClick={() => handleDivisionToggle(division)}
-                    className={`px-4 py-2 rounded-lg border transition-all duration-200 flex items-center gap-2 ${
-                      isSelected
-                        ? exists
-                          ? "bg-gradient-to-r from-violet-100 to-violet-50 border-violet-300 text-violet-800 hover:from-violet-200 hover:to-violet-100"
-                          : "bg-gradient-to-r from-indigo-100 to-indigo-50 border-indigo-300 text-indigo-800 hover:from-indigo-200 hover:to-indigo-100"
-                        : "bg-gradient-to-r from-gray-100 to-gray-50 border-gray-300 text-gray-700 hover:from-gray-200 hover:to-gray-100"
-                    }`}
-                    title={`Allowed tutors: ${
-                      allowedFaculty.length > 0
-                        ? allowedFaculty.join(", ")
-                        : "None assigned"
-                    }`}
-                  >
-                    {division}
-                    {isSelected && exists && (
-                      <div className="w-2 h-2 bg-violet-500 rounded-full"></div>
-                    )}
-                    {allowedFaculty.length > 0 && (
-                      <span className="text-xs bg-violet-100 px-1.5 py-0.5 rounded border border-violet-200 text-violet-700">
-                        {allowedFaculty.length}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
+            {/* Sort the divisionOptions array before rendering */}
+            <div className="flex flex-wrap gap-2">
+              {divisionOptions
+                .sort((a, b) => {
+                  // Sort by division number (extract number from string like "D1", "D10")
+                  const numA = parseInt(a.replace(/\D/g, "")) || 0;
+                  const numB = parseInt(b.replace(/\D/g, "")) || 0;
+                  return numA - numB;
+                })
+                .map((division) => {
+                  const isSelected = selectedDivisions.includes(division);
+                  const exists = existingTimetables[division];
+                  const allowedFaculty = classFacultyMap[division] || [];
+
+                  return (
+                    <button
+                      key={division}
+                      onClick={() => handleDivisionToggle(division)}
+                      className={`px-4 py-2 rounded-lg border transition-all duration-200 flex items-center gap-2 ${
+                        isSelected
+                          ? exists
+                            ? "bg-gradient-to-r from-violet-100 to-violet-50 border-violet-300 text-violet-800 hover:from-violet-200 hover:to-violet-100"
+                            : "bg-gradient-to-r from-indigo-100 to-indigo-50 border-indigo-300 text-indigo-800 hover:from-indigo-200 hover:to-indigo-100"
+                          : "bg-gradient-to-r from-gray-100 to-gray-50 border-gray-300 text-gray-700 hover:from-gray-200 hover:to-gray-100"
+                      }`}
+                      title={`Allowed tutors: ${
+                        allowedFaculty.length > 0
+                          ? allowedFaculty.join(", ")
+                          : "None assigned"
+                      }`}
+                    >
+                      {division}
+                      {isSelected && exists && (
+                        <div className="w-2 h-2 bg-violet-500 rounded-full"></div>
+                      )}
+                      {allowedFaculty.length > 0 && (
+                        <span className="text-xs bg-violet-100 px-1.5 py-0.5 rounded border border-violet-200 text-violet-700">
+                          {allowedFaculty.length}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
             </div>
+
             <div className="flex flex-wrap items-center gap-4 mt-4">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-gradient-to-r from-indigo-100 to-indigo-50 border border-indigo-300 rounded"></div>
@@ -2753,7 +3036,7 @@ Generated on: ${new Date().toLocaleString()}
                               <Trash2 className="w-4 h-4" />
                             </button>
                           )}
-                          <button
+                          {/* <button
                             onClick={() => toggleDivisionCollapse(division)}
                             className="p-1 hover:bg-white/50 rounded-lg transition-colors border border-indigo-200"
                           >
@@ -2762,7 +3045,7 @@ Generated on: ${new Date().toLocaleString()}
                             ) : (
                               <ChevronUp className="w-5 h-5 text-indigo-500" />
                             )}
-                          </button>
+                          </button> */}
                         </div>
                       </div>
                     </div>
@@ -2815,10 +3098,11 @@ Generated on: ${new Date().toLocaleString()}
                                 </div>
 
                                 {/* Time slots for this day (when not collapsed) */}
+                                {/* Time slots for this day (when not collapsed) */}
                                 {!isDayCollapsed && (
                                   <div className="p-3 bg-white">
                                     <div className="space-y-2 max-h-96 overflow-y-auto">
-                                      {timeSlots.map((slot) => {
+                                      {timeSlots.map((slot, slotIndex) => {
                                         const facultyValue =
                                           schedule[division]?.[day]?.[
                                             slot.value
@@ -2832,6 +3116,9 @@ Generated on: ${new Date().toLocaleString()}
                                         if (!showFreeSlots && isFree)
                                           return null;
 
+                                        // Create a unique ref for each input
+                                        const inputRef = `input-${division}-${day}-${slotIndex}`;
+
                                         return (
                                           <div
                                             key={slot.value}
@@ -2840,46 +3127,48 @@ Generated on: ${new Date().toLocaleString()}
                                             <div className="w-16 text-xs text-indigo-700 font-bold">
                                               {slot.label}
                                             </div>
-                                            <select
+                                            <SearchableFacultySelect
                                               value={facultyValue}
-                                              onChange={(e) =>
+                                              onChange={(newValue) =>
                                                 handleFacultyChange(
                                                   division,
                                                   day,
                                                   slot.value,
-                                                  e.target.value
+                                                  newValue
                                                 )
                                               }
-                                              className={`flex-1 px-3 py-1.5 text-sm rounded-lg border ${faculty.color} focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all`}
-                                            >
-                                              {classFacultyOptions.map((f) => {
-                                                // For "free" option, keep as is
-                                                if (f.value === "free") {
-                                                  return (
-                                                    <option
-                                                      key={f.value}
-                                                      value={f.value}
-                                                    >
-                                                      {f.label}
-                                                    </option>
-                                                  );
+                                              division={division}
+                                              disabled={false}
+                                              onEnterPress={() => {
+                                                // Find the next input in the same day
+                                                const nextSlotIndex =
+                                                  slotIndex + 1;
+                                                if (
+                                                  nextSlotIndex <
+                                                  timeSlots.length
+                                                ) {
+                                                  const nextInputId = `input-${division}-${day}-${nextSlotIndex}`;
+                                                  const nextInput =
+                                                    document.getElementById(
+                                                      nextInputId
+                                                    );
+                                                  if (nextInput) {
+                                                    nextInput.focus();
+                                                  }
+                                                } else {
+                                                  // If it's the last slot of the day, move to next day
+                                                  // You can implement day navigation here if needed
+                                                  // For now, just blur
+                                                  const currentInput =
+                                                    document.getElementById(
+                                                      inputRef
+                                                    );
+                                                  if (currentInput) {
+                                                    currentInput.blur();
+                                                  }
                                                 }
-
-                                                // For faculty entries, show ID (and name if available)
-                                                const facultyId = f.value;
-                                                const facultyName =
-                                                  f.name || "";
-
-                                                return (
-                                                  <option
-                                                    key={f.value}
-                                                    value={f.value}
-                                                  >
-                                                    {facultyId}
-                                                  </option>
-                                                );
-                                              })}
-                                            </select>
+                                              }}
+                                            />
                                           </div>
                                         );
                                       })}

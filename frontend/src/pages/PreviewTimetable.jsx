@@ -401,17 +401,24 @@ export default function PreviewTimetable() {
   // Generate a consistent color for any faculty name
   const getFacultyColor = (facultyName) => {
     const colors = [
+      // Cool → Warm → Cool → Warm (no neighbors similar)
       "bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 border-blue-200",
-      "bg-gradient-to-r from-purple-50 to-purple-100 text-purple-700 border-purple-200",
-      "bg-gradient-to-r from-indigo-50 to-indigo-100 text-indigo-700 border-indigo-200",
       "bg-gradient-to-r from-rose-50 to-rose-100 text-rose-700 border-rose-200",
+
+      "bg-gradient-to-r from-teal-50 to-teal-100 text-teal-700 border-teal-200",
+      "bg-gradient-to-r from-amber-50 to-amber-100 text-amber-700 border-amber-200",
+
       "bg-gradient-to-r from-indigo-50 to-indigo-100 text-indigo-700 border-indigo-200",
       "bg-gradient-to-r from-pink-50 to-pink-100 text-pink-700 border-pink-200",
+
       "bg-gradient-to-r from-cyan-50 to-cyan-100 text-cyan-700 border-cyan-200",
+      "bg-gradient-to-r from-orange-50 to-orange-100 text-orange-700 border-orange-200",
+
+      "bg-gradient-to-r from-violet-50 to-violet-100 text-violet-700 border-violet-200",
       "bg-gradient-to-r from-emerald-50 to-emerald-100 text-emerald-700 border-emerald-200",
-      "bg-gradient-to-r from-violet-50 to-violet-100 text-violet-700 border-violet-200",
-      "bg-gradient-to-r from-teal-50 to-teal-100 text-teal-700 border-teal-200",
-      "bg-gradient-to-r from-violet-50 to-violet-100 text-violet-700 border-violet-200",
+
+      "bg-gradient-to-r from-purple-50 to-purple-100 text-purple-700 border-purple-200",
+      "bg-gradient-to-r from-lime-50 to-lime-100 text-lime-700 border-lime-200",
     ];
 
     // Generate a consistent index from the faculty name
