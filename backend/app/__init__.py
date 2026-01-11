@@ -3,6 +3,8 @@ from .config import Config
 from .database.mongo import init_mongo
 from .database.init_db import init_db
 from flask_cors import CORS
+import os
+from autonomous_recovery_agent.agent import AutonomousRecoveryAgent, AgentConfig
 
 def create_app():
     app = Flask(__name__)
@@ -15,6 +17,29 @@ def create_app():
 
     from app.database.mongo import db
     init_db(db=db)
+
+    config = AgentConfig(
+        # Enable new features
+        disk_monitoring=True,
+        config_management=True,
+        traffic_throttling=True,
+        maintenance_mode=True,
+        
+        # Disk settings
+        disk_cleanup_threshold=0.75,  # Cleanup at 75% disk usage
+        disk_critical_threshold=0.90,  # Critical at 90% disk usage
+        
+        # Traffic settings
+        default_rps=50,  # 50 requests per second default
+        overload_threshold=0.7,  # Throttle at 70% system load
+    )
+
+    agent = AutonomousRecoveryAgent(
+        flask_app=app,
+        mongodb_url=os.getenv('MONGO_URI'),
+        config=config
+    )
+    agent.start()
 
     # import blueprints
     from app.routes.main_routes import main_bp
