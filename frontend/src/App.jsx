@@ -16,7 +16,6 @@ import AutoGenerateTimetable from "./pages/AutoGenerateTimetable";
 import PreviewFullTimetable from "./pages/PreviewFull";
 import FullTimetable from "./pages/FullTimetable";
 import AutoBranchTimetable from "./pages/AutoBranchTimetable";
-import ResumeAnalyzer from "./pages/Resume";
 
 function App() {
   const location = useLocation();
@@ -77,14 +76,6 @@ function App() {
           element={
             <ProtectedRoute>
               <AutoBranchTimetable />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/resume"
-          element={
-            <ProtectedRoute>
-              <ResumeAnalyzer />
             </ProtectedRoute>
           }
         />
