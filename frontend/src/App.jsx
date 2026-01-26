@@ -12,6 +12,11 @@ import FacultyTimetable from "./pages/FacultyTimetable";
 import Faculties from "./pages/Faculties";
 import FacultyProfile from "./pages/FacultyProfile";
 import PreviewTimetable from "./pages/PreviewTimetable";
+import AutoGenerateTimetable from "./pages/AutoGenerateTimetable";
+import PreviewFullTimetable from "./pages/PreviewFull";
+import FullTimetable from "./pages/FullTimetable";
+import AutoBranchTimetable from "./pages/AutoBranchTimetable";
+import ResumeAnalyzer from "./pages/Resume";
 
 function App() {
   const location = useLocation();
@@ -34,12 +39,52 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/auto"
+          element={
+            <ProtectedRoute>
+              <AutoGenerateTimetable />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/full"
+          element={
+            <ProtectedRoute>
+              <PreviewFullTimetable />
+            </ProtectedRoute>
+          }
+        />
 
         <Route
           path="/dashboard"
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/fullsave"
+          element={
+            <ProtectedRoute>
+              <FullTimetable />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/autobranch"
+          element={
+            <ProtectedRoute>
+              <AutoBranchTimetable />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/resume"
+          element={
+            <ProtectedRoute>
+              <ResumeAnalyzer />
             </ProtectedRoute>
           }
         />

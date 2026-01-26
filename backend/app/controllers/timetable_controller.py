@@ -281,6 +281,276 @@ def save_timetable():
         print("ERROR:", e)
         return jsonify({"error": "Internal server error"}), 500
     
+# POST: /api/timetable/fullsave
+def fullsave_timetable():
+    try:
+        sem = request.form.get("sem")
+        branch = request.form.get("branch")
+        class_name = request.form.get("class")
+        schedule_raw = request.form.get("schedule")
+        telegram_chat_ids_raw = request.form.getlist("telegram_chat_ids[]")
+
+        # BASIC VALIDATION
+        if not sem or not branch or not class_name or not schedule_raw:
+            return jsonify({"error": "Missing sem, branch, class or schedule"}), 400
+
+        if branch not in ALLOWED_BRANCHES:
+            return jsonify({"error": "Invalid branch"}), 400
+
+        sem = int(sem)
+        if sem < 1 or sem > 8:
+            return jsonify({"error": "Invalid semester"}), 400
+
+        schedule = json.loads(schedule_raw)
+        
+        # Parse Telegram Chat IDs
+        telegram_chat_ids = []
+        if telegram_chat_ids_raw:
+            telegram_chat_ids = [str(cid).strip() for cid in telegram_chat_ids_raw if str(cid).strip()]
+
+        classwise_col = db.classwise_faculty
+        faculty_tt_col = db.faculty_timetable
+
+        safe_branch = branch.lower().replace("(", "").replace(")", "")
+        class_id = f"sem{sem}_{safe_branch}_{class_name.lower()}"
+
+        # CHECK IF TIMETABLE EXISTS
+        existing_class = classwise_col.find_one({"_id": class_id})
+        is_new = existing_class is None
+
+        # 1. GET OLD AND NEW FACULTY LISTS
+        old_faculty = set(existing_class.get("allowed_faculty", [])) if existing_class else set()
+        
+        new_faculty = set()
+        schedule_details = {}
+        
+        # Parse schedule and extract faculty, subject, room
+        for day_name, slots in schedule.items():
+            day_key = DAYS_MAP.get(day_name)
+            if not day_key or day_key == "sun":
+                continue
+                
+            for time_slot, slot_data in slots.items():
+                if isinstance(slot_data, dict):
+                    # New format with subject and room
+                    faculty = slot_data.get("faculty", "free")
+                    subject = slot_data.get("subject", "").strip()
+                    room = slot_data.get("room", "").strip()
+                    
+                    if faculty != "free":
+                        new_faculty.add(faculty)
+                        
+                        # Store detailed information
+                        schedule_details.setdefault(day_name, {})
+                        schedule_details[day_name][time_slot] = {
+                            "faculty": faculty,
+                            "subject": subject,
+                            "room": room
+                        }
+                else:
+                    # Old format (backward compatibility)
+                    faculty = slot_data
+                    if faculty != "free":
+                        new_faculty.add(faculty)
+                        
+                        schedule_details.setdefault(day_name, {})
+                        schedule_details[day_name][time_slot] = {
+                            "faculty": faculty,
+                            "subject": "",
+                            "room": ""
+                        }
+
+        # Faculty who are removed from this class
+        removed_faculty = old_faculty - new_faculty if not is_new else set()
+        active_faculty = new_faculty
+
+        # 2. BUILD NEW FACULTY TABLES WITH SUBJECT AND ROOM
+        faculty_tables = defaultdict(lambda: {
+            "mon": ["free"] * TOTAL_SLOTS,
+            "tue": ["free"] * TOTAL_SLOTS,
+            "wed": ["free"] * TOTAL_SLOTS,
+            "thu": ["free"] * TOTAL_SLOTS,
+            "fri": ["free"] * TOTAL_SLOTS,
+            "sat": ["free"] * TOTAL_SLOTS,
+        })
+
+        for day_name, slots in schedule_details.items():
+            day_key = DAYS_MAP.get(day_name)
+            if not day_key or day_key == "sun":
+                continue
+
+            for time_slot, details in slots.items():
+                faculty = details["faculty"]
+                if faculty == "free":
+                    continue
+
+                slot_index = TIME_SLOT_INDEX.get(time_slot)
+                if slot_index is None:
+                    continue
+
+                subject = details.get("subject", "")
+                room = details.get("room", "")
+                
+                # Build the slot value with all information
+                base_value = f"{branch}-{class_name}-Sem{sem}-{time_slot}"
+                if subject:
+                    base_value += f"-{subject}"
+                if room:
+                    base_value += f"-room {room}"
+                
+                faculty_tables[faculty][day_key][slot_index] = base_value
+
+        # 3. REMOVE OLD LECTURES FOR REMOVED FACULTY
+        if not is_new:
+            for faculty_id in removed_faculty:
+                existing = faculty_tt_col.find_one({"_id": faculty_id})
+                if not existing:
+                    continue
+
+                existing_tt = existing.get("timetable", {})
+                normalized_tt = {
+                    "mon": normalize_day_slots(existing_tt.get("mon")),
+                    "tue": normalize_day_slots(existing_tt.get("tue")),
+                    "wed": normalize_day_slots(existing_tt.get("wed")),
+                    "thu": normalize_day_slots(existing_tt.get("thu")),
+                    "fri": normalize_day_slots(existing_tt.get("fri")),
+                    "sat": normalize_day_slots(existing_tt.get("sat")),
+                }
+
+                # Remove lectures matching this class pattern
+                class_pattern = f"{branch}-{class_name}-Sem{sem}-"
+                
+                for day in normalized_tt:
+                    for i in range(TOTAL_SLOTS):
+                        if normalized_tt[day][i].startswith(class_pattern):
+                            normalized_tt[day][i] = "free"
+
+                faculty_tt_col.update_one(
+                    {"_id": faculty_id},
+                    {"$set": {"timetable": normalized_tt}},
+                    upsert=True
+                )
+
+        # 4. UPDATE ACTIVE FACULTY TIMETABLES
+        for faculty_id in active_faculty:
+            existing = faculty_tt_col.find_one({"_id": faculty_id}) or {}
+            existing_tt = existing.get("timetable", {})
+
+            # Get faculty name - use existing name or faculty ID as fallback
+            faculty_name = existing.get("name")
+
+            normalized_tt = {
+                "mon": normalize_day_slots(existing_tt.get("mon")),
+                "tue": normalize_day_slots(existing_tt.get("tue")),
+                "wed": normalize_day_slots(existing_tt.get("wed")),
+                "thu": normalize_day_slots(existing_tt.get("thu")),
+                "fri": normalize_day_slots(existing_tt.get("fri")),
+                "sat": normalize_day_slots(existing_tt.get("sat")),
+            }
+
+            # For edits, remove old lectures for this class first
+            if not is_new:
+                class_pattern = f"{branch}-{class_name}-Sem{sem}-"
+                
+                for day in normalized_tt:
+                    for i in range(TOTAL_SLOTS):
+                        if normalized_tt[day][i].startswith(class_pattern):
+                            normalized_tt[day][i] = "free"
+
+            # Check for conflicts with new schedule
+            new_tt = faculty_tables[faculty_id]
+            
+            for day in new_tt:
+                for i in range(TOTAL_SLOTS):
+                    new_val = new_tt[day][i]
+                    old_val = normalized_tt[day][i]
+
+                    # Conflict check
+                    if new_val != "free" and old_val != "free":
+                        return jsonify({
+                            "error": "Faculty lecture conflict",
+                            "faculty": faculty_id,
+                            "day": day,
+                            "time_slot": f"Time Slot {i + 1}",
+                            "existing_lecture": old_val
+                        }), 409
+
+            # Merge new schedule
+            for day in new_tt:
+                for i in range(TOTAL_SLOTS):
+                    if new_tt[day][i] != "free":
+                        normalized_tt[day][i] = new_tt[day][i]
+
+            faculty_tt_col.update_one(
+                {"_id": faculty_id},
+                {
+                    "$set": {
+                        "_id": faculty_id,
+                        "name": faculty_name,
+                        "timetable": normalized_tt
+                    }
+                },
+                upsert=True
+            )
+
+        # Calculate statistics
+        total_lectures = 0
+        total_subjects = set()
+        total_rooms = set()
+        
+        for day_name, slots in schedule_details.items():
+            for slot_data in slots.values():
+                if slot_data["faculty"] != "free":
+                    total_lectures += 1
+                    if slot_data.get("subject"):
+                        total_subjects.add(slot_data["subject"])
+                    if slot_data.get("room"):
+                        total_rooms.add(slot_data["room"])
+
+        total_days = len(schedule_details)
+        avg_lectures_per_day = (total_lectures // total_days) if total_days > 0 else 0
+        
+        # 5. UPDATE/INSERT CLASSWISE FACULTY
+        classwise_doc = {
+            "sem": sem,
+            "branch": branch,
+            "class": class_name,
+            "allowed_faculty": list(new_faculty),
+            "avg_lectures_per_day": avg_lectures_per_day,
+            "total_lectures": total_lectures,
+            "total_subjects": len(total_subjects),
+            "total_rooms": len(total_rooms)
+        }
+        
+        # Add Telegram Chat IDs if provided
+        if telegram_chat_ids:
+            classwise_doc["telegram_chat_ids"] = telegram_chat_ids
+
+        classwise_col.update_one(
+            {"_id": class_id},
+            {"$set": classwise_doc},
+            upsert=True
+        )
+
+        action = "created" if is_new else "updated"
+        
+        return jsonify({
+            "message": f"Complete timetable {action} successfully",
+            "class_id": class_id,
+            "action": action,
+            "faculty_updated": list(active_faculty),
+            "faculty_removed": list(removed_faculty) if not is_new else [],
+            "statistics": {
+                "total_lectures": total_lectures,
+                "total_subjects": len(total_subjects),
+                "total_rooms": len(total_rooms),
+                "avg_lectures_per_day": avg_lectures_per_day
+            }
+        }), 200
+
+    except Exception as e:
+        print("ERROR:", e)
+        return jsonify({"error": "Internal server error"}), 500
     
 # ----- / READ Functions /------
 
@@ -358,7 +628,113 @@ def fetch_timetable():
         print("ERROR:", e)
         return jsonify({"error": "Internal server error"}), 500 
     
-    
+# GET: /api/timetable/fetchfulltimetable/
+def fetch_full_timetable():
+    try:
+        sem = request.args.get("sem")
+        branch = request.args.get("branch")
+        class_name = request.args.get("class")
+
+        # -------------------------------
+        # Validation
+        # -------------------------------
+        if not sem or not branch or not class_name:
+            return jsonify({"error": "Missing sem, branch, or class"}), 400
+
+        sem = int(sem)
+        safe_branch = branch.lower().replace("(", "").replace(")", "")
+        class_id = f"sem{sem}_{safe_branch}_{class_name.lower()}"
+
+        # -------------------------------
+        # Fetch classwise faculty
+        # -------------------------------
+        classwise_doc = db.classwise_faculty.find_one({"_id": class_id})
+        if not classwise_doc:
+            return jsonify({"error": "Class not found"}), 404
+
+        allowed_faculty = classwise_doc.get("allowed_faculty", [])
+        
+        # Get Telegram Chat IDs
+        telegram_chat_ids = classwise_doc.get('telegram_chat_ids', [])
+        if isinstance(telegram_chat_ids, str):
+            telegram_chat_ids = [telegram_chat_ids] if telegram_chat_ids.strip() else []
+        elif telegram_chat_ids is None:
+            telegram_chat_ids = []
+
+        # -------------------------------
+        # Fetch faculty timetables with detailed info
+        # -------------------------------
+        faculty_tt_col = db.faculty_timetable
+
+        # Initialize empty schedule with detailed structure
+        schedule = {day: {slot: {"faculty": "free", "subject": "", "room": ""} for slot in TIME_SLOT_KEYS} for day in DAYS}
+
+        for faculty in allowed_faculty:
+            doc = faculty_tt_col.find_one({"_id": faculty})
+            if not doc:
+                continue
+                
+            tt = doc.get("timetable", {})
+            faculty_name = doc.get("name", faculty)  # Get faculty name if available
+            
+            for day_name in DAYS:
+                day_key = DAYS_MAP[day_name]
+                slots = normalize_faculty_slots(tt.get(day_key, []))
+                
+                for i, val in enumerate(slots):
+                    # Check if this faculty is assigned to this class in this slot
+                    target_class = f"{branch}-{class_name}-Sem{sem}"
+                    if val.startswith(target_class):
+                        # Parse the slot value for subject and room
+                        parts = val.split('-')
+                        
+                        # Initialize subject and room as empty
+                        subject = ""
+                        room = ""
+                        
+                        # Parse based on the structure
+                        if len(parts) >= 5:
+                            subject = parts[4] if len(parts) > 4 else ""
+                            
+                        # Check for room information (format: "room XXX" or similar)
+                        if len(parts) >= 6:
+                            room = '-'.join(parts[5:])  # Get everything after subject
+                        elif "room" in val.lower():
+                            # Try to extract room if it's in the string
+                            import re
+                            room_match = re.search(r'room\s*(\w+)', val, re.IGNORECASE)
+                            if room_match:
+                                room = room_match.group(1)
+                        
+                        # Clean up room string
+                        if room:
+                            room = room.replace('room', '').replace('Room', '').strip()
+                        
+                        schedule[day_name][TIME_SLOT_KEYS[i]] = {
+                            "faculty": faculty_name,
+                            "faculty_id": faculty,
+                            "subject": subject,
+                            "room": room,
+                            "raw_slot": val  # Keep original for debugging
+                        }
+
+        # Prepare response data
+        response_data = {
+            "sem": sem,
+            "branch": branch,
+            "class": class_name,
+            "schedule": schedule
+        }
+        
+        # Add Telegram Chat IDs if available
+        if telegram_chat_ids:
+            response_data["telegram_chat_ids"] = telegram_chat_ids
+
+        return jsonify(response_data), 200
+
+    except Exception as e:
+        print("ERROR:", e)
+        return jsonify({"error": "Internal server error"}), 500
     
 # GET: /api/timetable/
 def get_all_timetables():

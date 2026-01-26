@@ -4,18 +4,40 @@ from app.controllers.timetable_controller import (
     fetch_timetable,
     get_all_timetables,
     delete_timetable,
-    fetch_allowed_faculty
+    fetch_allowed_faculty,
+    fetch_full_timetable,
+    fullsave_timetable,
+    
 )
+from app.controllers.create_timetable import auto_generate_timetable,  auto_generate_branch_timetable
 from app.middlewares.auth_middleware import token_required
 from app.middlewares.admin_middleware import is_admin_required
 
 timetable_bp = Blueprint("timetable", __name__)
+
+@timetable_bp.route("/auto-generate", methods=["POST"], strict_slashes=False)
+def create():
+    return auto_generate_timetable()
+
+@timetable_bp.route("/auto-generate-branch", methods=["POST"], strict_slashes=False)
+def auto_create():
+    return auto_generate_branch_timetable()
+
+@timetable_bp.route("/fetchfulltimetable", methods=["GET"])
+def fetchfull():
+    return fetch_full_timetable()
 
 @timetable_bp.route("/", methods=["POST"], strict_slashes=False)
 @token_required
 @is_admin_required
 def save():
     return save_timetable()
+
+@timetable_bp.route("/fullsave", methods=["POST"], strict_slashes=False)
+@token_required
+@is_admin_required
+def savefull():
+    return fullsave_timetable()
 
 @timetable_bp.route("/fetchtimetable", methods=["GET"])
 @token_required
