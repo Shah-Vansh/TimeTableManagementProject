@@ -23,13 +23,17 @@ def create_app():
     from app.routes.faculty_routes import faculty_bp
     from app.routes.swap_routes import swap_bp
     from app.routes.telegram_routes import telegram_bp
+    from app.routes.subject_routes import subject_bp
+    from app.routes.room_routes import room_bp
 
     # register blueprints
     app.register_blueprint(main_bp)
     app.register_blueprint(timetable_bp, url_prefix="/api/timetable")
     app.register_blueprint(faculty_bp, url_prefix="/api/faculties")
+    app.register_blueprint(subject_bp, url_prefix="/api/subjects")
     app.register_blueprint(user_bp, url_prefix="/api/user")
     app.register_blueprint(swap_bp, url_prefix="/api")
     app.register_blueprint(telegram_bp)
+    app.register_blueprint(room_bp)
 
     return app
