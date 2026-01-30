@@ -102,6 +102,7 @@ export default function PreviewFullTimetable() {
   const [selectedDivisions, setSelectedDivisions] = useState([]);
   const [allSchedules, setAllSchedules] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingSubjects, setIsLoadingSubjects] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
   const [showEmptySlots, setShowEmptySlots] = useState(true);
@@ -122,6 +123,10 @@ export default function PreviewFullTimetable() {
   const [availableSubjects, setAvailableSubjects] = useState([]);
   const [availableRooms, setAvailableRooms] = useState([]);
   const [alert, setAlert] = useState(null);
+  
+  // New state for subject mapping - MODIFIED TO STORE SLUG
+  const [subjectMap, setSubjectMap] = useState({}); // subject_code -> {slug, name}
+  const [subjectSlugs, setSubjectSlugs] = useState({}); // subject_code -> slug
 
   const token = localStorage.getItem("token");
   
@@ -131,13 +136,122 @@ export default function PreviewFullTimetable() {
   };
 
   /* =======================
+    FETCH ALL SUBJECTS FROM BACKEND - MODIFIED TO GET SLUG
+  ======================= */
+  const fetchAllSubjects = async () => {
+    setIsLoadingSubjects(true);
+    try {
+      const response = await api.get("/api/subjects", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      
+      if (response.data.success) {
+        const subjects = response.data.subjects;
+        
+        // Create mapping: subject_code -> {slug, name}
+        const subjectMapping = {};
+        const slugMapping = {};
+        
+        subjects.forEach((subject) => {
+          const subjectCode = subject.subject_code;
+          const subjectSlug = subject.slug; // Assuming API returns slug
+          const subjectName = subject.name;
+          
+          subjectMapping[subjectCode] = {
+            slug: subjectSlug || subjectCode, // Fallback to subject_code if no slug
+            name: subjectName
+          };
+          
+          slugMapping[subjectCode] = subjectSlug || subjectCode;
+        });
+        
+        setSubjectMap(subjectMapping);
+        setSubjectSlugs(slugMapping);
+        
+        console.log(`Loaded ${subjects.length} subjects from database`);
+        return subjectMapping;
+      } else {
+        console.error("Failed to fetch subjects:", response.data.error);
+        showAlert(
+          "Failed to load subjects",
+          "Could not fetch subject details from database",
+          "warning"
+        );
+        return {};
+      }
+    } catch (error) {
+      console.error("Error fetching subjects:", error);
+      showAlert(
+        "Error loading subjects",
+        error.response?.data?.error || "Network error",
+        "warning"
+      );
+      return {};
+    } finally {
+      setIsLoadingSubjects(false);
+    }
+  };
+
+  /* =======================
+    GET SUBJECT SLUG FROM CODE
+  ======================= */
+  const getSubjectSlug = (subjectCode) => {
+    if (!subjectCode || subjectCode === "") return "";
+    
+    // Try to get from subjectSlugs mapping
+    if (subjectSlugs[subjectCode]) {
+      return subjectSlugs[subjectCode];
+    }
+    
+    // If not found, try to get from subjectMap
+    if (subjectMap[subjectCode] && subjectMap[subjectCode].slug) {
+      return subjectMap[subjectCode].slug;
+    }
+    
+    // If still not found, return the code itself as a fallback
+    return subjectCode;
+  };
+
+  /* =======================
+    GET SUBJECT NAME FROM CODE (for export)
+  ======================= */
+  const getSubjectName = (subjectCode) => {
+    if (!subjectCode || subjectCode === "") return "";
+    
+    // Try to get from subjectMap
+    if (subjectMap[subjectCode] && subjectMap[subjectCode].name) {
+      return subjectMap[subjectCode].name;
+    }
+    
+    // If not found, return the code itself
+    return subjectCode;
+  };
+
+  /* =======================
+    GET SUBJECT COLOR
+  ======================= */
+  const getSubjectColor = (subjectCode) => {
+    const subjectSlug = getSubjectSlug(subjectCode);
+    if (!subjectCode || subjectCode === "") return "bg-gradient-to-r from-gray-50 to-gray-100 text-gray-500 border-gray-200";
+    
+    let hash = 0;
+    for (let i = 0; i < subjectSlug.length; i++) {
+      hash = subjectSlug.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    
+    return subjectColors[Math.abs(hash) % subjectColors.length];
+  };
+
+  /* =======================
     UPDATE OVERALL STATISTICS
   ======================= */
   const updateOverallStatistics = () => {
     let totalAssignedSlots = 0;
     let totalFreeSlots = 0;
     const allFaculty = new Set();
-    const allSubjects = new Set();
+    const allSubjectCodes = new Set();
     const allRooms = new Set();
 
     Object.values(allSchedules).forEach((schedule) => {
@@ -147,7 +261,7 @@ export default function PreviewFullTimetable() {
           if (slotData && slotData.faculty !== "free") {
             totalAssignedSlots++;
             allFaculty.add(slotData.faculty);
-            if (slotData.subject) allSubjects.add(slotData.subject);
+            if (slotData.subject) allSubjectCodes.add(slotData.subject);
             if (slotData.room) allRooms.add(slotData.room);
           } else {
             totalFreeSlots++;
@@ -159,7 +273,14 @@ export default function PreviewFullTimetable() {
     const totalSlots = Object.keys(allSchedules).length * days.length * timeSlots.length;
 
     setAvailableFaculty(Array.from(allFaculty).sort());
-    setAvailableSubjects(Array.from(allSubjects).sort());
+    
+    // Get subject slugs for display
+    const subjectSlugsList = Array.from(allSubjectCodes)
+      .map(code => getSubjectSlug(code))
+      .filter(slug => slug !== "")
+      .sort();
+    
+    setAvailableSubjects(subjectSlugsList);
     setAvailableRooms(Array.from(allRooms).sort());
     
     setOverallStats((prev) => ({
@@ -170,23 +291,9 @@ export default function PreviewFullTimetable() {
       assignedSlots: totalAssignedSlots,
       freeSlots: totalFreeSlots,
       facultyCount: allFaculty.size,
-      subjectCount: allSubjects.size,
+      subjectCount: allSubjectCodes.size,
       roomsUsed: allRooms.size,
     }));
-  };
-
-  /* =======================
-    GET SUBJECT COLOR
-  ======================= */
-  const getSubjectColor = (subject) => {
-    if (!subject || subject === "") return "bg-gradient-to-r from-gray-50 to-gray-100 text-gray-500 border-gray-200";
-    
-    let hash = 0;
-    for (let i = 0; i < subject.length; i++) {
-      hash = subject.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    
-    return subjectColors[Math.abs(hash) % subjectColors.length];
   };
 
   /* =======================
@@ -235,6 +342,9 @@ export default function PreviewFullTimetable() {
     setAvailableRooms([]);
 
     try {
+      // First, fetch all subjects to build the mapping
+      const subjectMapping = await fetchAllSubjects();
+      
       const schedules = {};
       let loadedCount = 0;
       
@@ -342,7 +452,9 @@ export default function PreviewFullTimetable() {
           if (slotData.faculty === "free") {
             content += `  ${slot.label}: FREE\n`;
           } else {
-            content += `  ${slot.label}: ${slotData.faculty} | ${slotData.subject} | Room: ${slotData.room || 'N/A'}\n`;
+            const subjectSlug = getSubjectSlug(slotData.subject);
+            const subjectName = getSubjectName(slotData.subject);
+            content += `  ${slot.label}: ${slotData.faculty} | ${subjectSlug} (${subjectName}) | Room: ${slotData.room || 'N/A'}\n`;
           }
         });
         content += "\n";
@@ -411,8 +523,12 @@ export default function PreviewFullTimetable() {
         if (showEmptySlots || slotData.faculty !== "free") {
           if (searchQuery) {
             const query = searchQuery.toLowerCase();
+            const subjectSlug = getSubjectSlug(slotData.subject).toLowerCase();
+            const subjectName = getSubjectName(slotData.subject).toLowerCase();
             const searchStr = `
               ${slotData.faculty || ""}
+              ${subjectSlug}
+              ${subjectName}
               ${slotData.subject || ""}
               ${slotData.room || ""}
               ${slot.label}
@@ -437,12 +553,15 @@ export default function PreviewFullTimetable() {
   ======================= */
   useEffect(() => {
     if (branch.trim()) {
+      // Fetch subjects first
+      fetchAllSubjects();
+      // Then fetch timetables
       fetchAllDivisionsTimetable();
     }
   }, [sem, branch]);
 
   /* =======================
-   RENDER SLOT CONTENT
+   RENDER SLOT CONTENT - MODIFIED TO SHOW SLUG
   ======================= */
   const renderSlotContent = (slotData) => {
     if (!slotData || slotData.faculty === "free") {
@@ -453,6 +572,9 @@ export default function PreviewFullTimetable() {
       );
     }
 
+    const subjectSlug = getSubjectSlug(slotData.subject);
+    const subjectName = getSubjectName(slotData.subject);
+
     return (
       <div className="space-y-1">
         {/* Faculty Name */}
@@ -460,10 +582,14 @@ export default function PreviewFullTimetable() {
           {slotData.faculty}
         </div>
         
-        {/* Subject */}
+        {/* Subject - Showing Slug */}
         {slotData.subject && (
           <div className={`px-2 py-1 rounded text-xs ${getSubjectColor(slotData.subject)}`}>
-            {slotData.subject}
+            <div className="font-medium">{subjectSlug}</div>
+            {/* Optional: Show subject code as tooltip or small text */}
+            <div className="text-[10px] text-gray-600 mt-0.5">
+              Code: {slotData.subject}
+            </div>
           </div>
         )}
         
@@ -725,7 +851,7 @@ export default function PreviewFullTimetable() {
               Complete Timetable View
             </h1>
             <p className="text-gray-600">
-              View complete timetable with faculty, subject, and room details
+              View complete timetable with faculty, subject slugs, and room details
             </p>
           </div>
           <div className="p-3 bg-white rounded-xl border border-indigo-200 shadow-sm">
@@ -770,6 +896,12 @@ export default function PreviewFullTimetable() {
             <h2 className="text-lg font-bold text-indigo-900">
               Load Timetables
             </h2>
+            {isLoadingSubjects && (
+              <div className="flex items-center gap-2 text-sm text-amber-600 bg-amber-50 px-3 py-1 rounded-full">
+                <Loader2 className="w-3 h-3 animate-spin" />
+                Loading subjects...
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
@@ -817,9 +949,9 @@ export default function PreviewFullTimetable() {
             <div className="flex items-end">
               <button
                 onClick={fetchAllDivisionsTimetable}
-                disabled={isLoading}
+                disabled={isLoading || isLoadingSubjects}
                 className={`w-full px-4 py-3 rounded-lg font-medium transition-all duration-300 flex items-center justify-center gap-2 ${
-                  isLoading
+                  isLoading || isLoadingSubjects
                     ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                     : "bg-gradient-to-r from-indigo-600 to-indigo-700 text-white hover:from-indigo-700 hover:to-indigo-800 shadow-sm hover:shadow-md"
                 }`}
@@ -828,6 +960,11 @@ export default function PreviewFullTimetable() {
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
                     Loading...
+                  </>
+                ) : isLoadingSubjects ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Loading Subjects...
                   </>
                 ) : (
                   <>
@@ -884,7 +1021,7 @@ export default function PreviewFullTimetable() {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-indigo-400" />
                 <input
                   type="text"
-                  placeholder="Search by faculty, subject, room..."
+                  placeholder="Search by faculty, subject slug, room..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 border border-indigo-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
@@ -1086,6 +1223,11 @@ export default function PreviewFullTimetable() {
               <h3 className="text-lg font-bold text-blue-900">
                 Loaded Timetables ({selectedDivisions.length} selected)
               </h3>
+              {Object.keys(subjectSlugs).length > 0 && (
+                <div className="text-sm text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">
+                  {Object.keys(subjectSlugs).length} subject slugs loaded
+                </div>
+              )}
             </div>
 
             {selectedDivisions
@@ -1099,7 +1241,7 @@ export default function PreviewFullTimetable() {
                 </div>
               ))}
 
-            {/* Legend Section */}
+            {/* Legend Section - MODIFIED FOR SLUGS */}
             <div className="print:hidden mt-8 space-y-6">
               {/* Faculty Legend */}
               <div className="bg-white rounded-2xl p-6 border border-indigo-200 shadow-sm">
@@ -1125,25 +1267,27 @@ export default function PreviewFullTimetable() {
                 </div>
               </div>
 
-              {/* Subject Legend */}
+              {/* Subject Legend - Now showing slugs */}
               <div className="bg-white rounded-2xl p-6 border border-emerald-200 shadow-sm">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="p-2 bg-gradient-to-br from-emerald-100 to-emerald-50 rounded-lg border border-emerald-200">
                     <BookCheck className="w-5 h-5 text-emerald-600" />
                   </div>
                   <h3 className="text-lg font-bold text-emerald-900">
-                    Subject Legend ({availableSubjects.length} subjects)
+                    Subject Legend - Slugs ({availableSubjects.length} subjects)
                   </h3>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {availableSubjects.map((subject) => (
+                  {availableSubjects.map((subjectSlug) => (
                     <div
-                      key={subject}
+                      key={subjectSlug}
                       className={`px-3 py-1.5 rounded-lg text-sm font-medium ${getSubjectColor(
-                        subject
+                        Object.keys(subjectSlugs).find(
+                          key => subjectSlugs[key] === subjectSlug
+                        ) || subjectSlug
                       )} border`}
                     >
-                      {subject}
+                      {subjectSlug}
                     </div>
                   ))}
                 </div>
@@ -1211,7 +1355,7 @@ export default function PreviewFullTimetable() {
             </h3>
             <p className="text-gray-600 mb-8 max-w-md mx-auto">
               {branch
-                ? "Click 'Load Complete Timetables' to view detailed timetables with faculty, subject, and room information for all divisions."
+                ? "Click 'Load Complete Timetables' to view detailed timetables with faculty, subject slugs, and room information for all divisions."
                 : "Choose branch and semester to preview complete timetables with detailed information"}
             </p>
             <button
@@ -1234,7 +1378,7 @@ export default function PreviewFullTimetable() {
           <p>
             Complete Timetable - {branch} - Semester {sem} - Generated by Timetable Management System
           </p>
-          <p>Printed on {new Date().toLocaleDateString()} • Contains faculty, subject, and room details</p>
+          <p>Printed on {new Date().toLocaleDateString()} • Contains faculty, subject slugs, and room details</p>
         </div>
       </div>
     </div>

@@ -516,6 +516,7 @@ def fullsave_timetable():
             "branch": branch,
             "class": class_name,
             "allowed_faculty": list(new_faculty),
+            "allowed_subjects": list(total_subjects),
             "avg_lectures_per_day": avg_lectures_per_day,
             "total_lectures": total_lectures,
             "total_subjects": len(total_subjects),
@@ -990,4 +991,146 @@ def fetch_allowed_faculty():
         return jsonify({"error": "Invalid semester value"}), 400
     except Exception as e:
         print("ERROR in fetch_allowed_faculty:", e)
+        return jsonify({"error": "Internal server error", "details": str(e)}), 500
+    
+# GET: /api/timetable/classwise-subject  
+def fetch_allowed_subjects():
+    """Fetch allowed subjects for one or multiple classes"""
+    try:
+        sem = request.args.get("sem")
+        branch = request.args.get("branch")
+        class_name = request.args.get("class")  # Single class
+        classes_param = request.args.get("classes")  # Multiple classes (comma-separated)
+        
+        # Check if we're fetching for single class or multiple classes
+        if class_name:
+            
+            # SINGLE CLASS FETCH
+            
+            if not sem or not branch or not class_name:
+                return jsonify({"error": "Missing sem, branch, or class"}), 400
+            
+            sem = int(sem)
+            safe_branch = branch.lower().replace("(", "").replace(")", "")
+            class_id = f"sem{sem}_{safe_branch}_{class_name.lower()}"
+            
+            # Fetch classwise subject document
+            classwise_doc = db.classwise_subject.find_one({"_id": class_id})
+            
+            if not classwise_doc:
+                # Return empty subject list but not an error - class might not have subjects assigned yet
+                return jsonify({
+                    "_id": class_id,
+                    "class": class_name,
+                    "sem": sem,
+                    "branch": branch,
+                    "allowed_subjects": [],
+                    "exists": False
+                }), 200
+            
+            # Return the document
+            return jsonify({
+                "_id": classwise_doc["_id"],
+                "class": classwise_doc["class"],
+                "sem": classwise_doc["sem"],
+                "branch": classwise_doc["branch"],
+                "allowed_subjects": classwise_doc.get("allowed_subjects", []),
+                "exists": True
+            }), 200
+            
+        elif classes_param:
+            
+            # MULTIPLE CLASSES FETCH (BATCH)
+            
+            if not sem or not branch:
+                return jsonify({"error": "Missing sem or branch"}), 400
+            
+            sem = int(sem)
+            classes = [c.strip() for c in classes_param.split(",") if c.strip()]
+            
+            if not classes:
+                return jsonify({"error": "No classes provided"}), 400
+            
+            safe_branch = branch.lower().replace("(", "").replace(")", "")
+            
+            # Create list of class IDs to fetch
+            class_ids = [f"sem{sem}_{safe_branch}_{c.lower()}" for c in classes]
+            
+            # Fetch all classwise subject documents
+            classwise_docs = db.classwise_subject.find({"_id": {"$in": class_ids}})
+            
+            # Create subject map
+            subject_map = {}
+            for doc in classwise_docs:
+                original_class_name = doc["class"]
+                subject_map[original_class_name] = doc.get("allowed_subjects", [])
+            
+            # Ensure all requested classes are in the map (even if empty)
+            for class_name in classes:
+                if class_name not in subject_map:
+                    subject_map[class_name] = []
+            
+            # Get all unique subjects across all classes
+            all_subjects = set()
+            for subject_list in subject_map.values():
+                for subject in subject_list:
+                    all_subjects.add(subject)
+            
+            return jsonify({
+                "success": True,
+                "sem": sem,
+                "branch": branch,
+                "subjectMap": subject_map,
+                "uniqueSubjects": list(all_subjects),
+                "totalClasses": len(classes),
+                "classesWithSubjects": len([s for s in subject_map.values() if s])
+            }), 200
+            
+        else:
+            
+            # BRANCH-WIDE FETCH
+            
+            if not sem or not branch:
+                return jsonify({"error": "Missing sem or branch"}), 400
+            
+            sem = int(sem)
+            safe_branch = branch.lower().replace("(", "").replace(")", "")
+            
+            # Find all classes for this branch and semester
+            # Query using regex to match the pattern
+            regex_pattern = f"^sem{sem}_{safe_branch}_"
+            classwise_docs = db.classwise_subject.find({
+                "_id": {"$regex": regex_pattern, "$options": "i"}
+            })
+            
+            # Process results
+            subject_map = {}
+            all_subjects = set()
+            classes_list = []
+            
+            for doc in classwise_docs:
+                class_name = doc["class"]
+                allowed_subjects = doc.get("allowed_subjects", [])
+                
+                subject_map[class_name] = allowed_subjects
+                classes_list.append(class_name)
+                
+                for subject in allowed_subjects:
+                    all_subjects.add(subject)
+            
+            return jsonify({
+                "success": True,
+                "sem": sem,
+                "branch": branch,
+                "subjectMap": subject_map,
+                "uniqueSubjects": list(all_subjects),
+                "totalClasses": len(classes_list),
+                "classes": classes_list,
+                "classesWithSubjects": len([s for s in subject_map.values() if s])
+            }), 200
+            
+    except ValueError as ve:
+        return jsonify({"error": "Invalid semester value"}), 400
+    except Exception as e:
+        print("ERROR in fetch_allowed_subjects:", e)
         return jsonify({"error": "Internal server error", "details": str(e)}), 500

@@ -6,7 +6,7 @@ from bson import ObjectId
 
 
 # ===============================
-# =         CONSTANTS           =   
+# =         CONSTANTS           =
 # ===============================
 DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
 DAYS_MAP = {
@@ -123,6 +123,72 @@ def replace_lecture_helper(selected_date, day, class_name, sem, branch, lec_no):
 
     return {"success": False}
 
+def extract_subject_code_from_assignment(assignment):
+    """Extract subject code from assignment string like 'CSE(AIML)-D1-Sem6-Time Slot 1-CS601-101'"""
+    if not assignment or assignment == "free":
+        return None
+    
+    parts = assignment.split("-")
+    if len(parts) >= 5:
+        # Subject code is the second-to-last element
+        return parts[-2]
+    return None
+
+def get_subject_info_from_code(subject_code):
+    """Get subject info (name, slug) from subjects collection using subject code (_id)"""
+    if not subject_code:
+        return {"name": "Subject Not Found", "slug": "N/A"}
+    
+    subject_doc = db.subjects.find_one({"_id": subject_code})
+    if subject_doc:
+        return {
+            "name": subject_doc.get("name", subject_code),
+            "slug": subject_doc.get("slug", subject_code[:6])  # Use slug if exists, otherwise use first 6 chars of code
+        }
+    return {"name": subject_code, "slug": subject_code[:6] if len(subject_code) > 6 else subject_code}
+
+def get_room_number_from_assignment(assignment):
+    """Extract room number from assignment string"""
+    if not assignment or assignment == "free":
+        return "Room Not Specified"
+    
+    parts = assignment.split("-")
+    if len(parts) >= 6:
+        # Room is the last element
+        return parts[-1]
+    return "Room Not Specified"
+
+def get_subject_code_for_class(class_name, sem, branch, day, lec_no, faculty_id=None):
+    """Get subject code for a class from faculty timetable"""
+    if faculty_id:
+        # Try to get from specific faculty's timetable first
+        faculty_doc = db.faculty_timetable.find_one({"_id": faculty_id})
+        if faculty_doc:
+            timetable = faculty_doc.get("timetable", {})
+            if day in timetable and lec_no < len(timetable[day]):
+                slot = timetable[day][lec_no]
+                if slot != "free":
+                    subject_code = extract_subject_code_from_assignment(slot)
+                    if subject_code:
+                        return subject_code
+    
+    # If not found, try to find from any faculty teaching this class
+    class_assignment = f"{branch}-{class_name}-Sem{sem}"
+    
+    # Search in faculty timetables for matching assignment
+    faculty_cursor = db.faculty_timetable.find({})
+    for faculty in faculty_cursor:
+        timetable = faculty.get("timetable", {})
+        if day in timetable and lec_no < len(timetable[day]):
+            slot = timetable[day][lec_no]
+            if slot != "free" and class_assignment in slot:
+                subject_code = extract_subject_code_from_assignment(slot)
+                if subject_code:
+                    return subject_code
+    
+    return None
+
+
 # ===============================
 # =      MAIN CONTROLLER        =
 # ===============================
@@ -188,14 +254,25 @@ def assign_faculty():
             409,
         )
 
-    # STORE IN TEMP TIMETABLE
+    # Get subject code for this class from original timetable
+    subject_code = get_subject_code_for_class(class_name, sem, branch, day, lec_no, faculty_id)
+    
+    # Get subject info (name and slug) from subjects collection
+    subject_info = get_subject_info_from_code(subject_code) if subject_code else {"name": "Subject Not Found", "slug": "N/A"}
+    subject_slug = subject_info["slug"]
+    
+    # Get room number (default to 101 if not found)
+    room = get_room_number_from_assignment(f"{branch}-{class_name}-Sem{sem}-Time Slot {lec_no+1}-{subject_code if subject_code else 'UNKNOWN'}-101")
+    
+    # STORE IN TEMP TIMETABLE with subject code and room
+    assignment = f"{branch}-{class_name}-Sem{sem}-Time Slot {lec_no+1}-{subject_code if subject_code else 'UNKNOWN'}-{room}"
     db.temp_faculty_timetable.insert_one(
         {
             "faculty_id": faculty_id,
             "date": target_date,
             "day": day,
             "lec_no": lec_no,
-            "assigned_to": f"{branch}-{class_name}-Sem{sem}-Time Slot {lec_no+1}",
+            "assigned_to": assignment,
         }
     )
 
@@ -209,12 +286,13 @@ def assign_faculty():
         formatted_date = date_obj.strftime("%d/%m/%Y")
     except:
         formatted_date = target_date
-
+    
     message = (
         f"@ {branch}_{class_name}\t"
         f"Change in Lecture\n\n"
         f"Date: {formatted_date}\n\n"
         f"Lecture no.: {lec_no+1}\n\n"
+        f"Subject: {subject_slug}\n\n"  # Show subject slug instead of full name
         f"Faculty: {faculty_id}\n\n"
         f"Location: Same as per timetable"
     )
@@ -247,14 +325,12 @@ def assign_faculty():
                 "success": True,
                 "assigned_faculty": faculty_id,
                 "faculty_name": faculty_name,
-                "message": (
-                    f"@ {branch}_{class_name}\t"
-                    f"Change in Lecture\n\n"
-                    f"Date: {formatted_date}\n\n"
-                    f"Lecture no.: {lec_no+1}\n\n"
-                    f"Faculty: {faculty_id}\n\n"
-                    f"Location: Same as per timetable"
-                ),
+                "subject_code": subject_code,
+                "subject_name": subject_info["name"],
+                "subject_slug": subject_slug,
+                "room": room,
+                "assignment": assignment,
+                "message": message,
             }
         ),
         200,
@@ -299,14 +375,25 @@ def replace_lecture():
         if not is_faculty_free(fac_id, day, lec_no, target_date):
             continue
 
-        # STORE IN TEMP TIMETABLE (NOT PERMANENT)
+        # Get subject code for this class from original timetable
+        subject_code = get_subject_code_for_class(class_name, sem, branch, day, lec_no, fac_id)
+        
+        # Get subject info (name and slug) from subjects collection
+        subject_info = get_subject_info_from_code(subject_code) if subject_code else {"name": "Subject Not Found", "slug": "N/A"}
+        subject_slug = subject_info["slug"]
+        
+        # Get room number (default to 101 if not found)
+        room = get_room_number_from_assignment(f"{branch}-{class_name}-Sem{sem}-Time Slot {lec_no+1}-{subject_code if subject_code else 'UNKNOWN'}-101")
+        
+        # STORE IN TEMP TIMETABLE (NOT PERMANENT) with subject code and room
+        assignment = f"{branch}-{class_name}-Sem{sem}-Time Slot {lec_no+1}-{subject_code if subject_code else 'UNKNOWN'}-{room}"
         db.temp_faculty_timetable.insert_one(
             {
                 "faculty_id": fac_id,
                 "date": target_date,
                 "day": day,
                 "lec_no": lec_no,
-                "assigned_to": f"{branch}-{class_name}-Sem{sem}-Time Slot {lec_no+1}",
+                "assigned_to": assignment,
             }
         )
 
@@ -321,13 +408,14 @@ def replace_lecture():
             formatted_date = date_obj.strftime("%d/%m/%Y")
         except:
             formatted_date = target_date
-
+        
         message = (
             f"@ {branch}_{class_name}\t\n"
             f"Change in Lecture\n\n"
             f"Date: {formatted_date}\n\n"
             f"Lecture no.: {lec_no+1}\n\n"
-            f"Faculty: {assign_faculty}\n\n"
+            f"Subject: {subject_slug}\n\n"  # Show subject slug instead of full name
+            f"Faculty: {fac_id}\n\n"
             f"Location: Same as per timetable"
         )
 
@@ -358,6 +446,11 @@ def replace_lecture():
                     "success": True,
                     "assigned_faculty": fac_id,
                     "faculty_name": faculty_name,
+                    "subject_code": subject_code,
+                    "subject_name": subject_info["name"],
+                    "subject_slug": subject_slug,
+                    "room": room,
+                    "assignment": assignment,
                     "telegram_chat_ids": telegram_chat_ids,
                     "message": message,
                     "sent_to": len(telegram_chat_ids) if telegram_chat_ids else 0,
@@ -434,13 +527,19 @@ def execute_rearrange():
         occupied_class = parts[1]
         occupied_sem = int(parts[2].replace("Sem", ""))
         time_slot_str = parts[3]  # "Time Slot X"
-    except Exception:
+        occupied_subject_code = extract_subject_code_from_assignment(current_slot)
+        occupied_room = get_room_number_from_assignment(current_slot)
+    except Exception as e:
         return (
             jsonify(
                 {"success": False, "message": "Could not parse current assignment"}
             ),
             400,
         )
+
+    # Get subject info for occupied class
+    occupied_subject_info = get_subject_info_from_code(occupied_subject_code) if occupied_subject_code else {"name": "Subject Not Found", "slug": "N/A"}
+    occupied_subject_slug = occupied_subject_info["slug"]
 
     # Verify secondary faculty is free
     if not is_faculty_free(secondary_faculty_id, day, lec_no, selected_date):
@@ -454,24 +553,32 @@ def execute_rearrange():
             409,
         )
 
+    # Get subject code for target class
+    target_subject_code = get_subject_code_for_class(class_name, sem, branch, day, lec_no, primary_faculty_id)
+    
+    # Get subject info for target class
+    target_subject_info = get_subject_info_from_code(target_subject_code) if target_subject_code else {"name": "Subject Not Found", "slug": "N/A"}
+    target_subject_slug = target_subject_info["slug"]
+    
     # Execute the swap
-    # 1. Assign the occupied class to secondary faculty
+    # 1. Assign the occupied class to secondary faculty with full details
     assign_temp(secondary_faculty_id, day, lec_no, current_slot, selected_date)
 
-    # 2. Assign the target class to primary faculty
-    target_assignment = f"{branch}-{class_name}-Sem{sem}-{time_slot_str}"
+    # 2. Assign the target class to primary faculty with full details
+    target_assignment = f"{branch}-{class_name}-Sem{sem}-{time_slot_str}-{target_subject_code if target_subject_code else 'UNKNOWN'}-{occupied_room}"
     assign_temp(primary_faculty_id, day, lec_no, target_assignment, selected_date)
 
     # Get faculty names and chat IDs
     primary_fac_name, primary_chat_id = get_faculty_info(primary_faculty_id)
     secondary_fac_name, secondary_chat_id = get_faculty_info(secondary_faculty_id)
-
+    
     # Create separate messages for both affected classes
     target_class_message = (
         f"@ {branch}_{class_name}\t"
         f"Change in Lecture\n\n"
         f"Date: {selected_date}\n\n"
         f"Lecture no.: {lec_no+1}\n\n"
+        f"Subject: {target_subject_slug}\n\n"  # Show subject slug instead of full name
         f"Faculty: {primary_faculty_id}\n\n"
         f"Location: Same as per timetable"
     )
@@ -481,6 +588,7 @@ def execute_rearrange():
         f"Change in Lecture\n\n"
         f"Date: {selected_date}\n\n"
         f"Lecture no.: {lec_no+1}\n\n"
+        f"Subject: {occupied_subject_slug}\n\n"  # Show subject slug instead of full name
         f"Faculty: {secondary_faculty_id}\n\n"
         f"Location: Same as per timetable"
     )
@@ -543,12 +651,24 @@ def execute_rearrange():
                 "faculty_name": primary_fac_name,
                 "secondary_faculty_id": secondary_faculty_id,
                 "secondary_faculty_name": secondary_fac_name,
+                "target_subject_code": target_subject_code,
+                "target_subject_name": target_subject_info["name"],
+                "target_subject_slug": target_subject_slug,
+                "occupied_subject_code": occupied_subject_code,
+                "occupied_subject_name": occupied_subject_info["name"],
+                "occupied_subject_slug": occupied_subject_slug,
+                "target_assignment": target_assignment,
+                "occupied_assignment": current_slot,
                 "type": "rearranged",
                 "affected_classes": [
                     {
                         "branch": branch,
                         "class": class_name,
                         "sem": sem,
+                        "subject_code": target_subject_code,
+                        "subject_name": target_subject_info["name"],
+                        "subject_slug": target_subject_slug,
+                        "assignment": target_assignment,
                         "message": target_class_message,
                         "new_faculty": primary_fac_name,
                         "previous_faculty": secondary_fac_name,
@@ -558,6 +678,10 @@ def execute_rearrange():
                         "branch": occupied_branch,
                         "class": occupied_class,
                         "sem": occupied_sem,
+                        "subject_code": occupied_subject_code,
+                        "subject_name": occupied_subject_info["name"],
+                        "subject_slug": occupied_subject_slug,
+                        "assignment": current_slot,
                         "message": occupied_class_message,
                         "new_faculty": secondary_fac_name,
                         "previous_faculty": primary_fac_name,
@@ -608,21 +732,32 @@ def rearrange_lecture():
     if first_try["success"]:
         # Assign the lecture
         fac_id = first_try["assigned_faculty"]
+        # Get subject code for this class
+        subject_code = get_subject_code_for_class(class_name, sem, branch, day, lec_no, fac_id)
+        
+        # Get subject info (name and slug) from subjects collection
+        subject_info = get_subject_info_from_code(subject_code) if subject_code else {"name": "Subject Not Found", "slug": "N/A"}
+        subject_slug = subject_info["slug"]
+        
+        room = get_room_number_from_assignment(f"{branch}-{class_name}-Sem{sem}-Time Slot {lec_no+1}-{subject_code if subject_code else 'UNKNOWN'}-101")
+        
+        assignment = f"{branch}-{class_name}-Sem{sem}-Time Slot {lec_no+1}-{subject_code if subject_code else 'UNKNOWN'}-{room}"
         assign_temp(
             fac_id,
             day,
             lec_no,
-            f"{branch}-{class_name}-Sem{sem}-Time Slot {lec_no+1}",
+            assignment,
             selected_date,
         )
 
         fac_name, fac_chat_id = get_faculty_info(fac_id)
-
+        
         message = (
             f"@ {branch}_{class_name}\t"
             f"Change in Lecture\n\n"
             f"Date: {selected_date}\n\n"
             f"Lecture no.: {lec_no+1}\n\n"
+            f"Subject: {subject_slug}\n\n"  # Show subject slug instead of full name
             f"Faculty: {fac_id}\n\n"
             f"Location: Same as per timetable"
         )
@@ -660,6 +795,11 @@ def rearrange_lecture():
                     "success": True,
                     "assigned_faculty": fac_id,
                     "faculty_name": fac_name,
+                    "subject_code": subject_code,
+                    "subject_name": subject_info["name"],
+                    "subject_slug": subject_slug,
+                    "room": room,
+                    "assignment": assignment,
                     "type": "direct",
                     "message": message,
                     "notification_result": notification_result,
@@ -699,6 +839,8 @@ def rearrange_lecture():
             occupied_branch = parts[0]
             occupied_class = parts[1]
             occupied_sem = int(parts[2].replace("Sem", ""))
+            occupied_subject_code = extract_subject_code_from_assignment(current_slot)
+            occupied_room = get_room_number_from_assignment(current_slot)
         except Exception:
             continue
 
@@ -711,13 +853,25 @@ def rearrange_lecture():
 
         new_fac = reassign_attempt["assigned_faculty"]
 
+        # Get subject code for target class
+        target_subject_code = get_subject_code_for_class(class_name, sem, branch, day, lec_no, fac_id)
+        
+        # Get subject info for target class
+        target_subject_info = get_subject_info_from_code(target_subject_code) if target_subject_code else {"name": "Subject Not Found", "slug": "N/A"}
+        target_subject_slug = target_subject_info["slug"]
+        
+        # Get subject info for occupied class
+        occupied_subject_info = get_subject_info_from_code(occupied_subject_code) if occupied_subject_code else {"name": "Subject Not Found", "slug": "N/A"}
+        occupied_subject_slug = occupied_subject_info["slug"]
+
         # Execute the swap
         assign_temp(new_fac, day, lec_no, current_slot, selected_date)
+        target_assignment = f"{branch}-{class_name}-Sem{sem}-Time Slot {lec_no+1}-{target_subject_code if target_subject_code else 'UNKNOWN'}-{occupied_room}"
         assign_temp(
             fac_id,
             day,
             lec_no,
-            f"{branch}-{class_name}-Sem{sem}-Time Slot {lec_no+1}",
+            target_assignment,
             selected_date,
         )
 
@@ -725,14 +879,13 @@ def rearrange_lecture():
         primary_fac_name, primary_chat_id = get_faculty_info(fac_id)
         secondary_fac_name, secondary_chat_id = get_faculty_info(new_fac)
 
-        print(primary_chat_id)
-        print(secondary_chat_id)
         # Create separate messages for both affected classes
         target_class_message = (
             f"@ {branch}_{class_name}\t"
             f"Change in Lecture\n\n"
             f"Date: {selected_date}\n\n"
             f"Lecture no.: {lec_no+1}\n\n"
+            f"Subject: {target_subject_slug}\n\n"  # Show subject slug instead of full name
             f"Faculty: {fac_id}\n\n"
             f"Location: Same as per timetable"
         )
@@ -742,6 +895,7 @@ def rearrange_lecture():
             f"Change in Lecture\n\n"
             f"Date: {selected_date}\n\n"
             f"Lecture no.: {lec_no+1}\n\n"
+            f"Subject: {occupied_subject_slug}\n\n"  # Show subject slug instead of full name
             f"Faculty: {new_fac}\n\n"
             f"Location: Same as per timetable"
         )
@@ -806,12 +960,24 @@ def rearrange_lecture():
                     "faculty_name": primary_fac_name,
                     "secondary_faculty_id": new_fac,
                     "secondary_faculty_name": secondary_fac_name,
+                    "target_subject_code": target_subject_code,
+                    "target_subject_name": target_subject_info["name"],
+                    "target_subject_slug": target_subject_slug,
+                    "occupied_subject_code": occupied_subject_code,
+                    "occupied_subject_name": occupied_subject_info["name"],
+                    "occupied_subject_slug": occupied_subject_slug,
+                    "target_assignment": target_assignment,
+                    "occupied_assignment": current_slot,
                     "type": "rearranged",
                     "affected_classes": [
                         {
                             "branch": branch,
                             "class": class_name,
                             "sem": sem,
+                            "subject_code": target_subject_code,
+                            "subject_name": target_subject_info["name"],
+                            "subject_slug": target_subject_slug,
+                            "assignment": target_assignment,
                             "message": target_class_message,
                             "new_faculty": primary_fac_name,
                             "previous_faculty": secondary_fac_name,
@@ -821,6 +987,10 @@ def rearrange_lecture():
                             "branch": occupied_branch,
                             "class": occupied_class,
                             "sem": occupied_sem,
+                            "subject_code": occupied_subject_code,
+                            "subject_name": occupied_subject_info["name"],
+                            "subject_slug": occupied_subject_slug,
+                            "assignment": current_slot,
                             "message": occupied_class_message,
                             "new_faculty": secondary_fac_name,
                             "previous_faculty": primary_fac_name,
@@ -995,6 +1165,15 @@ def get_rearrange_options():
         primary_fac_name, primary_chat_id = get_faculty_info(fac_id)
         secondary_fac_name, secondary_chat_id = get_faculty_info(new_fac)
 
+        # Extract subject codes and slugs
+        occupied_subject_code = extract_subject_code_from_assignment(current_slot)
+        occupied_subject_info = get_subject_info_from_code(occupied_subject_code) if occupied_subject_code else {"name": "Subject Not Found", "slug": "N/A"}
+        occupied_subject_slug = occupied_subject_info["slug"]
+        
+        target_subject_code = get_subject_code_for_class(class_name, sem, branch, day, lec_no, fac_id)
+        target_subject_info = get_subject_info_from_code(target_subject_code) if target_subject_code else {"name": "Subject Not Found", "slug": "N/A"}
+        target_subject_slug = target_subject_info["slug"]
+
         # Create option object
         option = {
             "option_id": f"{fac_id}_{new_fac}",
@@ -1002,14 +1181,23 @@ def get_rearrange_options():
                 "id": fac_id,
                 "name": primary_fac_name,
                 "current_class": f"{occupied_branch}-{occupied_class}-Sem{occupied_sem}",
+                "current_subject_code": occupied_subject_code,
+                "current_subject_name": occupied_subject_info["name"],
+                "current_subject_slug": occupied_subject_slug,
                 "new_class": f"{branch}-{class_name}-Sem{sem}",
+                "new_subject_code": target_subject_code,
+                "new_subject_name": target_subject_info["name"],
+                "new_subject_slug": target_subject_slug,
             },
             "secondary_faculty": {
                 "id": new_fac,
                 "name": secondary_fac_name,
                 "takes_over": f"{occupied_branch}-{occupied_class}-Sem{occupied_sem}",
+                "takes_over_subject_code": occupied_subject_code,
+                "takes_over_subject_name": occupied_subject_info["name"],
+                "takes_over_subject_slug": occupied_subject_slug,
             },
-            "description": f"{primary_fac_name} moves from {occupied_branch}-{occupied_class} to {branch}-{class_name}, while {secondary_fac_name} takes over {occupied_branch}-{occupied_class}",
+            "description": f"{primary_fac_name} moves from {occupied_branch}-{occupied_class} ({occupied_subject_slug}) to {branch}-{class_name} ({target_subject_slug}), while {secondary_fac_name} takes over {occupied_branch}-{occupied_class} ({occupied_subject_slug})",
         }
 
         rearrange_options.append(option)
@@ -1066,10 +1254,19 @@ def fetch_all_changes():
 
             slot_key = TIME_SLOT_KEYS[lec_no]
 
+            # Extract subject code from assignment
+            subject_code = extract_subject_code_from_assignment(assigned_to)
+            
+            # Get subject info (name and slug) from subjects collection
+            subject_info = get_subject_info_from_code(subject_code) if subject_code else {"name": "Subject Not Found", "slug": "N/A"}
+
             schedule[day_name][slot_key].append(
                 {
                     "faculty": faculty_id,
                     "assigned_to": assigned_to,
+                    "subject_code": subject_code,
+                    "subject_name": subject_info["name"],
+                    "subject_slug": subject_info["slug"],
                     "date": date,
                     "lec_no": lec_no,
                 }
@@ -1267,4 +1464,3 @@ def delete_allowed_faculty():
     except Exception as e:
         print("ERROR in delete_allowed_faculty:", e)
         return jsonify({"error": "Internal server error", "details": str(e)}), 500
- 

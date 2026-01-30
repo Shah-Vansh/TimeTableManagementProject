@@ -7,6 +7,7 @@ from app.database.mongo import db
 DAYS = ["mon", "tue", "wed", "thu", "fri", "sat"]
 TOTAL_SLOTS = 4  # Assuming 4 time slots per day
 TIME_SLOTS = [f"Time Slot {i+1}" for i in range(TOTAL_SLOTS)]
+MAX_FREE_LECTURES_PER_DAY = 1  # Only 1 free lecture allowed per day
 
 def normalize_day_slots(day_data):
     """Ensure day has exactly TOTAL_SLOTS entries"""
@@ -22,6 +23,25 @@ class TimetableGenerator:
         self.db = db
         self.faculty_tt_col = db.faculty_timetable
         self.classwise_col = db.classwise_faculty
+    
+    def _get_subject_code(self, subject):
+        """Get subject code from subject dict, accepts both _id and subject_code"""
+        if "_id" in subject:
+            return subject["_id"]
+        elif "subject_code" in subject:
+            return subject["subject_code"]
+        elif "subject_id" in subject:
+            return subject["subject_id"]
+        else:
+            raise KeyError("Subject must have either '_id', 'subject_code', or 'subject_id' field")
+    
+    def _should_schedule_in_pairs(self, subject):
+        """
+        Check if a subject should be scheduled in pairs
+        TRUE = 2 lectures per day (paired)
+        FALSE = max 1 lecture per day (unpaired)
+        """
+        return subject.get("schedule_in_pairs", False)
         
     def get_faculty_availability(self, faculty_id):
         """Get faculty's current timetable"""
@@ -55,264 +75,354 @@ class TimetableGenerator:
         else:  # theory
             return [r for r in rooms if self.get_room_type(r) == "class"]
     
-    def create_lecture_entry(self, branch, class_name, sem, slot_name, subject, room):
+    def create_lecture_entry(self, branch, class_name, sem, slot_name, subject_code, room):
         """Create formatted lecture string"""
-        return f"{branch}-{class_name}-Sem{sem}-{slot_name}-{subject}-{room}"
+        return f"{branch}-{class_name}-Sem{sem}-{slot_name}-{subject_code}-{room}"
     
     def find_continuous_slots(self, day_schedule, required_slots):
-        """Find continuous free slots in a day for practicals"""
+        """Find continuous free slots in a day"""
         for i in range(len(day_schedule) - required_slots + 1):
             if all(day_schedule[i+j] == "free" for j in range(required_slots)):
                 return i
         return None
     
-    def count_subject_on_day(self, class_tt, day, subject_name):
+    def count_subject_on_day(self, class_tt, day, subject_code):
         """Count how many times a subject is already scheduled on a specific day"""
         count = 0
         for slot in class_tt[day]:
-            if slot != "free" and subject_name in slot:
+            if slot != "free" and subject_code in slot:
                 count += 1
         return count
     
-    def try_schedule_lecture(self, class_tt, occupied_rooms, day, slot_idx, 
-                            subject, faculty_id, available_rooms, branch, 
-                            class_name, sem, daily_subject_count):
+    def count_free_lectures_on_day(self, class_tt, day):
+        """Count free lectures on a specific day"""
+        return sum(1 for slot in class_tt[day] if slot == "free")
+    
+    def get_room_at_slot(self, class_tt, day, slot_idx):
+        """Extract room name from lecture entry at specific slot"""
+        lecture = class_tt[day][slot_idx]
+        if lecture == "free":
+            return None
+        parts = lecture.split("-")
+        if len(parts) >= 6:
+            return parts[5]
+        return None
+    
+    def get_subject_at_slot(self, class_tt, day, slot_idx):
+        """Extract subject code from lecture entry at specific slot"""
+        lecture = class_tt[day][slot_idx]
+        if lecture == "free":
+            return None
+        parts = lecture.split("-")
+        if len(parts) >= 5:
+            return parts[4]
+        return None
+    
+    def try_schedule_single_lecture(self, class_tt, occupied_rooms, day, slot_idx, 
+                                    subject, faculty_id, available_rooms, branch, 
+                                    class_name, sem, daily_subject_count, prefer_same_room=True):
         """
         Try to schedule a single lecture at a specific day/slot
-        Returns True if successful, False otherwise
+        For UNPAIRED subjects (max 1 per day)
         """
         if class_tt[day][slot_idx] != "free":
             return False
         
-        subject_name = subject["subject_name"]
+        subject_code = self._get_subject_code(subject)
         
-        # Check if subject already has 2 lectures on this day
-        if daily_subject_count.get(f"{day}_{subject_name}", 0) >= 2:
+        # For unpaired subjects: max 1 lecture per day
+        if daily_subject_count.get(f"{day}_{subject_code}", 0) >= 1:
             return False
         
         # Check faculty availability
         if not self.is_faculty_free(faculty_id, day, slot_idx):
             return False
         
-        # Find an available room
-        for room in available_rooms:
-            if self.is_room_free(room, day, slot_idx, occupied_rooms):
-                # Schedule the lecture
+        # RULE 3: If consecutive lectures are of same subject, use same room
+        preferred_room = None
+        if slot_idx > 0 and prefer_same_room:
+            prev_subject = self.get_subject_at_slot(class_tt, day, slot_idx - 1)
+            if prev_subject == subject_code:
+                preferred_room = self.get_room_at_slot(class_tt, day, slot_idx - 1)
+        
+        # Try preferred room first if exists
+        if preferred_room and preferred_room in available_rooms:
+            if self.is_room_free(preferred_room, day, slot_idx, occupied_rooms):
                 slot_name = TIME_SLOTS[slot_idx]
                 lecture = self.create_lecture_entry(
                     branch, class_name, sem, slot_name,
-                    subject_name, room
+                    subject_code, preferred_room
                 )
                 class_tt[day][slot_idx] = lecture
                 
-                # Mark room as occupied
+                key = f"{day}_{slot_idx}"
+                occupied_rooms[key].add(preferred_room)
+                
+                count_key = f"{day}_{subject_code}"
+                daily_subject_count[count_key] = 1
+                
+                return True
+        
+        # Find any available room
+        for room in available_rooms:
+            if self.is_room_free(room, day, slot_idx, occupied_rooms):
+                slot_name = TIME_SLOTS[slot_idx]
+                lecture = self.create_lecture_entry(
+                    branch, class_name, sem, slot_name,
+                    subject_code, room
+                )
+                class_tt[day][slot_idx] = lecture
+                
                 key = f"{day}_{slot_idx}"
                 occupied_rooms[key].add(room)
                 
-                # Update daily subject count
-                count_key = f"{day}_{subject_name}"
-                daily_subject_count[count_key] = daily_subject_count.get(count_key, 0) + 1
+                count_key = f"{day}_{subject_code}"
+                daily_subject_count[count_key] = 1
                 
                 return True
         
         return False
     
-    def try_schedule_continuous_pair(self, class_tt, occupied_rooms, day, subject, 
-                                    faculty_id, available_rooms, branch, class_name, 
-                                    sem, daily_subject_count):
+    def try_schedule_pair(self, class_tt, occupied_rooms, day, subject, 
+                         faculty_id, available_rooms, branch, class_name, 
+                         sem, daily_subject_count):
         """
-        Try to schedule 2 continuous lectures for a subject on a specific day
-        Returns True if successful, False otherwise
+        Try to schedule 2 continuous lectures for a PAIRED subject on a specific day
+        PAIRED subjects get exactly 2 lectures per day in same room
         """
-        subject_name = subject["subject_name"]
+        subject_code = self._get_subject_code(subject)
         
-        # Check if subject already has lectures on this day
-        current_count = daily_subject_count.get(f"{day}_{subject_name}", 0)
-        if current_count >= 2:
+        # For paired subjects: exactly 2 lectures per day (or 0 if can't schedule both)
+        current_count = daily_subject_count.get(f"{day}_{subject_code}", 0)
+        if current_count > 0:  # Already scheduled on this day
             return False
         
-        # If already has 1, can only schedule 1 more
-        slots_needed = min(2 - current_count, 2)
-        
-        # Try to find continuous slots
+        # Try to find 2 continuous free slots
         for start_idx in range(TOTAL_SLOTS - 1):
-            if slots_needed == 2:
-                # Need 2 continuous slots
-                if class_tt[day][start_idx] == "free" and class_tt[day][start_idx + 1] == "free":
-                    # Check faculty availability for both
-                    if (self.is_faculty_free(faculty_id, day, start_idx) and 
-                        self.is_faculty_free(faculty_id, day, start_idx + 1)):
-                        
-                        # Find a room available for both slots
-                        for room in available_rooms:
-                            if (self.is_room_free(room, day, start_idx, occupied_rooms) and
-                                self.is_room_free(room, day, start_idx + 1, occupied_rooms)):
+            if class_tt[day][start_idx] == "free" and class_tt[day][start_idx + 1] == "free":
+                # Check faculty availability for both
+                if (self.is_faculty_free(faculty_id, day, start_idx) and 
+                    self.is_faculty_free(faculty_id, day, start_idx + 1)):
+                    
+                    # RULE 2: Find a room available for BOTH slots (same room for pair)
+                    for room in available_rooms:
+                        if (self.is_room_free(room, day, start_idx, occupied_rooms) and
+                            self.is_room_free(room, day, start_idx + 1, occupied_rooms)):
+                            
+                            # Schedule both slots IN SAME ROOM
+                            for offset in range(2):
+                                slot_idx = start_idx + offset
+                                slot_name = TIME_SLOTS[slot_idx]
+                                lecture = self.create_lecture_entry(
+                                    branch, class_name, sem, slot_name,
+                                    subject_code, room  # Same room for both
+                                )
+                                class_tt[day][slot_idx] = lecture
                                 
-                                # Schedule both slots
-                                for offset in range(2):
-                                    slot_idx = start_idx + offset
-                                    slot_name = TIME_SLOTS[slot_idx]
-                                    lecture = self.create_lecture_entry(
-                                        branch, class_name, sem, slot_name,
-                                        subject_name, room
-                                    )
-                                    class_tt[day][slot_idx] = lecture
-                                    
-                                    key = f"{day}_{slot_idx}"
-                                    occupied_rooms[key].add(room)
-                                
-                                # Update count
-                                count_key = f"{day}_{subject_name}"
-                                daily_subject_count[count_key] = 2
-                                return True
+                                key = f"{day}_{slot_idx}"
+                                occupied_rooms[key].add(room)
+                            
+                            # Update count: 2 lectures scheduled
+                            count_key = f"{day}_{subject_code}"
+                            daily_subject_count[count_key] = 2
+                            return True
         
         return False
     
     def generate_timetable(self, branch, class_name, sem, rooms, subjects, 
                           lectures_per_day, max_free_lectures):
         """
-        Main timetable generation logic with improved algorithm
-        Max 2 lectures per subject per day
+        Main timetable generation logic with per-subject pair scheduling
+        
+        PAIRED (schedule_in_pairs = True): 2 lectures per day, same room
+        UNPAIRED (schedule_in_pairs = False): max 1 lecture per day
+        
+        RULES:
+        1. Per-subject pair scheduling
+        2. Pairs in same room
+        3. Consecutive same-subject in same room
+        4. Max 1 free lecture per day
         """
         
         # Initialize class timetable
         class_tt = {day: ["free"] * TOTAL_SLOTS for day in DAYS}
         
-        # Track room occupancy across all time slots
+        # Track room occupancy
         occupied_rooms = defaultdict(set)
         
-        # Track daily subject count (max 2 per subject per day)
+        # Track daily subject count
         daily_subject_count = {}
         
-        # Track subject allocation count
-        subject_allocation = {s["subject_name"]: 0 for s in subjects}
-        subject_remaining = {s["subject_name"]: s["weekly_hours"] for s in subjects}
+        # Track subject allocation
+        subject_allocation = {}
+        subject_remaining = {}
+        for s in subjects:
+            subject_code = self._get_subject_code(s)
+            subject_allocation[subject_code] = 0
+            subject_remaining[subject_code] = s["weekly_hours"]
         
-        # Create a mapping of subject names to full subject info
-        subject_map = {s["subject_name"]: s for s in subjects}
+        # Separate subjects based on pairing preference
+        paired_subjects = [s for s in subjects if self._should_schedule_in_pairs(s)]
+        unpaired_subjects = [s for s in subjects if not self._should_schedule_in_pairs(s)]
         
-        # Sort subjects by weekly hours (descending) for better allocation
-        sorted_subjects = sorted(subjects, key=lambda x: x["weekly_hours"], reverse=True)
+        # Sort by weekly hours (descending)
+        paired_subjects = sorted(paired_subjects, key=lambda x: x["weekly_hours"], reverse=True)
+        unpaired_subjects = sorted(unpaired_subjects, key=lambda x: x["weekly_hours"], reverse=True)
         
-        # PHASE 1: Schedule all subjects in pairs (2 continuous lectures per day)
-        for subject in sorted_subjects:
-            subject_name = subject["subject_name"]
+        print(f"DEBUG: Paired subjects (2/day): {[self._get_subject_code(s) for s in paired_subjects]}")
+        print(f"DEBUG: Unpaired subjects (1/day): {[self._get_subject_code(s) for s in unpaired_subjects]}")
+        
+        # PHASE 1: Schedule PAIRED subjects (2 lectures per day, same room)
+        for subject in paired_subjects:
+            subject_code = self._get_subject_code(subject)
             faculty_id = subject["faculty_id"]
             available_rooms = self.filter_rooms_by_type(rooms, subject["subject_type"])
             
             if not available_rooms:
                 continue
             
-            # Try to schedule in pairs of 2 lectures per day
-            while subject_remaining[subject_name] >= 2:
+            # Schedule 2 lectures per day until all hours are allocated
+            while subject_remaining[subject_code] >= 2:
                 scheduled = False
                 
                 # Try each day
                 for day in DAYS:
-                    if self.try_schedule_continuous_pair(class_tt, occupied_rooms, day,
-                                                         subject, faculty_id, available_rooms,
-                                                         branch, class_name, sem, 
-                                                         daily_subject_count):
-                        subject_allocation[subject_name] += 2
-                        subject_remaining[subject_name] -= 2
+                    # Reset daily count for new day
+                    if f"{day}_{subject_code}" not in daily_subject_count:
+                        daily_subject_count[f"{day}_{subject_code}"] = 0
+                    
+                    # Try to schedule 2 lectures on this day
+                    if self.try_schedule_pair(class_tt, occupied_rooms, day,
+                                             subject, faculty_id, available_rooms,
+                                             branch, class_name, sem, 
+                                             daily_subject_count):
+                        subject_allocation[subject_code] += 2
+                        subject_remaining[subject_code] -= 2
                         scheduled = True
+                        print(f"DEBUG: Scheduled pair for {subject_code} on {day}")
                         break
                 
                 if not scheduled:
-                    # Can't find continuous pair, break to phase 2
+                    print(f"WARNING: Could not schedule pair for {subject_code}, {subject_remaining[subject_code]} hours remaining")
                     break
         
-        # PHASE 2: Schedule remaining lectures (singles or non-continuous)
-        for subject in sorted_subjects:
-            subject_name = subject["subject_name"]
+        # PHASE 2: Schedule UNPAIRED subjects (max 1 lecture per day)
+        for subject in unpaired_subjects:
+            subject_code = self._get_subject_code(subject)
             faculty_id = subject["faculty_id"]
             available_rooms = self.filter_rooms_by_type(rooms, subject["subject_type"])
             
             if not available_rooms:
                 continue
             
-            # Special handling for practicals - try continuous slots first
-            if subject["subject_type"] == "practical" and subject_remaining[subject_name] >= 2:
-                remaining = subject_remaining[subject_name]
-                
-                while remaining >= 2:
-                    scheduled = False
-                    
-                    for day in DAYS:
-                        # Check if we can still add to this day
-                        current_count = daily_subject_count.get(f"{day}_{subject_name}", 0)
-                        if current_count >= 2:
-                            continue
-                        
-                        start_slot = self.find_continuous_slots(class_tt[day], 2)
-                        
-                        if start_slot is not None:
-                            # Check faculty and room availability for both slots
-                            selected_room = None
-                            
-                            for room in available_rooms:
-                                can_schedule = True
-                                for offset in range(2):
-                                    slot_idx = start_slot + offset
-                                    if not self.is_faculty_free(faculty_id, day, slot_idx):
-                                        can_schedule = False
-                                        break
-                                    if not self.is_room_free(room, day, slot_idx, occupied_rooms):
-                                        can_schedule = False
-                                        break
-                                
-                                if can_schedule:
-                                    selected_room = room
-                                    break
-                            
-                            if selected_room:
-                                # Check if adding 2 won't exceed daily limit
-                                if current_count + 2 <= 2:
-                                    # Allocate both slots
-                                    for offset in range(2):
-                                        slot_idx = start_slot + offset
-                                        slot_name = TIME_SLOTS[slot_idx]
-                                        lecture = self.create_lecture_entry(
-                                            branch, class_name, sem, slot_name, 
-                                            subject_name, selected_room
-                                        )
-                                        class_tt[day][slot_idx] = lecture
-                                        
-                                        key = f"{day}_{slot_idx}"
-                                        occupied_rooms[key].add(room)
-                                    
-                                    # Update counts
-                                    count_key = f"{day}_{subject_name}"
-                                    daily_subject_count[count_key] = current_count + 2
-                                    subject_allocation[subject_name] += 2
-                                    subject_remaining[subject_name] -= 2
-                                    remaining -= 2
-                                    scheduled = True
-                                    break
-                    
-                    if not scheduled:
-                        break
-            
-            # Schedule any remaining single lectures
-            while subject_remaining[subject_name] > 0:
+            # Schedule 1 lecture per day until all hours are allocated
+            while subject_remaining[subject_code] > 0:
                 scheduled = False
                 
-                # Try all days and slots
+                # Try each day
                 for day in DAYS:
+                    # Reset daily count for new day if not exists
+                    if f"{day}_{subject_code}" not in daily_subject_count:
+                        daily_subject_count[f"{day}_{subject_code}"] = 0
+                    
+                    # Skip if already scheduled on this day
+                    if daily_subject_count[f"{day}_{subject_code}"] >= 1:
+                        continue
+                    
+                    # Try each slot
                     for slot_idx in range(TOTAL_SLOTS):
-                        if self.try_schedule_lecture(class_tt, occupied_rooms, day, 
-                                                    slot_idx, subject, faculty_id, 
-                                                    available_rooms, branch, class_name, 
-                                                    sem, daily_subject_count):
-                            subject_allocation[subject_name] += 1
-                            subject_remaining[subject_name] -= 1
+                        if self.try_schedule_single_lecture(class_tt, occupied_rooms, day, 
+                                                           slot_idx, subject, faculty_id, 
+                                                           available_rooms, branch, class_name, 
+                                                           sem, daily_subject_count,
+                                                           prefer_same_room=True):
+                            subject_allocation[subject_code] += 1
+                            subject_remaining[subject_code] -= 1
                             scheduled = True
+                            print(f"DEBUG: Scheduled single lecture for {subject_code} on {day} slot {slot_idx}")
                             break
                     
                     if scheduled:
                         break
                 
-                # If we couldn't schedule, break to avoid infinite loop
+                if not scheduled:
+                    print(f"WARNING: Could not schedule lecture for {subject_code}, {subject_remaining[subject_code]} hours remaining")
+                    break
+        
+        # PHASE 3: Handle remaining hours for paired subjects (if odd number of hours)
+        # If a paired subject has 1 hour left, it needs to be scheduled somewhere
+        for subject in paired_subjects:
+            subject_code = self._get_subject_code(subject)
+            
+            if subject_remaining[subject_code] <= 0:
+                continue
+            
+            faculty_id = subject["faculty_id"]
+            available_rooms = self.filter_rooms_by_type(rooms, subject["subject_type"])
+            
+            if not available_rooms:
+                continue
+            
+            print(f"DEBUG: Paired subject {subject_code} has {subject_remaining[subject_code]} hours remaining (odd number)")
+            
+            # Try to schedule remaining single lectures
+            while subject_remaining[subject_code] > 0:
+                scheduled = False
+                
+                for day in DAYS:
+                    # For remaining hours of paired subjects, we can add to days that have < 2
+                    current_count = daily_subject_count.get(f"{day}_{subject_code}", 0)
+                    if current_count >= 2:
+                        continue
+                    
+                    for slot_idx in range(TOTAL_SLOTS):
+                        if class_tt[day][slot_idx] != "free":
+                            continue
+                        
+                        if not self.is_faculty_free(faculty_id, day, slot_idx):
+                            continue
+                        
+                        # Try to use same room as other lectures on this day
+                        preferred_room = None
+                        if slot_idx > 0:
+                            prev_subject = self.get_subject_at_slot(class_tt, day, slot_idx - 1)
+                            if prev_subject == subject_code:
+                                preferred_room = self.get_room_at_slot(class_tt, day, slot_idx - 1)
+                        
+                        room_to_use = None
+                        if preferred_room and preferred_room in available_rooms:
+                            if self.is_room_free(preferred_room, day, slot_idx, occupied_rooms):
+                                room_to_use = preferred_room
+                        
+                        if not room_to_use:
+                            for room in available_rooms:
+                                if self.is_room_free(room, day, slot_idx, occupied_rooms):
+                                    room_to_use = room
+                                    break
+                        
+                        if room_to_use:
+                            slot_name = TIME_SLOTS[slot_idx]
+                            lecture = self.create_lecture_entry(
+                                branch, class_name, sem, slot_name,
+                                subject_code, room_to_use
+                            )
+                            class_tt[day][slot_idx] = lecture
+                            
+                            key = f"{day}_{slot_idx}"
+                            occupied_rooms[key].add(room_to_use)
+                            
+                            count_key = f"{day}_{subject_code}"
+                            daily_subject_count[count_key] = daily_subject_count.get(count_key, 0) + 1
+                            
+                            subject_allocation[subject_code] += 1
+                            subject_remaining[subject_code] -= 1
+                            scheduled = True
+                            print(f"DEBUG: Scheduled remaining hour for {subject_code} on {day} slot {slot_idx}")
+                            break
+                    
+                    if scheduled:
+                        break
+                
                 if not scheduled:
                     break
         
@@ -324,12 +434,14 @@ class TimetableGenerator:
             1 for day in DAYS for slot in class_tt[day] if slot == "free"
         )
         
-        # Calculate daily lecture count
+        # Calculate daily lecture count and free lectures per day
         daily_lecture_count = {}
+        daily_free_count = {}
         for day in DAYS:
             daily_lecture_count[day] = sum(
                 1 for slot in class_tt[day] if slot != "free"
             )
+            daily_free_count[day] = self.count_free_lectures_on_day(class_tt, day)
         
         # Validation checks
         errors = []
@@ -337,22 +449,29 @@ class TimetableGenerator:
         
         # Check if all subjects got required hours
         for subject in subjects:
-            name = subject["subject_name"]
+            subject_code = self._get_subject_code(subject)
             required = subject["weekly_hours"]
-            allocated = subject_allocation[name]
+            allocated = subject_allocation[subject_code]
             if allocated < required:
                 errors.append(
-                    f"Subject '{name}' allocated {allocated}/{required} hours"
+                    f"Subject '{subject_code}' allocated {allocated}/{required} hours"
                 )
             elif allocated > required:
                 warnings.append(
-                    f"Subject '{name}' over-allocated: {allocated}/{required} hours"
+                    f"Subject '{subject_code}' over-allocated: {allocated}/{required} hours"
+                )
+        
+        # RULE 4: Check if any day has more than 1 free lecture
+        for day, free_count in daily_free_count.items():
+            if free_count > MAX_FREE_LECTURES_PER_DAY:
+                warnings.append(
+                    f"{day.upper()} has {free_count} free lectures (max allowed: {MAX_FREE_LECTURES_PER_DAY})"
                 )
         
         # Check free lecture limit (warning, not error)
         if free_lectures > max_free_lectures:
             warnings.append(
-                f"Free lectures ({free_lectures}) exceed recommended limit ({max_free_lectures})"
+                f"Total free lectures ({free_lectures}) exceed recommended limit ({max_free_lectures})"
             )
         
         # Check if any day exceeds lectures_per_day (warning only)
@@ -369,14 +488,18 @@ class TimetableGenerator:
             "subject_allocation": subject_allocation,
             "errors": errors,
             "warnings": warnings,
-            "daily_count": daily_lecture_count
+            "daily_count": daily_lecture_count,
+            "daily_free_count": daily_free_count
         }
     
     def update_faculty_timetables(self, class_tt, branch, class_name, sem, subjects):
         """Update faculty timetables based on generated class timetable"""
         
         # Create faculty mapping
-        faculty_map = {s["subject_name"]: s["faculty_id"] for s in subjects}
+        faculty_map = {}
+        for s in subjects:
+            subject_code = self._get_subject_code(s)
+            faculty_map[subject_code] = s["faculty_id"]
         
         # Track faculty updates
         updated_faculties = set()
@@ -386,13 +509,13 @@ class TimetableGenerator:
                 if lecture == "free":
                     continue
                 
-                # Parse lecture string to get subject
+                # Parse lecture string to get subject code
                 parts = lecture.split("-")
                 if len(parts) >= 5:
-                    subject_name = parts[4]
+                    subject_code = parts[4]
                     
-                    if subject_name in faculty_map:
-                        faculty_id = faculty_map[subject_name]
+                    if subject_code in faculty_map:
+                        faculty_id = faculty_map[subject_code]
                         updated_faculties.add(faculty_id)
                         
                         # Get or create faculty timetable
@@ -422,6 +545,10 @@ def auto_generate_timetable():
     """
     API endpoint for automatic timetable generation
     POST /api/timetable/auto-generate
+    
+    Per-subject pair scheduling:
+    - schedule_in_pairs = True: 2 lectures per day (paired), same room
+    - schedule_in_pairs = False: max 1 lecture per day (unpaired)
     """
     try:
         data = request.get_json()
@@ -444,13 +571,20 @@ def auto_generate_timetable():
         
         # Validate subject structure
         for subject in subjects:
-            required_fields = ["subject_name", "weekly_hours", "subject_type", "faculty_id"]
+            if not any(field in subject for field in ["_id", "subject_code", "subject_id"]):
+                return jsonify({"error": f"Subject must have '_id', 'subject_code', or 'subject_id' field"}), 400
+            
+            required_fields = ["weekly_hours", "subject_type", "faculty_id"]
             if not all(field in subject for field in required_fields):
                 return jsonify({"error": f"Invalid subject structure"}), 400
+            
+            # schedule_in_pairs is optional, defaults to False
+            if "schedule_in_pairs" not in subject:
+                subject["schedule_in_pairs"] = False
         
         # Calculate total required lectures
         total_required_lectures = sum(s["weekly_hours"] for s in subjects)
-        total_available_slots = 6 * 8  # 6 days * 8 slots
+        total_available_slots = 6 * TOTAL_SLOTS
         
         if total_required_lectures > total_available_slots:
             return jsonify({
@@ -466,7 +600,7 @@ def auto_generate_timetable():
             lectures_per_day, max_free_lectures
         )
         
-        # Check for critical errors (missing allocations)
+        # Check for critical errors
         if result["errors"]:
             return jsonify({
                 "success": False,
@@ -477,7 +611,8 @@ def auto_generate_timetable():
                     "total_lectures": result["total_lectures"],
                     "free_lectures": result["free_lectures"],
                     "subject_allocation": result["subject_allocation"],
-                    "daily_lecture_count": result["daily_count"]
+                    "daily_lecture_count": result["daily_count"],
+                    "daily_free_count": result.get("daily_free_count", {})
                 }
             }), 400
         
@@ -488,12 +623,18 @@ def auto_generate_timetable():
         
         # Calculate average lectures per day
         total_lectures = result["total_lectures"]
-        avg_lectures_per_day = total_lectures // 6  # 6 working days
+        avg_lectures_per_day = total_lectures // 6
         
         # Update classwise_faculty collection
         class_id = f"sem{sem}_{branch.lower().replace('(', '').replace(')', '')}_{class_name.lower()}"
         
         faculty_ids = list(set(s["faculty_id"] for s in subjects))
+        
+        subject_codes = []
+        for s in subjects:
+            subject_code = generator._get_subject_code(s)
+            subject_codes.append(subject_code)
+        subject_codes = list(set(subject_codes))
         
         generator.classwise_col.update_one(
             {"_id": class_id},
@@ -503,11 +644,16 @@ def auto_generate_timetable():
                     "branch": branch,
                     "class": class_name,
                     "allowed_faculty": faculty_ids,
+                    "allowed_subjects": subject_codes,
                     "avg_lectures_per_day": avg_lectures_per_day
                 }
             },
             upsert=True
         )
+        
+        # Count paired vs unpaired subjects
+        paired_count = sum(1 for s in subjects if s.get("schedule_in_pairs", False))
+        unpaired_count = len(subjects) - paired_count
         
         return jsonify({
             "success": True,
@@ -519,7 +665,10 @@ def auto_generate_timetable():
                 "free_lectures": result["free_lectures"],
                 "conflicts_avoided": True,
                 "subject_allocation": result["subject_allocation"],
-                "daily_lecture_count": result["daily_count"]
+                "daily_lecture_count": result["daily_count"],
+                "daily_free_count": result.get("daily_free_count", {}),
+                "paired_subjects_count": paired_count,
+                "unpaired_subjects_count": unpaired_count
             },
             "warnings": result.get("warnings", []),
             "faculty_updated": updated_faculties
@@ -532,7 +681,6 @@ def auto_generate_timetable():
         return jsonify({"error": "Internal server error", "details": str(e)}), 500
 
 
-# Helper endpoint to get all faculties (already exists)
 def get_all_faculties():
     """GET /api/faculties"""
     try:
@@ -550,39 +698,34 @@ def get_all_faculties():
         }), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    
-from flask import request, jsonify
-from collections import defaultdict
-import random
-from app.database.mongo import db
 
-# Constants
-DAYS = ["mon", "tue", "wed", "thu", "fri", "sat"]
-TOTAL_SLOTS = 4
-TIME_SLOTS = [f"Time Slot {i+1}" for i in range(TOTAL_SLOTS)]
 
-def normalize_day_slots(day_data):
-    """Ensure day has exactly TOTAL_SLOTS entries"""
-    if not day_data:
-        return ["free"] * TOTAL_SLOTS
-    if len(day_data) < TOTAL_SLOTS:
-        return day_data + ["free"] * (TOTAL_SLOTS - len(day_data))
-    return day_data[:TOTAL_SLOTS]
-
+# ============================================================================
+# BRANCH-WIDE TIMETABLE GENERATION
+# ============================================================================
 
 class BranchTimetableGenerator:
     def __init__(self, db):
         self.db = db
         self.faculty_tt_col = db.faculty_timetable
         self.classwise_col = db.classwise_faculty
-        
-        # Global faculty availability tracker across all divisions
         self.global_faculty_availability = {}
-        
+    
+    def _get_subject_code(self, subject):
+        if "_id" in subject:
+            return subject["_id"]
+        elif "subject_code" in subject:
+            return subject["subject_code"]
+        elif "subject_id" in subject:
+            return subject["subject_id"]
+        else:
+            raise KeyError("Subject must have identifier field")
+    
+    def _should_schedule_in_pairs(self, subject):
+        return subject.get("schedule_in_pairs", False)
+    
     def initialize_global_faculty_availability(self):
-        """Initialize global faculty availability from database"""
         all_faculties = self.faculty_tt_col.find({})
-        
         for faculty in all_faculties:
             faculty_id = faculty["_id"]
             if "timetable" not in faculty:
@@ -595,270 +738,70 @@ class BranchTimetableGenerator:
                     for day in DAYS
                 }
     
-    def is_faculty_free(self, faculty_id, day, slot_index):
-        """Check if faculty is free at given day/slot (uses global tracker)"""
-        if faculty_id not in self.global_faculty_availability:
-            self.global_faculty_availability[faculty_id] = {
-                d: ["free"] * TOTAL_SLOTS for d in DAYS
-            }
-        
-        return self.global_faculty_availability[faculty_id][day][slot_index] == "free"
-    
-    def mark_faculty_busy(self, faculty_id, day, slot_index, lecture_info):
-        """Mark faculty as busy at specific day/slot"""
-        if faculty_id not in self.global_faculty_availability:
-            self.global_faculty_availability[faculty_id] = {
-                d: ["free"] * TOTAL_SLOTS for d in DAYS
-            }
-        
-        self.global_faculty_availability[faculty_id][day][slot_index] = lecture_info
-        print(f"Marked faculty {faculty_id} busy at {day} slot {slot_index}: {lecture_info}")
-    
-    def is_room_free(self, room, day, slot_index, occupied_rooms):
-        """Check if room is free at given day/slot"""
-        key = f"{day}_{slot_index}"
-        return room not in occupied_rooms.get(key, set())
-    
-    def get_room_type(self, room):
-        """Determine if room is class or lab"""
-        return "lab" if "lab" in room.lower() else "class"
-    
-    def filter_rooms_by_type(self, rooms, subject_type):
-        """Filter rooms based on subject type"""
-        if subject_type == "practical":
-            return [r for r in rooms if self.get_room_type(r) == "lab"]
-        else:
-            return [r for r in rooms if self.get_room_type(r) == "class"]
-    
-    def create_lecture_entry(self, branch, class_name, sem, slot_name, subject, room):
-        """Create formatted lecture string"""
-        return f"{branch}-{class_name}-Sem{sem}-{slot_name}-{subject}-{room}"
-    
-    def find_continuous_slots(self, day_schedule, required_slots):
-        """Find continuous free slots in a day"""
-        for i in range(len(day_schedule) - required_slots + 1):
-            if all(day_schedule[i+j] == "free" for j in range(required_slots)):
-                return i
-        return None
-    
-    def try_schedule_lecture(self, class_tt, occupied_rooms, day, slot_idx, 
-                            subject, faculty_id, available_rooms, branch, 
-                            class_name, sem, daily_subject_count):
-        """Try to schedule a single lecture"""
-        if class_tt[day][slot_idx] != "free":
-            return False
-        
-        subject_name = subject["subject_name"]
-        
-        # Check if subject already has 2 lectures on this day
-        if daily_subject_count.get(f"{day}_{subject_name}", 0) >= 2:
-            return False
-        
-        # Check global faculty availability
-        if not self.is_faculty_free(faculty_id, day, slot_idx):
-            return False
-        
-        # Find an available room
-        for room in available_rooms:
-            if self.is_room_free(room, day, slot_idx, occupied_rooms):
-                slot_name = TIME_SLOTS[slot_idx]
-                lecture = self.create_lecture_entry(
-                    branch, class_name, sem, slot_name, subject_name, room
-                )
-                
-                # Schedule the lecture
-                class_tt[day][slot_idx] = lecture
-                
-                # Mark room as occupied
-                key = f"{day}_{slot_idx}"
-                occupied_rooms[key].add(room)
-                
-                # Mark faculty as busy globally
-                self.mark_faculty_busy(faculty_id, day, slot_idx, lecture)
-                
-                # Update daily subject count
-                count_key = f"{day}_{subject_name}"
-                daily_subject_count[count_key] = daily_subject_count.get(count_key, 0) + 1
-                
-                return True
-        
-        return False
-    
-    def try_schedule_continuous_pair(self, class_tt, occupied_rooms, day, subject, 
-                                    faculty_id, available_rooms, branch, class_name, 
-                                    sem, daily_subject_count):
-        """Try to schedule 2 continuous lectures"""
-        subject_name = subject["subject_name"]
-        
-        current_count = daily_subject_count.get(f"{day}_{subject_name}", 0)
-        if current_count >= 2:
-            return False
-        
-        slots_needed = min(2 - current_count, 2)
-        
-        for start_idx in range(TOTAL_SLOTS - 1):
-            if slots_needed == 2:
-                if class_tt[day][start_idx] == "free" and class_tt[day][start_idx + 1] == "free":
-                    # Check global faculty availability for both
-                    if (self.is_faculty_free(faculty_id, day, start_idx) and 
-                        self.is_faculty_free(faculty_id, day, start_idx + 1)):
-                        
-                        # Find a room available for both slots
-                        for room in available_rooms:
-                            if (self.is_room_free(room, day, start_idx, occupied_rooms) and
-                                self.is_room_free(room, day, start_idx + 1, occupied_rooms)):
-                                
-                                # Schedule both slots
-                                for offset in range(2):
-                                    slot_idx = start_idx + offset
-                                    slot_name = TIME_SLOTS[slot_idx]
-                                    lecture = self.create_lecture_entry(
-                                        branch, class_name, sem, slot_name, subject_name, room
-                                    )
-                                    class_tt[day][slot_idx] = lecture
-                                    
-                                    key = f"{day}_{slot_idx}"
-                                    occupied_rooms[key].add(room)
-                                    
-                                    # Mark faculty as busy globally
-                                    self.mark_faculty_busy(faculty_id, day, slot_idx, lecture)
-                                
-                                # Update count
-                                count_key = f"{day}_{subject_name}"
-                                daily_subject_count[count_key] = 2
-                                return True
-        
-        return False
+    # [Include all the same methods as TimetableGenerator but with global faculty tracking]
+    # For brevity, using the same logic as TimetableGenerator
+    # The key difference is using self.global_faculty_availability instead of querying DB each time
     
     def generate_division_timetable(self, branch, class_name, sem, rooms, subjects, 
                                    lectures_per_day, max_free_lectures):
-        """Generate timetable for a single division"""
+        """Use same logic as TimetableGenerator.generate_timetable"""
+        # Create a temporary generator instance
+        temp_gen = TimetableGenerator(self.db)
         
-        # Initialize class timetable
-        class_tt = {day: ["free"] * TOTAL_SLOTS for day in DAYS}
+        # Override faculty checking to use global availability
+        original_is_faculty_free = temp_gen.is_faculty_free
         
-        # Track room occupancy for this division only
-        occupied_rooms = defaultdict(set)
+        def is_faculty_free_global(faculty_id, day, slot_index):
+            if faculty_id not in self.global_faculty_availability:
+                self.global_faculty_availability[faculty_id] = {
+                    d: ["free"] * TOTAL_SLOTS for d in DAYS
+                }
+            return self.global_faculty_availability[faculty_id][day][slot_index] == "free"
         
-        # Track daily subject count for this division
-        daily_subject_count = {}
+        temp_gen.is_faculty_free = is_faculty_free_global
         
-        # Track subject allocation
-        subject_allocation = {s["subject_name"]: 0 for s in subjects}
-        subject_remaining = {s["subject_name"]: s["weekly_hours"] for s in subjects}
+        # Generate timetable
+        result = temp_gen.generate_timetable(
+            branch, class_name, sem, rooms, subjects,
+            lectures_per_day, max_free_lectures
+        )
         
-        # Sort subjects by weekly hours (descending)
-        sorted_subjects = sorted(subjects, key=lambda x: x["weekly_hours"], reverse=True)
-        
-        # PHASE 1: Schedule in pairs of 2 continuous lectures per day
-        for subject in sorted_subjects:
-            subject_name = subject["subject_name"]
-            faculty_id = subject["faculty_id"]
-            available_rooms = self.filter_rooms_by_type(rooms, subject["subject_type"])
-            
-            if not available_rooms:
-                continue
-            
-            while subject_remaining[subject_name] >= 2:
-                scheduled = False
-                
-                for day in DAYS:
-                    if self.try_schedule_continuous_pair(class_tt, occupied_rooms, day,
-                                                         subject, faculty_id, available_rooms,
-                                                         branch, class_name, sem, 
-                                                         daily_subject_count):
-                        subject_allocation[subject_name] += 2
-                        subject_remaining[subject_name] -= 2
-                        scheduled = True
-                        break
-                
-                if not scheduled:
-                    break
-        
-        # PHASE 2: Schedule remaining lectures
-        for subject in sorted_subjects:
-            subject_name = subject["subject_name"]
-            faculty_id = subject["faculty_id"]
-            available_rooms = self.filter_rooms_by_type(rooms, subject["subject_type"])
-            
-            if not available_rooms:
-                continue
-            
-            while subject_remaining[subject_name] > 0:
-                scheduled = False
-                
-                for day in DAYS:
-                    for slot_idx in range(TOTAL_SLOTS):
-                        if self.try_schedule_lecture(class_tt, occupied_rooms, day, 
-                                                    slot_idx, subject, faculty_id, 
-                                                    available_rooms, branch, class_name, 
-                                                    sem, daily_subject_count):
-                            subject_allocation[subject_name] += 1
-                            subject_remaining[subject_name] -= 1
-                            scheduled = True
-                            break
-                    
-                    if scheduled:
-                        break
-                
-                if not scheduled:
-                    break
-        
-        # Calculate statistics
-        total_lectures = sum(1 for day in DAYS for slot in class_tt[day] if slot != "free")
-        free_lectures = sum(1 for day in DAYS for slot in class_tt[day] if slot == "free")
-        
-        daily_lecture_count = {}
+        # Update global faculty availability
         for day in DAYS:
-            daily_lecture_count[day] = sum(1 for slot in class_tt[day] if slot != "free")
+            for slot_idx, lecture in enumerate(result["timetable"][day]):
+                if lecture != "free":
+                    parts = lecture.split("-")
+                    if len(parts) >= 5:
+                        subject_code = parts[4]
+                        for s in subjects:
+                            if temp_gen._get_subject_code(s) == subject_code:
+                                faculty_id = s["faculty_id"]
+                                if faculty_id not in self.global_faculty_availability:
+                                    self.global_faculty_availability[faculty_id] = {
+                                        d: ["free"] * TOTAL_SLOTS for d in DAYS
+                                    }
+                                self.global_faculty_availability[faculty_id][day][slot_idx] = lecture
+                                break
         
-        # Validation
-        errors = []
-        warnings = []
-        
-        for subject in subjects:
-            name = subject["subject_name"]
-            required = subject["weekly_hours"]
-            allocated = subject_allocation[name]
-            if allocated < required:
-                errors.append(f"Subject '{name}' allocated {allocated}/{required} hours")
-        
-        if free_lectures > max_free_lectures:
-            warnings.append(f"Free lectures ({free_lectures}) exceed limit ({max_free_lectures})")
-        
-        return {
-            "timetable": class_tt,
-            "total_lectures": total_lectures,
-            "free_lectures": free_lectures,
-            "subject_allocation": subject_allocation,
-            "errors": errors,
-            "warnings": warnings,
-            "daily_count": daily_lecture_count
-        }
+        return result
     
     def save_faculty_timetables(self):
-        """Save all faculty timetables to database with verification"""
         updated_count = 0
         errors = []
         
         for faculty_id, timetable in self.global_faculty_availability.items():
-            # Check if faculty has any actual lectures (not all "free")
-            has_lectures = False
-            lecture_count = 0
+            has_lectures = any(
+                slot != "free" 
+                for day in DAYS 
+                for slot in timetable[day]
+            )
             
-            for day in DAYS:
-                for slot in timetable[day]:
-                    if slot != "free":
-                        has_lectures = True
-                        lecture_count += 1
-            
-            # Only update if faculty has lectures assigned
             if has_lectures:
                 try:
-                    # Ensure the timetable structure is correct
-                    normalized_timetable = {}
-                    for day in DAYS:
-                        normalized_timetable[day] = normalize_day_slots(timetable[day])
+                    normalized_timetable = {
+                        day: normalize_day_slots(timetable[day])
+                        for day in DAYS
+                    }
                     
                     result = self.faculty_tt_col.update_one(
                         {"_id": faculty_id},
@@ -868,98 +811,65 @@ class BranchTimetableGenerator:
                     
                     if result.modified_count > 0 or result.upserted_id:
                         updated_count += 1
-                        print(f"✓ Updated faculty {faculty_id}: {lecture_count} lectures")
-                    else:
-                        print(f"⚠ No change for faculty {faculty_id} (already up to date)")
-                        updated_count += 1
                         
                 except Exception as e:
-                    error_msg = f"Failed to update faculty {faculty_id}: {str(e)}"
-                    errors.append(error_msg)
-                    print(f"✗ {error_msg}")
-        
-        print(f"\n=== Faculty Timetable Update Summary ===")
-        print(f"Total faculty with lectures: {updated_count}")
-        print(f"Errors: {len(errors)}")
-        
-        if errors:
-            for error in errors:
-                print(f"  - {error}")
+                    errors.append(f"Failed to update faculty {faculty_id}: {str(e)}")
         
         return updated_count, errors
 
 
 def auto_generate_branch_timetable():
-    """
-    API endpoint for branch-wide timetable generation
-    POST /api/timetable/auto-generate-branch
-    
-    Generates timetables for multiple divisions of a branch simultaneously
-    """
+    """Branch-wide timetable generation with per-subject pair scheduling"""
     try:
         data = request.get_json()
         
-        # Extract inputs
         branch = data.get("branch")
         sem = data.get("sem")
-        divisions = data.get("divisions", [])  # List of division configs
-        shared_rooms = data.get("shared_rooms", [])  # Rooms shared across divisions
+        divisions = data.get("divisions", [])
+        shared_rooms = data.get("shared_rooms", [])
         lectures_per_day = data.get("lectures_per_day", 4)
         max_free_lectures = data.get("max_valid_free_lectures", 6)
         
-        # Validation
         if not all([branch, sem, divisions]):
             return jsonify({"error": "Missing required fields"}), 400
         
         if not isinstance(divisions, list) or len(divisions) == 0:
             return jsonify({"error": "Divisions list is empty"}), 400
         
-        # Validate each division
         for div in divisions:
             required_fields = ["class_name", "subjects"]
             if not all(field in div for field in required_fields):
                 return jsonify({"error": "Invalid division structure"}), 400
             
-            # Division-specific rooms (optional)
             if "rooms" not in div:
                 div["rooms"] = []
+            
+            for subject in div["subjects"]:
+                if "schedule_in_pairs" not in subject:
+                    subject["schedule_in_pairs"] = False
         
-        # Initialize generator
         generator = BranchTimetableGenerator(db)
         generator.initialize_global_faculty_availability()
         
-        # Results for each division
         division_results = {}
         all_errors = []
         all_warnings = []
         all_faculty_updated = set()
         
-        # Generate timetable for each division sequentially
         for division in divisions:
             class_name = division["class_name"]
             subjects = division["subjects"]
-            
-            # Combine shared rooms and division-specific rooms
             available_rooms = list(set(shared_rooms + division.get("rooms", [])))
             
             if not available_rooms:
                 all_errors.append(f"No rooms available for {class_name}")
                 continue
             
-            # Validate subject structure
-            for subject in subjects:
-                required_fields = ["subject_name", "weekly_hours", "subject_type", "faculty_id"]
-                if not all(field in subject for field in required_fields):
-                    all_errors.append(f"Invalid subject structure in {class_name}")
-                    continue
-            
-            # Generate timetable for this division
             result = generator.generate_division_timetable(
                 branch, class_name, sem, available_rooms, subjects,
                 lectures_per_day, max_free_lectures
             )
             
-            # Collect results
             division_results[class_name] = result
             
             if result["errors"]:
@@ -968,13 +878,19 @@ def auto_generate_branch_timetable():
             if result["warnings"]:
                 all_warnings.extend([f"{class_name}: {warn}" for warn in result["warnings"]])
             
-            # Track faculty
             faculty_ids = set(s["faculty_id"] for s in subjects)
+            subject_codes = []
+            for s in subjects:
+                try:
+                    subject_code = generator._get_subject_code(s)
+                    subject_codes.append(subject_code)
+                except KeyError:
+                    continue
+            subject_codes = list(set(subject_codes))
+            
             all_faculty_updated.update(faculty_ids)
             
-            # Update classwise_faculty collection
             class_id = f"sem{sem}_{branch.lower().replace('(', '').replace(')', '')}_{class_name.lower()}"
-            
             avg_lectures_per_day = result["total_lectures"] // 6
             
             generator.classwise_col.update_one(
@@ -985,43 +901,25 @@ def auto_generate_branch_timetable():
                         "branch": branch,
                         "class": class_name,
                         "allowed_faculty": list(faculty_ids),
+                        "allowed_subjects": subject_codes,
                         "avg_lectures_per_day": avg_lectures_per_day
                     }
                 },
                 upsert=True
             )
         
-        # Check for critical errors
         if all_errors:
             return jsonify({
                 "success": False,
                 "errors": all_errors,
-                "warnings": all_warnings,
-                "partial_results": {
-                    div_name: {
-                        "timetable": result["timetable"],
-                        "stats": {
-                            "total_lectures": result["total_lectures"],
-                            "free_lectures": result["free_lectures"],
-                            "subject_allocation": result["subject_allocation"]
-                        }
-                    }
-                    for div_name, result in division_results.items()
-                }
+                "warnings": all_warnings
             }), 400
         
-        # Save all faculty timetables to database
         faculty_update_count, faculty_errors = generator.save_faculty_timetables()
         
         if faculty_errors:
             all_warnings.extend([f"Faculty update: {err}" for err in faculty_errors])
         
-        print(f"\n=== Branch Timetable Generation Completed ===")
-        print(f"Divisions processed: {len(divisions)}")
-        print(f"Faculty updated: {len(all_faculty_updated)}")
-        print(f"Database updates: {faculty_update_count}")
-        
-        # Prepare successful response
         response_data = {
             "success": True,
             "message": f"Timetables generated for {len(divisions)} divisions",
@@ -1030,23 +928,21 @@ def auto_generate_branch_timetable():
             "divisions": {}
         }
         
-        # Add each division's data
         for div_name, result in division_results.items():
             response_data["divisions"][div_name] = {
                 "timetable": result["timetable"],
                 "stats": {
                     "total_lectures": result["total_lectures"],
                     "free_lectures": result["free_lectures"],
-                    "conflicts_avoided": True,
                     "subject_allocation": result["subject_allocation"],
-                    "daily_lecture_count": result["daily_count"]
+                    "daily_lecture_count": result["daily_count"],
+                    "daily_free_count": result.get("daily_free_count", {})
                 }
             }
         
         response_data["warnings"] = all_warnings
         response_data["faculty_updated"] = list(all_faculty_updated)
         response_data["faculty_update_count"] = faculty_update_count
-        response_data["total_divisions"] = len(divisions)
         
         return jsonify(response_data), 200
         
@@ -1058,10 +954,7 @@ def auto_generate_branch_timetable():
 
 
 def get_branch_divisions():
-    """
-    Helper endpoint to get existing divisions for a branch/semester
-    GET /api/timetable/branch-divisions?branch=CSE&sem=1
-    """
+    """Helper endpoint"""
     try:
         branch = request.args.get("branch")
         sem = request.args.get("sem")
@@ -1069,23 +962,21 @@ def get_branch_divisions():
         if not branch or not sem:
             return jsonify({"error": "Missing branch or semester"}), 400
         
-        # Query classwise_faculty collection
         safe_branch = branch.lower().replace("(", "").replace(")", "")
         pattern = f"sem{sem}_{safe_branch}_"
         
-        divisions = list(db.classwise_faculty.find({
-            "_id": {"$regex": f"^{pattern}"}
-        }))
+        divisions = list(db.classwise_faculty.find({"_id": {"$regex": f"^{pattern}"}}))
         
-        division_list = []
-        for div in divisions:
-            class_name = div.get("class", "")
-            division_list.append({
-                "class_name": class_name,
+        division_list = [
+            {
+                "class_name": div.get("class", ""),
                 "class_id": div["_id"],
                 "faculty_count": len(div.get("allowed_faculty", [])),
+                "subject_count": len(div.get("allowed_subjects", [])),
                 "avg_lectures_per_day": div.get("avg_lectures_per_day", 0)
-            })
+            }
+            for div in divisions
+        ]
         
         return jsonify({
             "success": True,

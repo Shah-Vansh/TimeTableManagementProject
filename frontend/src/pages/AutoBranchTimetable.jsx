@@ -42,6 +42,10 @@ import {
   Activity,
   Book,
   Bookmark,
+  Key,
+  Copy,
+  Link,
+  Unlink,
 } from "lucide-react";
 import api from "../configs/api";
 import Alert from "../components/Alert";
@@ -60,9 +64,8 @@ export default function AutoBranchTimetable() {
   const branchOptions = ["CSE", "CSE(AIML)", "DS", "IT"];
   const divisionOptions = ["D1", "D2", "D3", "D4", "D5", "D6"];
   const subjectTypeOptions = ["theory", "practical"];
-  const roomTypeOptions = ["Classroom", "Lab"];
   
-  // Default room options
+  // Default room options (fallback)
   const defaultRooms = [
     "101", "102", "103", "104", "105", "106",
     "201", "202", "203", "204", "205", "206",
@@ -85,13 +88,32 @@ export default function AutoBranchTimetable() {
   const [showResults, setShowResults] = useState(false);
   const [facultyList, setFacultyList] = useState([]);
   const [isLoadingFaculty, setIsLoadingFaculty] = useState(false);
-  const [subjectOptions, setSubjectOptions] = useState([
-    "Mathematics", "Physics", "Chemistry", "Programming", "Database", 
-    "Networks", "AI/ML", "Web Development", "Software Engineering", 
-    "Data Structures", "Algorithms", "Operating Systems"
-  ]);
-  const [availableRooms, setAvailableRooms] = useState(defaultRooms);
+  
+  // Subjects Management
+  const [subjectOptions, setSubjectOptions] = useState([]);
+  const [allAvailableSubjects, setAllAvailableSubjects] = useState([]);
+  const [isLoadingSubjects, setIsLoadingSubjects] = useState(false);
+  
+  // Subject Modal States
+  const [showSubjectModal, setShowSubjectModal] = useState(false);
+  const [selectedSubjectsToAdd, setSelectedSubjectsToAdd] = useState([]);
+  const [subjectSearchQuery, setSubjectSearchQuery] = useState("");
+  
+  // New Subject Creation States
+  const [showCreateSubject, setShowCreateSubject] = useState(false);
+  const [newSubjectCode, setNewSubjectCode] = useState("");
+  const [newSubjectName, setNewSubjectName] = useState("");
+  const [newSubjectSlug, setNewSubjectSlug] = useState("");
+  const [newSubjectCredit, setNewSubjectCredit] = useState(3);
+  const [isCreatingSubject, setIsCreatingSubject] = useState(false);
+  const [createSubjectError, setCreateSubjectError] = useState("");
+
+  // Rooms Management States
+  const [allRooms, setAllRooms] = useState([]);
+  const [isLoadingRooms, setIsLoadingRooms] = useState(false);
+  const [roomTypes, setRoomTypes] = useState(["Classroom", "Lab"]);
   const [newRoom, setNewRoom] = useState("");
+  
   const [alert, setAlert] = useState(null);
   const [viewMode, setViewMode] = useState("form"); // 'form' or 'results'
   const [statistics, setStatistics] = useState(null);
@@ -104,6 +126,284 @@ export default function AutoBranchTimetable() {
   const showAlert = (main, info, type) => {
     setAlert({ main, info, type });
     setTimeout(() => setAlert(null), 5000);
+  };
+
+  /* =======================
+   FETCH ALL SUBJECTS FROM DATABASE
+  ======================= */
+  const fetchAllSubjects = async () => {
+    setIsLoadingSubjects(true);
+    try {
+      const response = await api.get("/api/subjects", {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      
+      if (response.data.success) {
+        const subjects = response.data.subjects || [];
+        
+        // Format subjects for dropdown with schedule_in_pairs field
+        const formattedSubjects = subjects.map((subject) => ({
+          id: subject.id || subject.subject_code,
+          subject_code: subject.subject_code,
+          name: subject.name,
+          slug: subject.slug,
+          credit: subject.credit,
+          schedule_in_pairs: subject.schedule_in_pairs || false, // NEW: Add pair scheduling field
+          displayLabel: `${subject.name} (${subject.subject_code})`
+        }));
+        
+        setAllAvailableSubjects(formattedSubjects);
+        setSubjectOptions(formattedSubjects);
+        
+        return formattedSubjects;
+      } else {
+        throw new Error("Failed to fetch subjects");
+      }
+    } catch (error) {
+      console.error("Error fetching all subjects:", error);
+      const message =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Something went wrong";
+      showAlert("Failed to fetch subjects", message, "error");
+
+      // Fallback to sample data for demo with schedule_in_pairs field
+      const sampleSubjects = [
+        {
+          id: "3160051",
+          subject_code: "3160051",
+          name: "Data Science",
+          slug: "DS",
+          credit: 4,
+          schedule_in_pairs: true, // Example: This subject should be scheduled in pairs
+          displayLabel: "Data Science (3160051)"
+        },
+        {
+          id: "3160052",
+          subject_code: "3160052",
+          name: "Artificial Intelligence",
+          slug: "AI",
+          credit: 3,
+          schedule_in_pairs: false,
+          displayLabel: "Artificial Intelligence (3160052)"
+        },
+        {
+          id: "3160053",
+          subject_code: "3160053",
+          name: "Machine Learning",
+          slug: "ML",
+          credit: 4,
+          schedule_in_pairs: true,
+          displayLabel: "Machine Learning (3160053)"
+        },
+        {
+          id: "3160054",
+          subject_code: "3160054",
+          name: "Web Development",
+          slug: "WD",
+          credit: 3,
+          schedule_in_pairs: false,
+          displayLabel: "Web Development (3160054)"
+        },
+        {
+          id: "3160055",
+          subject_code: "3160055",
+          name: "Database Systems",
+          slug: "DB",
+          credit: 4,
+          schedule_in_pairs: false,
+          displayLabel: "Database Systems (3160055)"
+        },
+        {
+          id: "3160056",
+          subject_code: "3160056",
+          name: "Computer Networks",
+          slug: "CN",
+          credit: 3,
+          schedule_in_pairs: true,
+          displayLabel: "Computer Networks (3160056)"
+        },
+        {
+          id: "3160057",
+          subject_code: "3160057",
+          name: "Operating Systems",
+          slug: "OS",
+          credit: 4,
+          schedule_in_pairs: false,
+          displayLabel: "Operating Systems (3160057)"
+        },
+        {
+          id: "3160058",
+          subject_code: "3160058",
+          name: "Software Engineering",
+          slug: "SE",
+          credit: 3,
+          schedule_in_pairs: true,
+          displayLabel: "Software Engineering (3160058)"
+        },
+      ];
+      
+      setAllAvailableSubjects(sampleSubjects);
+      setSubjectOptions(sampleSubjects);
+      return sampleSubjects;
+    } finally {
+      setIsLoadingSubjects(false);
+    }
+  };
+
+  /* =======================
+      CREATE NEW SUBJECT
+  ======================= */
+  const handleCreateNewSubject = async () => {
+    // Validate inputs
+    if (!newSubjectCode.trim()) {
+      setCreateSubjectError("Subject Code is required");
+      return;
+    }
+
+    if (!newSubjectName.trim()) {
+      setCreateSubjectError("Subject Name is required");
+      return;
+    }
+
+    // Check if subject code is numeric
+    if (!/^\d+$/.test(newSubjectCode.trim())) {
+      setCreateSubjectError("Subject Code must be numeric");
+      return;
+    }
+
+    // Check if subject code already exists
+    const subjectExists = allAvailableSubjects.some(
+      (subject) =>
+        subject.subject_code.toString() === newSubjectCode.trim() ||
+        subject.id.toString() === newSubjectCode.trim()
+    );
+
+    if (subjectExists) {
+      setCreateSubjectError("A subject with this code already exists");
+      return;
+    }
+
+    setIsCreatingSubject(true);
+    setCreateSubjectError("");
+
+    try {
+      // Create subject in backend with schedule_in_pairs field
+      const response = await api.post(
+        "/api/subjects",
+        {
+          id: parseInt(newSubjectCode.trim()),
+          name: newSubjectName.trim(),
+          slug: newSubjectSlug.trim().toUpperCase(),
+          credit: parseInt(newSubjectCredit),
+          schedule_in_pairs: false // Default to false for new subjects
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      
+      if (response.data.success) {
+        // Create new subject object
+        const newSubject = {
+          id: newSubjectCode.trim(),
+          subject_code: newSubjectCode.trim(),
+          name: newSubjectName.trim(),
+          slug: newSubjectSlug.trim().toUpperCase(),
+          credit: parseInt(newSubjectCredit),
+          schedule_in_pairs: false, // Default value
+          displayLabel: `${newSubjectName.trim()} (${newSubjectCode.trim()})`
+        };
+
+        // Update all available subjects list
+        const updatedSubjects = [...allAvailableSubjects, newSubject];
+        setAllAvailableSubjects(updatedSubjects);
+        setSubjectOptions(updatedSubjects);
+
+        // Also select the new subject automatically
+        setSelectedSubjectsToAdd((prev) => [...prev, newSubject]);
+
+        // Reset form
+        setNewSubjectCode("");
+        setNewSubjectName("");
+        setNewSubjectSlug("");
+        setNewSubjectCredit(3);
+
+        // Show success message using Alert component
+        setCreateSubjectError("");
+        showAlert(
+          "Subject created successfully",
+          `"${newSubjectName}" has been created and selected for addition`,
+          "success"
+        );
+      } else {
+        throw new Error(response.data.message || "Failed to create subject");
+      }
+    } catch (error) {
+      console.error("Error creating subject:", error);
+      const message =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Something went wrong";
+      showAlert(
+        "Failed to create subject",
+        message || "Please try again",
+        "error"
+      );
+    } finally {
+      setIsCreatingSubject(false);
+    }
+  };
+
+  /* =======================
+   ADD SUBJECTS TO DROPDOWNS
+  ======================= */
+  const handleAddSubjects = () => {
+    if (selectedSubjectsToAdd.length === 0) return;
+
+    // Add to subject options
+    const updatedSubjectOptions = [...subjectOptions];
+
+    selectedSubjectsToAdd.forEach((subject) => {
+      const exists = updatedSubjectOptions.some(
+        (s) => s.subject_code === subject.subject_code || s.id === subject.id
+      );
+
+      if (!exists) {
+        updatedSubjectOptions.push({
+          value: subject.subject_code,
+          label: subject.displayLabel,
+          name: subject.name,
+          credit: subject.credit,
+          schedule_in_pairs: subject.schedule_in_pairs || false,
+          subject_code: subject.subject_code
+        });
+      }
+    });
+
+    setSubjectOptions(updatedSubjectOptions);
+    
+    // Also add to all divisions' subject dropdowns
+    // (You might want to update each division's subject list if needed)
+
+    // Reset modal
+    setSelectedSubjectsToAdd([]);
+    setShowSubjectModal(false);
+    setSubjectSearchQuery("");
+
+    // Show success message using Alert component
+    showAlert(
+      "Subject(s) added successfully",
+      `${selectedSubjectsToAdd.length} subject(s) added to dropdowns`,
+      "success"
+    );
   };
 
   /* =======================
@@ -140,6 +440,142 @@ export default function AutoBranchTimetable() {
     } finally {
       setIsLoadingFaculty(false);
     }
+  };
+
+  /* =======================
+   FETCH ROOMS FROM BACKEND
+  ======================= */
+  const fetchRooms = async () => {
+    setIsLoadingRooms(true);
+    try {
+      const response = await api.get("/api/rooms", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      
+      if (response.data.success) {
+        const rooms = response.data.rooms || [];
+        setAllRooms(rooms);
+        
+        // Extract unique room types
+        const types = [...new Set(rooms.map(room => room.type || "Classroom"))];
+        setRoomTypes(types);
+        
+        // Set default shared rooms (first few classrooms and labs)
+        const classrooms = rooms
+          .filter(room => !room.is_lab && room.type === "Classroom")
+          .slice(0, 4)
+          .map(room => room.name);
+          
+        const labs = rooms
+          .filter(room => room.is_lab || room.type === "Lab")
+          .slice(0, 2)
+          .map(room => room.name);
+        
+        setSharedRooms([...classrooms, ...labs]);
+        
+        return rooms;
+      } else {
+        throw new Error("Failed to fetch rooms");
+      }
+    } catch (error) {
+      console.error("Error fetching rooms:", error);
+      const message =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Something went wrong";
+      showAlert("Failed to fetch rooms", "Using default rooms", "warning");
+      
+      // Fallback to default rooms
+      setSharedRooms(defaultRooms);
+      return [];
+    } finally {
+      setIsLoadingRooms(false);
+    }
+  };
+
+  /* =======================
+   ADD NEW ROOM TO BACKEND
+  ======================= */
+  const handleAddNewRoom = async () => {
+    if (!newRoom.trim()) {
+      showAlert("Room name required", "Please enter a room name", "error");
+      return;
+    }
+
+    // Check if room already exists in local list
+    if (sharedRooms.includes(newRoom.trim())) {
+      showAlert("Room already added", `${newRoom} is already in the list`, "warning");
+      setNewRoom("");
+      return;
+    }
+
+    try {
+      // Check if room exists in backend
+      const roomExists = allRooms.some(room => 
+        room.name.toLowerCase() === newRoom.trim().toLowerCase()
+      );
+
+      if (roomExists) {
+        // Room exists in backend, just add to shared rooms
+        setSharedRooms([...sharedRooms, newRoom.trim()]);
+        setNewRoom("");
+        showAlert("Room added", `${newRoom} added to shared rooms`, "success");
+      } else {
+        // Create new room in backend first
+        const response = await api.post("/api/rooms", 
+          {
+            name: newRoom.trim(),
+            floor: 1, // Default floor
+            type: newRoom.toLowerCase().includes("lab") ? "Lab" : "Classroom",
+            capacity: newRoom.toLowerCase().includes("lab") ? 30 : 50,
+            description: "Added via timetable generator",
+            is_lab: newRoom.toLowerCase().includes("lab")
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (response.data.success) {
+          // Add to local state and update allRooms
+          const newRoomObj = {
+            id: newRoom.trim(),
+            name: newRoom.trim(),
+            floor: 1,
+            type: newRoom.toLowerCase().includes("lab") ? "Lab" : "Classroom",
+            capacity: newRoom.toLowerCase().includes("lab") ? 30 : 50,
+            is_lab: newRoom.toLowerCase().includes("lab")
+          };
+
+          setAllRooms([...allRooms, newRoomObj]);
+          setSharedRooms([...sharedRooms, newRoom.trim()]);
+          setNewRoom("");
+          
+          showAlert("Room created", `${newRoom} created and added to shared rooms`, "success");
+        }
+      }
+    } catch (error) {
+      console.error("Error creating room:", error);
+      const message =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Something went wrong";
+      showAlert("Failed to create room", message, "error");
+    }
+  };
+
+  /* =======================
+   REFRESH ROOMS
+  ======================= */
+  const handleRefreshRooms = async () => {
+    await fetchRooms();
+    showAlert("Rooms refreshed", "Fetched latest rooms from database", "success");
   };
 
   /* =======================
@@ -181,10 +617,12 @@ export default function AutoBranchTimetable() {
       class_name: `D${divisions.length + 1}`,
       subjects: [
         {
-          subject_name: "Mathematics",
+          subject_name: subjectOptions[0]?.name || "Mathematics",
+          subject_code: subjectOptions[0]?.subject_code || "3160051",
           weekly_hours: 4,
           subject_type: "theory",
-          faculty_id: facultyList[0]?.id || "FAC001"
+          faculty_id: facultyList[0]?.id || "FAC001",
+          schedule_in_pairs: subjectOptions[0]?.schedule_in_pairs || false // NEW: Add pair scheduling
         }
       ],
       rooms: []
@@ -218,10 +656,12 @@ export default function AutoBranchTimetable() {
   const addSubjectToDivision = (divisionIndex) => {
     const newDivisions = [...divisions];
     newDivisions[divisionIndex].subjects.push({
-      subject_name: "New Subject",
+      subject_name: subjectOptions[0]?.name || "New Subject",
+      subject_code: subjectOptions[0]?.subject_code || "3160051",
       weekly_hours: 3,
       subject_type: "theory",
-      faculty_id: facultyList[0]?.id || "FAC001"
+      faculty_id: facultyList[0]?.id || "FAC001",
+      schedule_in_pairs: subjectOptions[0]?.schedule_in_pairs || false // NEW: Add pair scheduling
     });
     setDivisions(newDivisions);
   };
@@ -240,18 +680,34 @@ export default function AutoBranchTimetable() {
   ======================= */
   const updateSubjectField = (divisionIndex, subjectIndex, field, value) => {
     const newDivisions = [...divisions];
-    newDivisions[divisionIndex].subjects[subjectIndex][field] = value;
+    
+    if (field === "subject_code") {
+      // Find the selected subject from all available subjects
+      const selectedSubject = allAvailableSubjects.find(
+        subject => subject.subject_code === value || subject.id === value
+      );
+      
+      if (selectedSubject) {
+        newDivisions[divisionIndex].subjects[subjectIndex].subject_name = selectedSubject.name;
+        newDivisions[divisionIndex].subjects[subjectIndex].subject_code = selectedSubject.subject_code;
+        // NEW: Also copy the schedule_in_pairs setting from the selected subject
+        newDivisions[divisionIndex].subjects[subjectIndex].schedule_in_pairs = selectedSubject.schedule_in_pairs || false;
+      }
+    } else {
+      newDivisions[divisionIndex].subjects[subjectIndex][field] = value;
+    }
+    
     setDivisions(newDivisions);
   };
 
   /* =======================
-   ADD NEW ROOM TO SHARED
+   TOGGLE SUBJECT PAIR SCHEDULING
   ======================= */
-  const addNewRoomToShared = () => {
-    if (newRoom.trim() && !sharedRooms.includes(newRoom.trim())) {
-      setSharedRooms([...sharedRooms, newRoom.trim()]);
-      setNewRoom("");
-    }
+  const toggleSubjectPairScheduling = (divisionIndex, subjectIndex) => {
+    const newDivisions = [...divisions];
+    const currentValue = newDivisions[divisionIndex].subjects[subjectIndex].schedule_in_pairs || false;
+    newDivisions[divisionIndex].subjects[subjectIndex].schedule_in_pairs = !currentValue;
+    setDivisions(newDivisions);
   };
 
   /* =======================
@@ -279,16 +735,20 @@ export default function AutoBranchTimetable() {
       class_name: division.class_name,
       subjects: [
         {
-          subject_name: "Mathematics",
+          subject_name: subjectOptions[0]?.name || "Mathematics",
+          subject_code: subjectOptions[0]?.subject_code || "3160051",
           weekly_hours: 4,
           subject_type: "theory",
-          faculty_id: facultyList[0]?.id || "FAC001"
+          faculty_id: facultyList[0]?.id || "FAC001",
+          schedule_in_pairs: subjectOptions[0]?.schedule_in_pairs || false
         },
         {
-          subject_name: "Programming",
+          subject_name: subjectOptions[1]?.name || "Programming",
+          subject_code: subjectOptions[1]?.subject_code || "3160052",
           weekly_hours: 3,
           subject_type: "practical",
-          faculty_id: facultyList[1]?.id || "FAC002"
+          faculty_id: facultyList[1]?.id || "FAC002",
+          schedule_in_pairs: subjectOptions[1]?.schedule_in_pairs || false
         }
       ],
       rooms: []
@@ -324,8 +784,8 @@ export default function AutoBranchTimetable() {
       }
 
       for (const subject of division.subjects) {
-        if (!subject.subject_name || subject.subject_name.trim() === "") {
-          showAlert("Invalid subject", `Subject in ${division.class_name} has no name`, "error");
+        if (!subject.subject_code || subject.subject_code.trim() === "") {
+          showAlert("Invalid subject", `Subject in ${division.class_name} has no subject code`, "error");
           return false;
         }
 
@@ -367,15 +827,17 @@ export default function AutoBranchTimetable() {
           class_name: div.class_name,
           subjects: div.subjects.map(sub => ({
             subject_name: sub.subject_name,
+            subject_code: sub.subject_code,
             weekly_hours: parseInt(sub.weekly_hours),
             subject_type: sub.subject_type,
-            faculty_id: sub.faculty_id
+            faculty_id: sub.faculty_id,
+            schedule_in_pairs: sub.schedule_in_pairs || false // NEW: Include pair scheduling flag
           })),
           rooms: div.rooms || []
         })),
         shared_rooms: sharedRooms,
         lectures_per_day: parseInt(lecturesPerDay),
-        max_valid_free_lectures: parseInt(maxFreeLectures)
+        max_valid_free_lectures: parseInt(maxFreeLectures) // Fixed parameter name to match backend
       };
 
       console.log("Generating with payload:", payload);
@@ -391,12 +853,14 @@ export default function AutoBranchTimetable() {
         setShowResults(true);
         setViewMode("results");
         
-        // Calculate statistics
+        // Calculate statistics including paired subjects count
         const stats = {
           totalDivisions: response.data.total_divisions,
           totalLectures: 0,
           totalFreeLectures: 0,
-          facultyUpdated: response.data.faculty_updated?.length || 0,
+          facultyUpdated: response.data.faculty_update_count || 0,
+          pairedSubjectsCount: response.data.paired_subjects_count || 0,
+          unpairedSubjectsCount: response.data.unpaired_subjects_count || 0,
           divisions: {}
         };
 
@@ -404,7 +868,9 @@ export default function AutoBranchTimetable() {
           stats.divisions[divName] = {
             totalLectures: data.stats?.total_lectures || 0,
             freeLectures: data.stats?.free_lectures || 0,
-            subjectAllocation: data.stats?.subject_allocation || {}
+            subjectAllocation: data.stats?.subject_allocation || {},
+            pairedSubjects: 0,
+            unpairedSubjects: 0
           };
           stats.totalLectures += data.stats?.total_lectures || 0;
           stats.totalFreeLectures += data.stats?.free_lectures || 0;
@@ -414,7 +880,7 @@ export default function AutoBranchTimetable() {
 
         showAlert(
           "Timetables Generated Successfully",
-          `Generated ${response.data.total_divisions} division timetables with ${stats.facultyUpdated} faculty updated`,
+          `Generated ${response.data.total_divisions} division timetables with ${stats.pairedSubjectsCount} paired subjects`,
           "success"
         );
       } else {
@@ -465,7 +931,7 @@ export default function AutoBranchTimetable() {
         // Convert timetable format if needed
         const formattedSchedule = {};
         Object.entries(timetable).forEach(([dayKey, slots]) => {
-          const dayName = dayKey.charAt(0).toUpperCase() + dayKey.slice(1); // Convert "mon" to "Mon"
+          const dayName = dayKey.charAt(0).toUpperCase() + dayKey.slice(1);
           const fullDayName = days.find(d => d.toLowerCase().startsWith(dayKey)) || dayKey;
           
           formattedSchedule[fullDayName] = {};
@@ -548,6 +1014,8 @@ export default function AutoBranchTimetable() {
   ======================= */
   useEffect(() => {
     fetchFacultyList();
+    fetchAllSubjects();
+    fetchRooms();
   }, []);
 
   useEffect(() => {
@@ -555,6 +1023,32 @@ export default function AutoBranchTimetable() {
       fetchExistingDivisions();
     }
   }, [branch, sem]);
+
+  /* =======================
+   FILTER SUBJECTS FOR MODAL
+  ======================= */
+  const filteredSubjects = allAvailableSubjects.filter(
+    (subject) =>
+      subject.displayLabel.toLowerCase().includes(subjectSearchQuery.toLowerCase()) ||
+      (subject.subject_code &&
+        subject.subject_code.toString().toLowerCase().includes(subjectSearchQuery.toLowerCase())) ||
+      subject.name.toLowerCase().includes(subjectSearchQuery.toLowerCase()) ||
+      (subject.slug && subject.slug.toLowerCase().includes(subjectSearchQuery.toLowerCase()))
+  );
+
+  /* =======================
+   TOGGLE SUBJECT SELECTION
+  ======================= */
+  const toggleSubjectSelection = (subject) => {
+    setSelectedSubjectsToAdd((prev) => {
+      const isSelected = prev.some((s) => s.id === subject.id);
+      if (isSelected) {
+        return prev.filter((s) => s.id !== subject.id);
+      } else {
+        return [...prev, subject];
+      }
+    });
+  };
 
   /* =======================
    RENDER TIMETABLE PREVIEW
@@ -641,6 +1135,370 @@ export default function AutoBranchTimetable() {
         />
       )}
 
+      {/* Subject Management Modal */}
+      {showSubjectModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[80vh] overflow-hidden flex flex-col border border-indigo-200">
+            {/* Modal Header */}
+            <div className="p-6 border-b border-indigo-100 bg-gradient-to-r from-indigo-50 to-indigo-100">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-white rounded-lg border border-indigo-200">
+                    <Book className="w-5 h-5 text-indigo-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-indigo-900">
+                      Add Subjects
+                    </h2>
+                    <p className="text-indigo-700 text-sm mt-1">
+                      Select subjects to add to your dropdowns or create new subject
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowSubjectModal(false);
+                    setSelectedSubjectsToAdd([]);
+                    setSubjectSearchQuery("");
+                    setShowCreateSubject(false);
+                  }}
+                  className="p-2 hover:bg-white/50 rounded-lg transition-colors border border-indigo-200"
+                >
+                  <X className="w-5 h-5 text-indigo-600" />
+                </button>
+              </div>
+
+              {/* Search Bar */}
+              <div className="mt-4 relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-indigo-400" />
+                <input
+                  type="text"
+                  placeholder="Search subjects by name, code, or slug..."
+                  value={subjectSearchQuery}
+                  onChange={(e) => setSubjectSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 bg-white border border-indigo-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                />
+              </div>
+
+              {/* Selected Count */}
+              <div className="mt-3 flex items-center justify-between">
+                <span className="text-sm text-indigo-700">
+                  {selectedSubjectsToAdd.length} subject(s) selected
+                </span>
+                <span className="text-sm text-indigo-700">
+                  {filteredSubjects.length} available
+                </span>
+              </div>
+            </div>
+
+            {/* Create New Subject Form */}
+            {showCreateSubject ? (
+              <div className="p-6 border-b border-indigo-100 bg-violet-50">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-white rounded-lg border border-violet-200">
+                      <Plus className="w-5 h-5 text-violet-600" />
+                    </div>
+                    <h3 className="font-bold text-gray-900">
+                      Create New Subject
+                    </h3>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setShowCreateSubject(false);
+                      setNewSubjectCode("");
+                      setNewSubjectName("");
+                      setNewSubjectSlug("");
+                      setNewSubjectCredit(3);
+                      setCreateSubjectError("");
+                    }}
+                    className="p-1 hover:bg-violet-100 rounded-lg transition-colors"
+                  >
+                    <X className="w-5 h-5 text-gray-600" />
+                  </button>
+                </div>
+
+                {createSubjectError && (
+                  <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-red-700 text-sm">{createSubjectError}</p>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                      <Hash className="w-4 h-4" />
+                      Subject Code
+                    </label>
+                    <input
+                      type="text"
+                      value={newSubjectCode}
+                      onChange={(e) => setNewSubjectCode(e.target.value)}
+                      placeholder="e.g., 3160051"
+                      className="w-full px-4 py-2.5 bg-white border border-indigo-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    />
+                    <p className="text-xs text-gray-500 mt-2">
+                      Numeric subject identifier
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                      <Book className="w-4 h-4" />
+                      Subject Name
+                    </label>
+                    <input
+                      type="text"
+                      value={newSubjectName}
+                      onChange={(e) => setNewSubjectName(e.target.value)}
+                      placeholder="e.g., Data Science"
+                      className="w-full px-4 py-2.5 bg-white border border-indigo-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    />
+                    <p className="text-xs text-gray-500 mt-2">
+                      Full name of the subject
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                      <Hash className="w-4 h-4" />
+                      Subject Slug
+                    </label>
+                    <input
+                      type="text"
+                      value={newSubjectSlug}
+                      onChange={(e) => setNewSubjectSlug(e.target.value)}
+                      placeholder="e.g., DS"
+                      className="w-full px-4 py-2.5 bg-white border border-indigo-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    />
+                    <p className="text-xs text-gray-500 mt-2">
+                      Short abbreviation (will be converted to uppercase)
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                      <Key className="w-4 h-4" />
+                      Credit Hours
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="10"
+                      value={newSubjectCredit}
+                      onChange={(e) => setNewSubjectCredit(e.target.value)}
+                      className="w-full px-4 py-2.5 bg-white border border-indigo-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    />
+                    <p className="text-xs text-gray-500 mt-2">
+                      Credit hours for the subject
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => {
+                      setShowCreateSubject(false);
+                      setNewSubjectCode("");
+                      setNewSubjectName("");
+                      setNewSubjectSlug("");
+                      setNewSubjectCredit(3);
+                      setCreateSubjectError("");
+                    }}
+                    className="px-4 py-2.5 border border-indigo-300 text-indigo-700 rounded-lg font-medium hover:bg-indigo-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleCreateNewSubject}
+                    disabled={
+                      isCreatingSubject ||
+                      !newSubjectCode.trim() ||
+                      !newSubjectName.trim()
+                    }
+                    className={`px-4 py-2.5 rounded-lg font-medium transition-colors flex items-center gap-2 ${
+                      isCreatingSubject ||
+                      !newSubjectCode.trim() ||
+                      !newSubjectName.trim()
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : "bg-gradient-to-r from-indigo-600 to-indigo-700 text-white hover:from-indigo-700 hover:to-indigo-800"
+                    }`}
+                  >
+                    {isCreatingSubject ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Creating...
+                      </>
+                    ) : (
+                      <>
+                        <Check className="w-4 h-4" />
+                        Create Subject
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="p-4 border-b border-indigo-100">
+                <button
+                  onClick={() => setShowCreateSubject(true)}
+                  className="w-full px-4 py-3 border-2 border-dashed border-indigo-300 rounded-xl text-indigo-600 hover:border-indigo-500 hover:text-indigo-700 hover:bg-indigo-50 transition-all flex items-center justify-center gap-2"
+                >
+                  <Plus className="w-5 h-5" />
+                  Create New Subject
+                </button>
+              </div>
+            )}
+
+            {/* Modal Body */}
+            <div className="flex-1 overflow-y-auto p-6">
+              {isLoadingSubjects ? (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-indigo-600 mb-4" />
+                  <p className="text-gray-600">Loading all subjects...</p>
+                </div>
+              ) : filteredSubjects.length === 0 ? (
+                <div className="text-center py-12">
+                  <Book className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-600">No subjects found</p>
+                  {subjectSearchQuery && (
+                    <p className="text-gray-500 text-sm mt-1">
+                      Try a different search term
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {filteredSubjects.map((subject) => {
+                    const isSelected = selectedSubjectsToAdd.some(
+                      (s) => s.id === subject.id
+                    );
+                    const isAlreadyInOptions = subjectOptions.some(
+                      (option) =>
+                        option.subject_code === subject.subject_code ||
+                        option.id === subject.id
+                    );
+
+                    return (
+                      <div
+                        key={subject.id}
+                        onClick={() =>
+                          !isAlreadyInOptions && toggleSubjectSelection(subject)
+                        }
+                        className={`p-4 rounded-xl border cursor-pointer transition-all ${
+                          isAlreadyInOptions
+                            ? "border-gray-200 bg-gray-50 opacity-75 cursor-not-allowed"
+                            : isSelected
+                            ? "border-indigo-500 bg-indigo-50"
+                            : "border-indigo-200 hover:border-indigo-300 hover:bg-indigo-50"
+                        }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div
+                            className={`w-6 h-6 rounded-full border-2 flex items-center justify-center mt-0.5 flex-shrink-0 ${
+                              isAlreadyInOptions
+                                ? "border-gray-300 bg-gray-200"
+                                : isSelected
+                                ? "border-indigo-500 bg-indigo-500"
+                                : "border-indigo-300"
+                            }`}
+                          >
+                            {isAlreadyInOptions ? (
+                              <Check className="w-3 h-3 text-gray-500" />
+                            ) : isSelected ? (
+                              <Check className="w-3 h-3 text-white" />
+                            ) : null}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between">
+                              <div>
+                                <h3 className="font-medium text-gray-900 truncate">
+                                  {subject.name}
+                                </h3>
+                                <p className="text-sm text-gray-600 mt-1">
+                                  Code: {subject.subject_code}
+                                </p>
+                                <div className="flex items-center gap-2 mt-2">
+                                  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                                    {subject.slug || "No Slug"}
+                                  </span>
+                                  <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
+                                    {subject.credit} Credits
+                                  </span>
+                                  <span className={`text-xs px-2 py-0.5 rounded ${
+                                    subject.schedule_in_pairs
+                                      ? "bg-purple-100 text-purple-700"
+                                      : "bg-gray-100 text-gray-700"
+                                  }`}>
+                                    {subject.schedule_in_pairs ? "Paired" : "Unpaired"}
+                                  </span>
+                                </div>
+                              </div>
+                              {isAlreadyInOptions && (
+                                <span className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded whitespace-nowrap">
+                                  Already added
+                                </span>
+                              )}
+                            </div>
+                            {isAlreadyInOptions && (
+                              <p className="text-xs text-gray-500 mt-2">
+                                This subject is already available in dropdowns
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-6 border-t border-indigo-100 bg-indigo-50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">
+                    Selected: {selectedSubjectsToAdd.length} subject(s)
+                  </p>
+                  {selectedSubjectsToAdd.length > 0 && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      Selected subject(s) will be added to all division dropdowns
+                    </p>
+                  )}
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => {
+                      setShowSubjectModal(false);
+                      setSelectedSubjectsToAdd([]);
+                      setSubjectSearchQuery("");
+                      setShowCreateSubject(false);
+                    }}
+                    className="px-4 py-2 border border-indigo-300 text-indigo-700 rounded-lg font-medium hover:bg-indigo-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleAddSubjects}
+                    disabled={selectedSubjectsToAdd.length === 0}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                      selectedSubjectsToAdd.length === 0
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : "bg-gradient-to-r from-indigo-600 to-indigo-700 text-white hover:from-indigo-700 hover:to-indigo-800"
+                    }`}
+                  >
+                    Add Selected Subject(s)
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="relative z-10 max-w-7xl mx-auto">
         {/* Breadcrumb */}
         <div className="mb-6">
@@ -677,6 +1535,16 @@ export default function AutoBranchTimetable() {
             <p className="text-gray-600">
               Automatically generate optimized timetables for multiple divisions simultaneously
             </p>
+            <div className="flex items-center gap-2 mt-3">
+              <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">
+                <Link className="w-3 h-3 inline mr-1" />
+                Per-Subject Pair Scheduling
+              </span>
+              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+                <Unlink className="w-3 h-3 inline mr-1" />
+                Individual Lecture Scheduling
+              </span>
+            </div>
           </div>
           <div className="p-3 bg-white rounded-xl border border-indigo-200 shadow-sm">
             <Zap className="w-6 h-6 text-indigo-600" />
@@ -834,48 +1702,206 @@ export default function AutoBranchTimetable() {
 
             {/* Shared Rooms Configuration */}
             <div className="bg-white rounded-2xl p-6 border border-indigo-200 shadow-sm">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-2 bg-gradient-to-br from-violet-100 to-violet-50 rounded-lg border border-violet-200">
-                  <DoorOpen className="w-5 h-5 text-violet-600" />
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-gradient-to-br from-violet-100 to-violet-50 rounded-lg border border-violet-200">
+                    <DoorOpen className="w-5 h-5 text-violet-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-violet-900">
+                      Shared Rooms Configuration
+                    </h2>
+                    <p className="text-violet-700 text-sm mt-1">
+                      {allRooms.length} rooms available • {sharedRooms.length} selected
+                    </p>
+                  </div>
                 </div>
-                <h2 className="text-lg font-bold text-violet-900">
-                  Shared Rooms Configuration
-                </h2>
+                <button
+                  onClick={handleRefreshRooms}
+                  disabled={isLoadingRooms}
+                  className="px-3 py-1.5 text-sm border border-violet-200 text-violet-700 rounded-lg hover:bg-violet-50 flex items-center gap-2"
+                >
+                  <RefreshCw className={`w-4 h-4 ${isLoadingRooms ? 'animate-spin' : ''}`} />
+                  Refresh
+                </button>
               </div>
 
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Available Rooms (shared across all divisions)
-                </label>
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {sharedRooms.map((room, index) => (
-                    <div key={index} className="flex items-center gap-2 bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-200">
-                      <span className="text-sm font-medium text-indigo-700">{room}</span>
-                      <button
-                        onClick={() => removeSharedRoom(index)}
-                        className="text-indigo-500 hover:text-indigo-700"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </div>
+                {/* Room Type Filter */}
+                <div className="flex items-center gap-2 mb-4 flex-wrap">
+                  <span className="text-sm text-gray-600 mr-2">Filter by type:</span>
+                  <button
+                    onClick={() => setRoomTypes(["Classroom", "Lab"])}
+                    className="px-3 py-1 text-xs rounded-full border border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+                  >
+                    All
+                  </button>
+                  {["Classroom", "Lab"].map(type => (
+                    <button
+                      key={type}
+                      onClick={() => setRoomTypes([type])}
+                      className="px-3 py-1 text-xs rounded-full border border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+                    >
+                      {type}
+                    </button>
                   ))}
                 </div>
 
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={newRoom}
-                    onChange={(e) => setNewRoom(e.target.value)}
-                    placeholder="Enter new room (e.g., Lab 5)"
-                    className="flex-1 px-4 py-2 border border-indigo-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                  />
-                  <button
-                    onClick={addNewRoomToShared}
-                    disabled={!newRoom.trim()}
-                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Add Room
-                  </button>
+                {/* Selected Rooms */}
+                <div className="mb-6">
+                  <p className="text-sm font-medium text-gray-700 mb-2">Selected Rooms:</p>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {sharedRooms.map((room, index) => {
+                      const roomInfo = allRooms.find(r => r.name === room);
+                      return (
+                        <div 
+                          key={index} 
+                          className="flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all hover:shadow-sm"
+                          style={{
+                            backgroundColor: roomInfo?.is_lab ? '#FEF3C7' : '#E0E7FF',
+                            borderColor: roomInfo?.is_lab ? '#FBBF24' : '#818CF8'
+                          }}
+                        >
+                          <div>
+                            <span className="text-sm font-medium" style={{
+                              color: roomInfo?.is_lab ? '#92400E' : '#3730A3'
+                            }}>
+                              {room}
+                            </span>
+                            {roomInfo && (
+                              <div className="flex items-center gap-2 mt-0.5">
+                                <span className="text-xs" style={{
+                                  color: roomInfo?.is_lab ? '#B45309' : '#4F46E5'
+                                }}>
+                                  Floor {roomInfo.floor} • {roomInfo.capacity} seats
+                                </span>
+                                {roomInfo.is_lab && (
+                                  <span className="text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">
+                                    Lab
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                          <button
+                            onClick={() => removeSharedRoom(index)}
+                            className="ml-2 p-0.5 hover:bg-white/50 rounded"
+                            style={{
+                              color: roomInfo?.is_lab ? '#B45309' : '#4F46E5'
+                            }}
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Add New Room */}
+                <div className="mb-6">
+                  <p className="text-sm font-medium text-gray-700 mb-2">Add New Room:</p>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={newRoom}
+                      onChange={(e) => setNewRoom(e.target.value)}
+                      placeholder="Enter room name (e.g., Lab 5, Classroom 301)"
+                      className="flex-1 px-4 py-2 border border-indigo-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      onKeyPress={(e) => e.key === 'Enter' && handleAddNewRoom()}
+                    />
+                    <button
+                      onClick={handleAddNewRoom}
+                      disabled={!newRoom.trim()}
+                      className="px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Add Room
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Tip: Include "Lab" in the name to mark as laboratory
+                  </p>
+                </div>
+
+                {/* Available Rooms from Backend */}
+                <div>
+                  <p className="text-sm font-medium text-gray-700 mb-2">
+                    Available Rooms from Database:
+                  </p>
+                  {isLoadingRooms ? (
+                    <div className="text-center py-4">
+                      <Loader2 className="w-5 h-5 animate-spin text-indigo-600 mx-auto" />
+                      <p className="text-sm text-gray-600 mt-2">Loading rooms...</p>
+                    </div>
+                  ) : allRooms.length === 0 ? (
+                    <div className="text-center py-4 border-2 border-dashed border-gray-300 rounded-lg">
+                      <p className="text-gray-600">No rooms available in database</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-60 overflow-y-auto p-2">
+                      {allRooms
+                        .filter(room => roomTypes.includes(room.type))
+                        .map(room => {
+                          const isSelected = sharedRooms.includes(room.name);
+                          return (
+                            <div
+                              key={room.id}
+                              onClick={() => {
+                                if (isSelected) {
+                                  const index = sharedRooms.indexOf(room.name);
+                                  if (index > -1) removeSharedRoom(index);
+                                } else {
+                                  setSharedRooms([...sharedRooms, room.name]);
+                                }
+                              }}
+                              className={`p-3 rounded-lg border cursor-pointer transition-all ${
+                                isSelected
+                                  ? room.is_lab
+                                    ? 'border-amber-500 bg-amber-50'
+                                    : 'border-indigo-500 bg-indigo-50'
+                                  : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                              }`}
+                            >
+                              <div className="flex items-start justify-between">
+                                <div>
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span className="font-medium text-gray-900">
+                                      {room.name}
+                                    </span>
+                                    {room.is_lab && (
+                                      <span className="text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">
+                                        Lab
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="text-xs text-gray-600 space-y-0.5">
+                                    <div className="flex items-center gap-1">
+                                      <Building className="w-3 h-3" />
+                                      Floor {room.floor} • {room.type}
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                      <Users className="w-3 h-3" />
+                                      Capacity: {room.capacity} seats
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${
+                                  isSelected
+                                    ? room.is_lab
+                                      ? 'border-amber-500 bg-amber-500'
+                                      : 'border-indigo-500 bg-indigo-500'
+                                    : 'border-gray-300'
+                                }`}>
+                                  {isSelected && (
+                                    <Check className="w-3 h-3 text-white" />
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -891,13 +1917,22 @@ export default function AutoBranchTimetable() {
                     Divisions Configuration ({divisions.length})
                   </h2>
                 </div>
-                <button
-                  onClick={addNewDivision}
-                  className="px-4 py-2 bg-teal-600 text-white rounded-lg font-medium hover:bg-teal-700 transition-colors flex items-center gap-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  Add Division
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setShowSubjectModal(true)}
+                    className="px-4 py-2 bg-gradient-to-r from-indigo-50 to-indigo-100 text-indigo-700 rounded-lg font-bold hover:from-indigo-100 hover:to-indigo-200 transition-colors border border-indigo-200 flex items-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Subjects
+                  </button>
+                  <button
+                    onClick={addNewDivision}
+                    className="px-4 py-2 bg-teal-600 text-white rounded-lg font-medium hover:bg-teal-700 transition-colors flex items-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Division
+                  </button>
+                </div>
               </div>
 
               {divisions.length === 0 ? (
@@ -968,22 +2003,29 @@ export default function AutoBranchTimetable() {
                                   </button>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                                  {/* Subject Name */}
-                                  <div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                                  {/* Subject Selection */}
+                                  <div className="lg:col-span-2">
                                     <label className="block text-xs font-medium text-gray-700 mb-1">
-                                      Subject Name
+                                      Subject
                                     </label>
                                     <select
-                                      value={subject.subject_name}
-                                      onChange={(e) => updateSubjectField(divIndex, subIndex, "subject_name", e.target.value)}
+                                      value={subject.subject_code}
+                                      onChange={(e) => updateSubjectField(divIndex, subIndex, "subject_code", e.target.value)}
                                       className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                     >
                                       <option value="">Select Subject</option>
                                       {subjectOptions.map(sub => (
-                                        <option key={sub} value={sub}>{sub}</option>
+                                        <option key={sub.subject_code || sub.id} value={sub.subject_code || sub.id}>
+                                          {sub.displayLabel || `${sub.name} (${sub.subject_code})`} - {sub.credit} Credits
+                                        </option>
                                       ))}
                                     </select>
+                                    {subject.subject_name && (
+                                      <p className="text-xs text-gray-500 mt-1">
+                                        Selected: {subject.subject_name} ({subject.subject_code})
+                                      </p>
+                                    )}
                                   </div>
 
                                   {/* Weekly Hours */}
@@ -1017,24 +2059,55 @@ export default function AutoBranchTimetable() {
                                     </select>
                                   </div>
 
-                                  {/* Faculty */}
+                                  {/* Pair Scheduling Toggle */}
                                   <div>
-                                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                                      Faculty
+                                    <label className="block text-xs font-medium text-gray-700 mb-1 flex items-center gap-2">
+                                      <Link className="w-3 h-3" />
+                                      Schedule in Pairs
                                     </label>
-                                    <select
-                                      value={subject.faculty_id}
-                                      onChange={(e) => updateSubjectField(divIndex, subIndex, "faculty_id", e.target.value)}
-                                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                    <button
+                                      onClick={() => toggleSubjectPairScheduling(divIndex, subIndex)}
+                                      className={`w-full px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+                                        subject.schedule_in_pairs
+                                          ? 'bg-purple-100 text-purple-700 border border-purple-300'
+                                          : 'bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200'
+                                      }`}
                                     >
-                                      <option value="">Select Faculty</option>
-                                      {facultyList.map(faculty => (
-                                        <option key={faculty.id} value={faculty.id}>
-                                          {faculty.displayLabel}
-                                        </option>
-                                      ))}
-                                    </select>
+                                      {subject.schedule_in_pairs ? (
+                                        <>
+                                          <Link className="w-3 h-3" />
+                                          Paired
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Unlink className="w-3 h-3" />
+                                          Individual
+                                        </>
+                                      )}
+                                    </button>
+                                    <p className="text-xs text-gray-500 mt-1">
+                                      {subject.schedule_in_pairs ? "Will schedule in 2-hour blocks" : "Will schedule individually"}
+                                    </p>
                                   </div>
+                                </div>
+
+                                {/* Faculty Selection (full width) */}
+                                <div className="mt-4">
+                                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                                    Faculty
+                                  </label>
+                                  <select
+                                    value={subject.faculty_id}
+                                    onChange={(e) => updateSubjectField(divIndex, subIndex, "faculty_id", e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                  >
+                                    <option value="">Select Faculty</option>
+                                    {facultyList.map(faculty => (
+                                      <option key={faculty.id} value={faculty.id}>
+                                        {faculty.displayLabel}
+                                      </option>
+                                    ))}
+                                  </select>
                                 </div>
                               </div>
                             ))}
@@ -1098,6 +2171,18 @@ export default function AutoBranchTimetable() {
                     <p className="text-emerald-700 text-sm mt-1">
                       {generatedResults.success ? "Successfully generated" : "Partially generated"} timetables
                     </p>
+                    <div className="flex items-center gap-2 mt-2">
+                      {statistics && (
+                        <>
+                          <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded">
+                            {statistics.pairedSubjectsCount} Paired Subjects
+                          </span>
+                          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                            {statistics.unpairedSubjectsCount} Individual Subjects
+                          </span>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -1124,7 +2209,7 @@ export default function AutoBranchTimetable() {
 
               {/* Statistics */}
               {statistics && (
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
                   <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 p-4 rounded-lg border border-indigo-200">
                     <div className="flex items-center justify-between">
                       <div>
@@ -1158,6 +2243,18 @@ export default function AutoBranchTimetable() {
                         </p>
                       </div>
                       <Activity className="w-8 h-8 text-amber-600 opacity-60" />
+                    </div>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg border border-purple-200">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-purple-700">Paired Subjects</p>
+                        <p className="text-2xl font-bold text-purple-900 mt-1">
+                          {statistics.pairedSubjectsCount}
+                        </p>
+                      </div>
+                      <Link className="w-8 h-8 text-purple-600 opacity-60" />
                     </div>
                   </div>
 

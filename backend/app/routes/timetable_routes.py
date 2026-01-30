@@ -7,7 +7,7 @@ from app.controllers.timetable_controller import (
     fetch_allowed_faculty,
     fetch_full_timetable,
     fullsave_timetable,
-    
+    fetch_allowed_subjects
 )
 from app.controllers.create_timetable import auto_generate_timetable,  auto_generate_branch_timetable
 from app.middlewares.auth_middleware import token_required
@@ -53,6 +53,11 @@ def read():
 @token_required
 def fetchfaculty():
     return fetch_allowed_faculty()
+
+@timetable_bp.route("/classwise-subjects", methods=["GET"])
+@token_required
+def fetchsubject():
+    return fetch_allowed_subjects()
 
 @timetable_bp.route("/", methods=["DELETE"], strict_slashes=False)
 @token_required
